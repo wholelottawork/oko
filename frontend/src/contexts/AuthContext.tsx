@@ -160,7 +160,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             otpSecret: data.otp_secret
           }
         }
-        // Unexpected success response
+        // Direct login — token provided, no OTP needed
+        if (data.token) {
+          reset401Flag()
+          const userInfo = { id: data.user_id, email: data.email || email }
+          setToken(data.token)
+          setUser(userInfo)
+          localStorage.setItem('auth_token', data.token)
+          localStorage.setItem('auth_user', JSON.stringify(userInfo))
+          const redirect = getPostAuthRedirect('/dashboard')
+          window.history.pushState({}, '', redirect)
+          window.dispatchEvent(new PopStateEvent('popstate'))
+          return { success: true, message: data.message || 'Login successful' }
+        }
         return { success: false, message: 'Unexpected login response' }
       } else {
         return {
