@@ -3,23 +3,50 @@ import { authMiddleware } from '../auth.js'
 
 const router = Router()
 
-router.get('/klines', authMiddleware, (req, res) => {
+// ─── Shared helpers ──────────────────────────────────────────────────────────
+
+const BINANCE_API = 'https://api.binance.com'
+const BINANCE_FAPI = 'https://fapi.binance.com'
+const BINANCE_DATA = 'https://fapi.binance.com/futures/data'
+const COINGECKO = 'https://api.coingecko.com/api/v3'
+const FEAR_GREED = 'https://api.alternative.me/fng'
+
+async function fetchJson(url) {
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`${r.status} ${url}`)
+  return r.json()
+}
+
+// Simple in-memory cache to respect rate limits
+const cache = {}
+function cached(key, ttlMs, fetcher) {
+  const entry = cache[key]
+  if (entry && Date.now() - entry.ts < ttlMs) return Promise.resolve(entry.data)
+  return fetcher().then(data => {
+    cache[key] = { data, ts: Date.now() }
+    return data
+  }).catch(err => {
+    if (entry) return entry.data
+    throw err
+  })
+}
+
+// ─── Klines (authenticated) ─────────────────────────────────────────────────
+
+router.get('/klines', authMiddleware, async (req, res) => {
   const { symbol = 'BTCUSDT', interval = '4h', limit = 100 } = req.query
-  const intervalMs = { '1m': 60000, '5m': 300000, '15m': 900000, '1h': 3600000, '4h': 14400000, '1d': 86400000 }
-  const ms = intervalMs[interval] || 14400000
-  const now = Date.now()
-  const klines = []
-  let price = symbol.includes('BTC') ? 67000 : symbol.includes('ETH') ? 3456 : 178
-  for (let i = parseInt(limit) - 1; i >= 0; i--) {
-    const t = now - i * ms
-    const change = (Math.random() - 0.5) * price * 0.02
-    const open = price
-    price += change
-    const high = Math.max(open, price) * (1 + Math.random() * 0.005)
-    const low = Math.min(open, price) * (1 - Math.random() * 0.005)
-    klines.push({ time: t, open, high, low, close: price, volume: Math.random() * 1000 })
+  try {
+    const data = await cached(`klines:${symbol}:${interval}:${limit}`, 30000, () =>
+      fetchJson(`${BINANCE_API}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`)
+    )
+    res.json(data.map(k => ({
+      time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]),
+      low: parseFloat(k[3]), close: parseFloat(k[4]), volume: parseFloat(k[5]),
+    })))
+  } catch (err) {
+    console.error('Klines fetch failed:', err.message)
+    res.status(502).json({ error: 'Failed to fetch klines' })
   }
-  res.json(klines)
 })
 
 router.get('/orders', authMiddleware, (_req, res) => res.json([]))
@@ -35,32 +62,45 @@ router.get('/symbols', (_req, res) => {
   ])
 })
 
-// SSE ticker stream — sends individual ticker updates per symbol
+// ─── SSE Ticker Stream — live from Binance ───────────────────────────────────
+
+const TICKER_SYMBOLS = [
+  'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT',
+  'DOGEUSDT', 'ADAUSDT', 'AVAXUSDT', 'LINKUSDT', 'DOTUSDT',
+  'POLUSDT', 'UNIUSDT', 'LTCUSDT', 'ATOMUSDT', 'NEARUSDT',
+  'APTUSDT', 'ARBUSDT', 'OPUSDT', 'INJUSDT', 'SUIUSDT',
+  'TIAUSDT', 'JUPUSDT', 'WIFUSDT', 'BONKUSDT', 'PEPEUSDT',
+]
+
+async function fetchAllTickers() {
+  return cached('binance_tickers', 3000, async () => {
+    const all = await fetchJson(`${BINANCE_API}/api/v3/ticker/24hr`)
+    const map = {}
+    for (const t of all) {
+      if (TICKER_SYMBOLS.includes(t.symbol)) {
+        map[t.symbol] = {
+          price: parseFloat(t.lastPrice) >= 1 ? parseFloat(t.lastPrice).toFixed(2) : parseFloat(t.lastPrice).toFixed(6),
+          changePercent: `${parseFloat(t.priceChangePercent) >= 0 ? '+' : ''}${parseFloat(t.priceChangePercent).toFixed(2)}%`,
+        }
+      }
+    }
+    return map
+  })
+}
+
 router.get('/market/tickers', (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream')
   res.setHeader('Cache-Control', 'no-cache')
   res.setHeader('Connection', 'keep-alive')
 
-  const prices = {
-    BTCUSDT: 67234.5, ETHUSDT: 3456.78, SOLUSDT: 178.92, BNBUSDT: 612.34,
-    XRPUSDT: 0.6234, DOGEUSDT: 0.1523, ADAUSDT: 0.4812, AVAXUSDT: 38.56,
-    LINKUSDT: 14.82, DOTUSDT: 7.23, POLUSDT: 0.58, UNIUSDT: 9.45,
-    LTCUSDT: 84.32, ATOMUSDT: 9.12, NEARUSDT: 6.78, APTUSDT: 8.92,
-    ARBUSDT: 1.12, OPUSDT: 2.34, INJUSDT: 28.45, SUIUSDT: 1.56,
-    TIAUSDT: 8.34, JUPUSDT: 1.23, WIFUSDT: 2.67, BONKUSDT: 0.0000234, PEPEUSDT: 0.0000156,
-  }
-
-  const sendAll = () => {
-    for (const [symbol, basePrice] of Object.entries(prices)) {
-      const change = (Math.random() - 0.5) * 0.002
-      prices[symbol] = basePrice * (1 + change)
-      const pct = ((Math.random() - 0.3) * 5).toFixed(2)
-      const pctStr = parseFloat(pct) >= 0 ? `+${pct}%` : `${pct}%`
-      res.write(`data: ${JSON.stringify({
-        symbol,
-        price: prices[symbol] >= 1 ? prices[symbol].toFixed(2) : prices[symbol].toFixed(6),
-        changePercent: pctStr,
-      })}\n\n`)
+  const sendAll = async () => {
+    try {
+      const tickers = await fetchAllTickers()
+      for (const [symbol, data] of Object.entries(tickers)) {
+        res.write(`data: ${JSON.stringify({ symbol, price: data.price, changePercent: data.changePercent })}\n\n`)
+      }
+    } catch (err) {
+      console.error('Ticker fetch error:', err.message)
     }
   }
 
@@ -69,94 +109,112 @@ router.get('/market/tickers', (req, res) => {
   req.on('close', () => clearInterval(interval))
 })
 
-// CoinGecko-style global data
-router.get('/market/global', (_req, res) => {
-  res.json({
-    global: {
-      data: {
-        total_market_cap: { usd: 2450000000000 },
-        total_volume: { usd: 89000000000 },
-        market_cap_percentage: { btc: 52.3, eth: 17.8 },
-        market_cap_change_percentage_24h_usd: 1.23,
-        active_cryptocurrencies: 12500,
-      },
-    },
-    fearGreed: {
-      data: [{ value: '62', value_classification: 'Greed' }],
-    },
-  })
-})
+// ─── Global Market Data — live from CoinGecko + Fear & Greed ─────────────────
 
-// CoinGecko-style coin list
-router.get('/market/coins', (_req, res) => {
-  res.json([
-    { id: 'bitcoin', market_cap_rank: 1, name: 'Bitcoin', symbol: 'btc', image: 'https://assets.coingecko.com/coins/images/1/small/bitcoin.png', current_price: 67234.5, price_change_percentage_24h: 2.34, price_change_percentage_7d_in_currency: 5.12, market_cap: 1320000000000, total_volume: 28500000000 },
-    { id: 'ethereum', market_cap_rank: 2, name: 'Ethereum', symbol: 'eth', image: 'https://assets.coingecko.com/coins/images/279/small/ethereum.png', current_price: 3456.78, price_change_percentage_24h: 1.56, price_change_percentage_7d_in_currency: 3.45, market_cap: 415000000000, total_volume: 15200000000 },
-    { id: 'binancecoin', market_cap_rank: 3, name: 'BNB', symbol: 'bnb', image: 'https://assets.coingecko.com/coins/images/825/small/bnb-icon2_2x.png', current_price: 612.34, price_change_percentage_24h: -0.87, price_change_percentage_7d_in_currency: 1.23, market_cap: 92000000000, total_volume: 1800000000 },
-    { id: 'solana', market_cap_rank: 4, name: 'Solana', symbol: 'sol', image: 'https://assets.coingecko.com/coins/images/4128/small/solana.png', current_price: 178.92, price_change_percentage_24h: 4.21, price_change_percentage_7d_in_currency: 8.67, market_cap: 82000000000, total_volume: 3200000000 },
-    { id: 'ripple', market_cap_rank: 5, name: 'XRP', symbol: 'xrp', image: 'https://assets.coingecko.com/coins/images/44/small/xrp-symbol-white-128.png', current_price: 0.6234, price_change_percentage_24h: 3.12, price_change_percentage_7d_in_currency: 2.34, market_cap: 34000000000, total_volume: 2100000000 },
-    { id: 'dogecoin', market_cap_rank: 6, name: 'Dogecoin', symbol: 'doge', image: 'https://assets.coingecko.com/coins/images/5/small/dogecoin.png', current_price: 0.1523, price_change_percentage_24h: 1.89, price_change_percentage_7d_in_currency: -0.45, market_cap: 22000000000, total_volume: 1200000000 },
-    { id: 'cardano', market_cap_rank: 7, name: 'Cardano', symbol: 'ada', image: 'https://assets.coingecko.com/coins/images/975/small/cardano.png', current_price: 0.4812, price_change_percentage_24h: 0.92, price_change_percentage_7d_in_currency: 3.21, market_cap: 17000000000, total_volume: 800000000 },
-    { id: 'avalanche-2', market_cap_rank: 8, name: 'Avalanche', symbol: 'avax', image: 'https://assets.coingecko.com/coins/images/12559/small/Avalanche_Circle_RedWhite_Trans.png', current_price: 38.56, price_change_percentage_24h: 2.67, price_change_percentage_7d_in_currency: 6.78, market_cap: 15000000000, total_volume: 600000000 },
-    { id: 'chainlink', market_cap_rank: 9, name: 'Chainlink', symbol: 'link', image: 'https://assets.coingecko.com/coins/images/877/small/chainlink-new-logo.png', current_price: 14.82, price_change_percentage_24h: 1.45, price_change_percentage_7d_in_currency: 4.56, market_cap: 9000000000, total_volume: 500000000 },
-    { id: 'polkadot', market_cap_rank: 10, name: 'Polkadot', symbol: 'dot', image: 'https://assets.coingecko.com/coins/images/12171/small/polkadot.png', current_price: 7.23, price_change_percentage_24h: -0.34, price_change_percentage_7d_in_currency: 1.89, market_cap: 10000000000, total_volume: 400000000 },
-  ])
-})
-
-// CoinGecko-style trending
-router.get('/market/trending', (_req, res) => {
-  res.json({
-    coins: [
-      { item: { id: 'pepe', name: 'Pepe', symbol: 'PEPE', thumb: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg', data: { price: 0.0000156, price_change_percentage_24h: { usd: 15.6 } }, market_cap_rank: 24, binance_symbol: 'PEPEUSDT' } },
-      { item: { id: 'dogwifhat', name: 'dogwifhat', symbol: 'WIF', thumb: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg', data: { price: 2.67, price_change_percentage_24h: { usd: 12.3 } }, market_cap_rank: 52, binance_symbol: 'WIFUSDT' } },
-      { item: { id: 'render-token', name: 'Render', symbol: 'RNDR', thumb: 'https://assets.coingecko.com/coins/images/11636/small/rndr.png', data: { price: 8.45, price_change_percentage_24h: { usd: 8.9 } }, market_cap_rank: 28, binance_symbol: 'RNDRUSDT' } },
-      { item: { id: 'jupiter', name: 'Jupiter', symbol: 'JUP', thumb: 'https://assets.coingecko.com/coins/images/34188/small/jup.png', data: { price: 1.23, price_change_percentage_24h: { usd: 7.8 } }, market_cap_rank: 45, binance_symbol: 'JUPUSDT' } },
-      { item: { id: 'sui', name: 'Sui', symbol: 'SUI', thumb: 'https://assets.coingecko.com/coins/images/26375/small/sui-ocean-square.png', data: { price: 1.56, price_change_percentage_24h: { usd: 6.5 } }, market_cap_rank: 30, binance_symbol: 'SUIUSDT' } },
-      { item: { id: 'injective', name: 'Injective', symbol: 'INJ', thumb: 'https://assets.coingecko.com/coins/images/12882/small/Secondary_Symbol.png', data: { price: 28.45, price_change_percentage_24h: { usd: 5.2 } }, market_cap_rank: 35, binance_symbol: 'INJUSDT' } },
-      { item: { id: 'celestia', name: 'Celestia', symbol: 'TIA', thumb: 'https://assets.coingecko.com/coins/images/31967/small/tia.jpg', data: { price: 8.34, price_change_percentage_24h: { usd: 4.1 } }, market_cap_rank: 42, binance_symbol: 'TIAUSDT' } },
-    ],
-  })
-})
-
-// CoinGecko-style gainers
-router.get('/market/gainers', (_req, res) => {
-  res.json([
-    { id: 'pepe', name: 'Pepe', symbol: 'pepe', image: 'https://assets.coingecko.com/coins/images/29850/small/pepe-token.jpeg', current_price: 0.0000156, price_change_percentage_24h: 15.6, binance_symbol: 'PEPEUSDT' },
-    { id: 'dogwifhat', name: 'dogwifhat', symbol: 'wif', image: 'https://assets.coingecko.com/coins/images/33566/small/dogwifhat.jpg', current_price: 2.67, price_change_percentage_24h: 12.3, binance_symbol: 'WIFUSDT' },
-    { id: 'render-token', name: 'Render', symbol: 'rndr', image: 'https://assets.coingecko.com/coins/images/11636/small/rndr.png', current_price: 8.45, price_change_percentage_24h: 8.9, binance_symbol: 'RNDRUSDT' },
-    { id: 'bonk', name: 'Bonk', symbol: 'bonk', image: 'https://assets.coingecko.com/coins/images/28600/small/bonk.jpg', current_price: 0.0000234, price_change_percentage_24h: 7.5, binance_symbol: 'BONKUSDT' },
-    { id: 'jupiter', name: 'Jupiter', symbol: 'jup', image: 'https://assets.coingecko.com/coins/images/34188/small/jup.png', current_price: 1.23, price_change_percentage_24h: 6.8, binance_symbol: 'JUPUSDT' },
-  ])
-})
-
-// CoinGecko-style chart data (7-day market cap + volume)
-router.get('/market/chart', (_req, res) => {
-  const now = Date.now()
-  const hourMs = 3600000
-  const marketCaps = []
-  const volumes = []
-  let mcap = 2400000000000
-  for (let i = 168; i >= 0; i--) {
-    const t = now - i * hourMs
-    mcap += (Math.random() - 0.48) * mcap * 0.002
-    marketCaps.push([t, mcap])
-    volumes.push([t, 80000000000 + (Math.random() - 0.5) * 20000000000])
+router.get('/market/global', async (_req, res) => {
+  try {
+    const [globalData, fng] = await Promise.all([
+      cached('cg_global', 120000, () => fetchJson(`${COINGECKO}/global`)),
+      cached('fear_greed', 300000, () => fetchJson(`${FEAR_GREED}/?limit=1`)),
+    ])
+    res.json({ global: globalData, fearGreed: fng })
+  } catch (err) {
+    console.error('Global data fetch failed:', err.message)
+    res.status(502).json({ error: 'Failed to fetch global data' })
   }
-  res.json({
-    marketCap: { market_caps: marketCaps },
-    volume: { total_volumes: volumes },
-  })
 })
 
-// Futures data for liquidation map + AI signals — fetches live from Binance
-const BINANCE_FAPI = 'https://fapi.binance.com'
-const BINANCE_DATA = 'https://fapi.binance.com/futures/data'
+// ─── Top Coins — live from CoinGecko ─────────────────────────────────────────
 
-async function fetchJson(url) {
-  const r = await fetch(url)
-  if (!r.ok) throw new Error(`${r.status} ${url}`)
-  return r.json()
+router.get('/market/coins', async (_req, res) => {
+  try {
+    const coins = await cached('cg_coins', 60000, () =>
+      fetchJson(`${COINGECKO}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=20&sparkline=false&price_change_percentage=7d`)
+    )
+    res.json(coins)
+  } catch (err) {
+    console.error('Coins fetch failed:', err.message)
+    res.status(502).json({ error: 'Failed to fetch coins' })
+  }
+})
+
+// ─── Trending — live from CoinGecko ──────────────────────────────────────────
+
+const SYMBOL_TO_BINANCE = {
+  btc: 'BTCUSDT', eth: 'ETHUSDT', sol: 'SOLUSDT', bnb: 'BNBUSDT',
+  xrp: 'XRPUSDT', doge: 'DOGEUSDT', ada: 'ADAUSDT', avax: 'AVAXUSDT',
+  link: 'LINKUSDT', dot: 'DOTUSDT', matic: 'POLUSDT', uni: 'UNIUSDT',
+  ltc: 'LTCUSDT', atom: 'ATOMUSDT', near: 'NEARUSDT', apt: 'APTUSDT',
+  arb: 'ARBUSDT', op: 'OPUSDT', inj: 'INJUSDT', sui: 'SUIUSDT',
+  tia: 'TIAUSDT', jup: 'JUPUSDT', wif: 'WIFUSDT', bonk: 'BONKUSDT',
+  pepe: 'PEPEUSDT', rndr: 'RNDRUSDT', render: 'RNDRUSDT', fet: 'FETUSDT',
+  sei: 'SEIUSDT', strk: 'STRKUSDT', pendle: 'PENDLEUSDT',
 }
+
+router.get('/market/trending', async (_req, res) => {
+  try {
+    const data = await cached('cg_trending', 120000, () =>
+      fetchJson(`${COINGECKO}/search/trending`)
+    )
+    // Add binance_symbol to each trending coin
+    if (data.coins) {
+      for (const c of data.coins) {
+        const sym = c.item?.symbol?.toLowerCase()
+        c.item.binance_symbol = SYMBOL_TO_BINANCE[sym] || `${(sym || '').toUpperCase()}USDT`
+      }
+    }
+    res.json(data)
+  } catch (err) {
+    console.error('Trending fetch failed:', err.message)
+    res.status(502).json({ error: 'Failed to fetch trending' })
+  }
+})
+
+// ─── Top Gainers — derived from CoinGecko coins data ────────────────────────
+
+router.get('/market/gainers', async (_req, res) => {
+  try {
+    const coins = await cached('cg_gainers', 60000, () =>
+      fetchJson(`${COINGECKO}/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&sparkline=false`)
+    )
+    const sorted = coins
+      .filter(c => c.price_change_percentage_24h != null)
+      .sort((a, b) => b.price_change_percentage_24h - a.price_change_percentage_24h)
+      .slice(0, 7)
+      .map(c => ({
+        ...c,
+        binance_symbol: SYMBOL_TO_BINANCE[c.symbol?.toLowerCase()] || `${(c.symbol || '').toUpperCase()}USDT`,
+      }))
+    res.json(sorted)
+  } catch (err) {
+    console.error('Gainers fetch failed:', err.message)
+    res.status(502).json({ error: 'Failed to fetch gainers' })
+  }
+})
+
+// ─── Market Chart — live from CoinGecko ──────────────────────────────────────
+
+router.get('/market/chart', async (_req, res) => {
+  try {
+    const [mcData, volData] = await Promise.all([
+      cached('cg_chart_mc', 600000, () =>
+        fetchJson(`${COINGECKO}/coins/bitcoin/market_chart?vs_currency=usd&days=7`)
+      ),
+      cached('cg_chart_vol', 600000, () =>
+        fetchJson(`${COINGECKO}/coins/bitcoin/market_chart?vs_currency=usd&days=1`)
+      ),
+    ])
+    res.json({
+      marketCap: { market_caps: mcData.market_caps || [] },
+      volume: { total_volumes: volData.total_volumes || [] },
+    })
+  } catch (err) {
+    console.error('Chart fetch failed:', err.message)
+    res.status(502).json({ error: 'Failed to fetch chart data' })
+  }
+})
+
+// ─── Futures / Liquidation Map — live from Binance ───────────────────────────
 
 function buildLiqLevels(price, oi) {
   const LEVELS = 20, RANGE = 0.15
