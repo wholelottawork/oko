@@ -1,0 +1,2086 @@
+import { useEffect, useMemo, useState, useCallback, useRef, type FormEvent } from 'react'
+import useSWR from 'swr'
+import { motion, AnimatePresence } from 'framer-motion'
+import { createChart, ColorType, CrosshairMode, CandlestickSeries, createSeriesMarkers, type IChartApi, type ISeriesApi, type CandlestickData, type UTCTimestamp, type SeriesMarker } from 'lightweight-charts'
+import {
+  Play,
+  Pause,
+  Square,
+  Download,
+  Trash2,
+  ChevronRight,
+  ChevronLeft,
+  Clock,
+  TrendingUp,
+  TrendingDown,
+  Activity,
+  BarChart3,
+  Brain,
+  Zap,
+  Target,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  RefreshCw,
+  RotateCw,
+  Layers,
+  Eye,
+  ArrowUpRight,
+  ArrowDownRight,
+  CandlestickChart as CandlestickIcon,
+} from 'lucide-react'
+import { DeepVoidBackground } from './DeepVoidBackground'
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ReferenceDot,
+} from 'recharts'
+import { api } from '../lib/api'
+import { useLanguage } from '../contexts/LanguageContext'
+import { t } from '../i18n/translations'
+import { confirmToast } from '../lib/notify'
+import { DecisionCard } from './DecisionCard'
+import { MetricTooltip } from './MetricTooltip'
+import type {
+  BacktestStatusPayload,
+  BacktestPositionStatus,
+  BacktestEquityPoint,
+  BacktestTradeEvent,
+  BacktestMetrics,
+  BacktestKlinesResponse,
+  DecisionRecord,
+  AIModel,
+  Strategy,
+} from '../types'
+
+// ============ Types ============
+type WizardStep = 1 | 2 | 3
+type ViewTab = 'overview' | 'chart' | 'trades' | 'decisions' | 'compare'
+
+const TIMEFRAME_OPTIONS = ['1m', '3m', '5m', '15m', '30m', '1h', '4h', '1d']
+const POPULAR_SYMBOLS = ['BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'BNBUSDT', 'XRPUSDT', 'DOGEUSDT']
+
+// ============ Helper Functions ============
+const toLocalInput = (date: Date) => {
+  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+  return local.toISOString().slice(0, 16)
+}
+
+
+// ============ Sub Components ============
+
+// Stats Card Component
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  suffix,
+  trend,
+  color = 'var(--text-primary)',
+  metricKey,
+  language = 'en',
+}: {
+  icon: typeof TrendingUp
+  label: string
+  value: string | number
+  suffix?: string
+  trend?: 'up' | 'down' | 'neutral'
+  color?: string
+  metricKey?: string
+  language?: string
+}) {
+  const trendColors = {
+    up: 'var(--binance-green)',
+    down: 'var(--binance-red)',
+    neutral: 'var(--text-secondary)',
+  }
+
+  return (
+    <div
+      className="p-4 rounded-xl"
+      style={{ background: 'var(--panel-bg)', border: '1px solid var(--surface-tertiary)' }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <Icon className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          {label}
+        </span>
+        {metricKey && (
+          <MetricTooltip metricKey={metricKey} language={language} size={12} />
+        )}
+      </div>
+      <div className="flex items-baseline gap-1">
+        <span className="text-xl font-bold" style={{ color }}>
+          {value}
+        </span>
+        {suffix && (
+          <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+            {suffix}
+          </span>
+        )}
+        {trend && trend !== 'neutral' && (
+          <span style={{ color: trendColors[trend] }}>
+            {trend === 'up' ? <ArrowUpRight className="w-4 h-4" /> : <ArrowDownRight className="w-4 h-4" />}
+          </span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// Progress Ring Component
+function ProgressRing({ progress, size = 120 }: { progress: number; size?: number }) {
+  const strokeWidth = 8
+  const radius = (size - strokeWidth) / 2
+  const circumference = radius * 2 * Math.PI
+  const offset = circumference - (progress / 100) * circumference
+
+  return (
+    <div className="relative" style={{ width: size, height: size }}>
+      <svg className="transform -rotate-90" width={size} height={size}>
+        <circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="var(--surface-tertiary)"
+          strokeWidth={strokeWidth}
+          fill="none"
+        />
+        <motion.circle
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
+          stroke="var(--nofx-gold)"
+          strokeWidth={strokeWidth}
+          fill="none"
+          strokeLinecap="round"
+          strokeDasharray={circumference}
+          initial={{ strokeDashoffset: circumference }}
+          animate={{ strokeDashoffset: offset }}
+          transition={{ duration: 0.5 }}
+        />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center flex-col">
+        <span className="text-2xl font-bold" style={{ color: 'var(--nofx-gold)' }}>
+          {progress.toFixed(0)}%
+        </span>
+        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+          Complete
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// Equity Chart Component using Recharts
+function BacktestChart({
+  equity,
+  trades,
+}: {
+  equity: BacktestEquityPoint[]
+  trades: BacktestTradeEvent[]
+}) {
+  const chartData = useMemo(() => {
+    return equity.map((point) => ({
+      time: new Date(point.ts).toLocaleString(),
+      ts: point.ts,
+      equity: point.equity,
+      pnl_pct: point.pnl_pct,
+    }))
+  }, [equity])
+
+  // Find trade points to mark on chart
+  const tradeMarkers = useMemo(() => {
+    if (!trades.length || !equity.length) return []
+    return trades
+      .filter((t) => t.action.includes('open') || t.action.includes('close'))
+      .map((trade) => {
+        // Find closest equity point
+        const closest = equity.reduce((prev, curr) =>
+          Math.abs(curr.ts - trade.ts) < Math.abs(prev.ts - trade.ts) ? curr : prev
+        )
+        return {
+          ts: closest.ts,
+          equity: closest.equity,
+          action: trade.action,
+          symbol: trade.symbol,
+          isOpen: trade.action.includes('open'),
+        }
+      })
+      .slice(-30) // Limit markers
+  }, [trades, equity])
+
+  return (
+    <div className="w-full h-[300px]">
+      <ResponsiveContainer width="100%" height="100%">
+        <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+          <defs>
+            <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor="var(--nofx-gold)" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="var(--nofx-gold)" stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <CartesianGrid stroke="rgba(43, 49, 57, 0.5)" strokeDasharray="3 3" />
+          <XAxis
+            dataKey="time"
+            tick={{ fill: '#848E9C', fontSize: 10 }}
+            axisLine={{ stroke: '#2B3139' }}
+            tickLine={{ stroke: '#2B3139' }}
+            hide
+          />
+          <YAxis
+            tick={{ fill: '#848E9C', fontSize: 10 }}
+            axisLine={{ stroke: '#2B3139' }}
+            tickLine={{ stroke: '#2B3139' }}
+            width={60}
+            domain={['auto', 'auto']}
+          />
+          <Tooltip
+            contentStyle={{
+              background: 'var(--surface-secondary)',
+              border: '1px solid var(--surface-tertiary)',
+              borderRadius: 8,
+              color: 'var(--text-primary)',
+            }}
+            labelStyle={{ color: 'var(--text-secondary)' }}
+            formatter={(value: number) => [`$${value.toFixed(2)}`, 'Equity']}
+          />
+          <Area
+            type="monotone"
+            dataKey="equity"
+            stroke="var(--nofx-gold)"
+            strokeWidth={2}
+            fill="url(#equityGradient)"
+            dot={false}
+            activeDot={{ r: 4, fill: 'var(--accent-primary)' }}
+          />
+          {/* Trade markers */}
+          {tradeMarkers.map((marker, idx) => (
+            <ReferenceDot
+              key={`${marker.ts}-${idx}`}
+              x={chartData.findIndex((d) => d.ts === marker.ts)}
+              y={marker.equity}
+              r={4}
+              fill={marker.isOpen ? '#0ECB81' : '#F6465D'}
+              stroke={marker.isOpen ? '#0ECB81' : '#F6465D'}
+            />
+          ))}
+        </AreaChart>
+      </ResponsiveContainer>
+    </div>
+  )
+}
+
+// Candlestick Chart Component with trade markers
+function CandlestickChartComponent({
+  runId,
+  trades,
+  language,
+}: {
+  runId: string
+  trades: BacktestTradeEvent[]
+  language: string
+}) {
+  const chartContainerRef = useRef<HTMLDivElement>(null)
+  const chartRef = useRef<IChartApi | null>(null)
+  const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null)
+
+  // Get unique symbols from trades
+  const symbols = useMemo(() => {
+    const symbolSet = new Set(trades.map((t) => t.symbol))
+    return Array.from(symbolSet).sort()
+  }, [trades])
+
+  const [selectedSymbol, setSelectedSymbol] = useState<string>(symbols[0] || '')
+  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('15m')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const CHART_TIMEFRAMES = ['1m', '3m', '5m', '15m', '30m', '1h', '4h', '1d']
+
+  // Update selected symbol when symbols change
+  useEffect(() => {
+    if (symbols.length > 0 && !symbols.includes(selectedSymbol)) {
+      setSelectedSymbol(symbols[0])
+    }
+  }, [symbols, selectedSymbol])
+
+  // Filter trades for selected symbol
+  const symbolTrades = useMemo(() => {
+    return trades.filter((t) => t.symbol === selectedSymbol)
+  }, [trades, selectedSymbol])
+
+  // Fetch klines and render chart
+  useEffect(() => {
+    if (!chartContainerRef.current || !selectedSymbol || !runId) return
+
+    const container = chartContainerRef.current
+
+    // Create chart
+    const chart = createChart(container, {
+      layout: {
+        background: { type: ColorType.Solid, color: '#0B0E11' },
+        textColor: '#848E9C',
+      },
+      grid: {
+        vertLines: { color: 'rgba(43, 49, 57, 0.5)' },
+        horzLines: { color: 'rgba(43, 49, 57, 0.5)' },
+      },
+      crosshair: {
+        mode: CrosshairMode.Normal,
+      },
+      rightPriceScale: {
+        borderColor: '#2B3139',
+      },
+      timeScale: {
+        borderColor: '#2B3139',
+        timeVisible: true,
+        secondsVisible: false,
+      },
+      width: container.clientWidth,
+      height: 400,
+    })
+
+    chartRef.current = chart
+
+    // Add candlestick series
+    const candleSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#0ECB81',
+      downColor: '#F6465D',
+      borderUpColor: '#0ECB81',
+      borderDownColor: '#F6465D',
+      wickUpColor: '#0ECB81',
+      wickDownColor: '#F6465D',
+    })
+    candleSeriesRef.current = candleSeries
+
+    // Fetch klines
+    setIsLoading(true)
+    setError(null)
+
+    api
+      .getBacktestKlines(runId, selectedSymbol, selectedTimeframe)
+      .then((data: BacktestKlinesResponse) => {
+        const klineData: CandlestickData<UTCTimestamp>[] = data.klines.map((k) => ({
+          time: k.time as UTCTimestamp,
+          open: k.open,
+          high: k.high,
+          low: k.low,
+          close: k.close,
+        }))
+        candleSeries.setData(klineData)
+
+        // Add trade markers with improved styling
+        const markers: SeriesMarker<UTCTimestamp>[] = symbolTrades
+          .map((trade) => {
+            const tradeTime = Math.floor(trade.ts / 1000)
+            // Find closest kline time
+            const closestKline = data.klines.reduce((prev, curr) =>
+              Math.abs(curr.time - tradeTime) < Math.abs(prev.time - tradeTime) ? curr : prev
+            )
+            const isOpen = trade.action.includes('open')
+            const isLong = trade.side === 'long' || trade.action.includes('long')
+            const pnl = trade.realized_pnl
+
+            // Format display text
+            let text = ''
+            let color = '#0ECB81' // Default green
+
+            if (isOpen) {
+              // Opening position: show direction and price
+              if (isLong) {
+                text = `▲ Long @${trade.price.toFixed(2)}`
+                color = '#0ECB81' // Green for long open
+              } else {
+                text = `▼ Short @${trade.price.toFixed(2)}`
+                color = '#F6465D' // Red for short open
+              }
+            } else {
+              // Closing position: show PnL
+              const pnlStr = pnl >= 0 ? `+$${pnl.toFixed(2)}` : `-$${Math.abs(pnl).toFixed(2)}`
+              text = `✕ ${pnlStr}`
+              color = pnl >= 0 ? '#0ECB81' : '#F6465D' // Green for profit, red for loss
+            }
+
+            return {
+              time: closestKline.time as UTCTimestamp,
+              position: isOpen
+                ? (isLong ? 'belowBar' as const : 'aboveBar' as const) // Long below, short above
+                : (isLong ? 'aboveBar' as const : 'belowBar' as const), // Close opposite
+              color,
+              shape: 'circle' as const,
+              size: 2,
+              text,
+            }
+          })
+          .sort((a, b) => (a.time as number) - (b.time as number))
+
+        createSeriesMarkers(candleSeries, markers)
+        chart.timeScale().fitContent()
+        setIsLoading(false)
+      })
+      .catch((err) => {
+        setError(err.message || 'Failed to load klines')
+        setIsLoading(false)
+      })
+
+    // Handle resize
+    const handleResize = () => {
+      if (chartContainerRef.current) {
+        chart.applyOptions({ width: chartContainerRef.current.clientWidth })
+      }
+    }
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      chart.remove()
+      chartRef.current = null
+      candleSeriesRef.current = null
+    }
+  }, [runId, selectedSymbol, selectedTimeframe, symbolTrades])
+
+  if (symbols.length === 0) {
+    return (
+      <div className="py-12 text-center" style={{ color: 'var(--text-tertiary)' }}>
+        {language === 'zh' ? '没有交易记录' : 'No trades to display'}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-3">
+      {/* Symbol and Timeframe selectors */}
+      <div className="flex items-center gap-4 flex-wrap">
+        <div className="flex items-center gap-2">
+          <CandlestickIcon size={16} style={{ color: 'var(--nofx-gold)' }} />
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {language === 'zh' ? '币种' : 'Symbol'}
+          </span>
+          <select
+            value={selectedSymbol}
+            onChange={(e) => setSelectedSymbol(e.target.value)}
+            className="px-3 py-1.5 rounded text-sm"
+            style={{ background: 'var(--surface-secondary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+          >
+            {symbols.map((sym) => (
+              <option key={sym} value={sym}>
+                {sym}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Clock size={14} style={{ color: 'var(--text-secondary)' }} />
+          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {language === 'zh' ? '周期' : 'Interval'}
+          </span>
+          <div className="flex rounded overflow-hidden" style={{ border: '1px solid var(--surface-tertiary)' }}>
+            {CHART_TIMEFRAMES.map((tf) => (
+              <button
+                key={tf}
+                onClick={() => setSelectedTimeframe(tf)}
+                className="px-2.5 py-1 text-xs font-medium transition-colors"
+                style={{
+                  background: selectedTimeframe === tf ? 'var(--nofx-gold)' : 'var(--surface-secondary)',
+                  color: selectedTimeframe === tf ? 'var(--surface-primary)' : 'var(--text-secondary)',
+                }}
+              >
+                {tf}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+          ({symbolTrades.length} {language === 'zh' ? '笔交易' : 'trades'})
+        </span>
+      </div>
+
+      {/* Chart container */}
+      <div
+        ref={chartContainerRef}
+        className="w-full rounded-lg overflow-hidden"
+        style={{ background: 'var(--surface-primary)', minHeight: 400 }}
+      >
+        {isLoading && (
+          <div className="flex items-center justify-center h-[400px]" style={{ color: 'var(--text-secondary)' }}>
+            <RefreshCw className="animate-spin mr-2" size={16} />
+            {language === 'zh' ? '加载K线数据...' : 'Loading kline data...'}
+          </div>
+        )}
+        {error && (
+          <div className="flex items-center justify-center h-[400px]" style={{ color: 'var(--binance-red)' }}>
+            <AlertTriangle className="mr-2" size={16} />
+            {error}
+          </div>
+        )}
+      </div>
+
+      {/* Legend */}
+      <div className="flex items-center gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--binance-green)' }} />
+          <span>{language === 'zh' ? '开仓/盈利' : 'Open/Profit'}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-full" style={{ background: 'var(--binance-red)' }} />
+          <span>{language === 'zh' ? '亏损平仓' : 'Loss Close'}</span>
+        </div>
+        <span style={{ color: 'var(--text-tertiary)' }}>|</span>
+        <span>▲ Long · ▼ Short · ✕ {language === 'zh' ? '平仓' : 'Close'}</span>
+      </div>
+    </div>
+  )
+}
+
+// Trade Timeline Component
+function TradeTimeline({ trades }: { trades: BacktestTradeEvent[] }) {
+  const recentTrades = useMemo(() => [...trades].slice(-20).reverse(), [trades])
+
+  if (recentTrades.length === 0) {
+    return (
+      <div className="py-12 text-center" style={{ color: 'var(--text-tertiary)' }}>
+        No trades yet
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+      {recentTrades.map((trade, idx) => {
+        const isOpen = trade.action.includes('open')
+        const isLong = trade.action.includes('long')
+        const bgColor = isOpen ? 'var(--binance-green-bg)' : 'var(--binance-red-bg)'
+        const borderColor = isOpen ? 'rgba(14, 203, 129, 0.3)' : 'rgba(246, 70, 93, 0.3)'
+        const iconColor = isOpen ? '#0ECB81' : '#F6465D'
+
+        return (
+          <motion.div
+            key={`${trade.ts}-${trade.symbol}-${idx}`}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: idx * 0.05 }}
+            className="p-3 rounded-lg flex items-center gap-3"
+            style={{ background: bgColor, border: `1px solid ${borderColor}` }}
+          >
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ background: `${iconColor}20` }}
+            >
+              {isLong ? (
+                <TrendingUp className="w-4 h-4" style={{ color: iconColor }} />
+              ) : (
+                <TrendingDown className="w-4 h-4" style={{ color: iconColor }} />
+              )}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <span className="font-mono font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                  {trade.symbol.replace('USDT', '')}
+                </span>
+                <span
+                  className="px-2 py-0.5 rounded text-xs font-medium"
+                  style={{ background: `${iconColor}20`, color: iconColor }}
+                >
+                  {trade.action.replace('_', ' ').toUpperCase()}
+                </span>
+                {trade.leverage && (
+                  <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                    {trade.leverage}x
+                  </span>
+                )}
+              </div>
+              <div className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                {new Date(trade.ts).toLocaleString()} · Qty: {trade.qty.toFixed(4)} · ${trade.price.toFixed(2)}
+              </div>
+            </div>
+            <div className="text-right">
+              <div
+                className="font-mono font-bold"
+                style={{ color: trade.realized_pnl >= 0 ? 'var(--binance-green)' : 'var(--binance-red)' }}
+              >
+                {trade.realized_pnl >= 0 ? '+' : ''}
+                {trade.realized_pnl.toFixed(2)}
+              </div>
+              <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                USDT
+              </div>
+            </div>
+          </motion.div>
+        )
+      })}
+    </div>
+  )
+}
+
+// Real-time Positions Display Component
+function PositionsDisplay({
+  positions,
+  language,
+}: {
+  positions: BacktestPositionStatus[]
+  language: string
+}) {
+  if (!positions || positions.length === 0) {
+    return null
+  }
+
+  const totalUnrealizedPnL = positions.reduce((sum, p) => sum + p.unrealized_pnl, 0)
+  const totalMargin = positions.reduce((sum, p) => sum + p.margin_used, 0)
+
+  return (
+    <div
+      className="mt-3 p-3 rounded-lg"
+      style={{ background: 'var(--panel-bg)', border: '1px solid var(--surface-tertiary)' }}
+    >
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Activity className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+          <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+            {language === 'zh' ? '当前持仓' : 'Active Positions'}
+          </span>
+          <span
+            className="px-1.5 py-0.5 rounded text-xs"
+            style={{ background: 'var(--accent-primary-bg)', color: 'var(--accent-primary)' }}
+          >
+            {positions.length}
+          </span>
+        </div>
+        <div className="flex items-center gap-3 text-xs">
+          <span style={{ color: 'var(--text-secondary)' }}>
+            {language === 'zh' ? '保证金' : 'Margin'}: ${totalMargin.toFixed(2)}
+          </span>
+          <span
+            className="font-medium"
+            style={{ color: totalUnrealizedPnL >= 0 ? 'var(--binance-green)' : 'var(--binance-red)' }}
+          >
+            {language === 'zh' ? '浮盈' : 'Unrealized'}: {totalUnrealizedPnL >= 0 ? '+' : ''}
+            ${totalUnrealizedPnL.toFixed(2)}
+          </span>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        {positions.map((pos) => {
+          const isLong = pos.side === 'long'
+          const pnlColor = pos.unrealized_pnl >= 0 ? '#0ECB81' : '#F6465D'
+
+          return (
+            <motion.div
+              key={`${pos.symbol}-${pos.side}`}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center justify-between p-2 rounded"
+              style={{ background: 'var(--surface-secondary)' }}
+            >
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-6 h-6 rounded flex items-center justify-center"
+                  style={{ background: isLong ? '#0ECB8120' : '#F6465D20' }}
+                >
+                  {isLong ? (
+                    <TrendingUp className="w-3.5 h-3.5" style={{ color: 'var(--binance-green)' }} />
+                  ) : (
+                    <TrendingDown className="w-3.5 h-3.5" style={{ color: 'var(--binance-red)' }} />
+                  )}
+                </div>
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-mono font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
+                      {pos.symbol.replace('USDT', '')}
+                    </span>
+                    <span
+                      className="px-1 py-0.5 rounded text-[10px] font-medium"
+                      style={{
+                        background: isLong ? '#0ECB8120' : '#F6465D20',
+                        color: isLong ? 'var(--binance-green)' : 'var(--binance-red)',
+                      }}
+                    >
+                      {isLong ? 'LONG' : 'SHORT'} {pos.leverage}x
+                    </span>
+                  </div>
+                  <div className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>
+                    {language === 'zh' ? '数量' : 'Qty'}: {pos.quantity.toFixed(4)} ·{' '}
+                    {language === 'zh' ? '保证金' : 'Margin'}: ${pos.margin_used.toFixed(2)}
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-right">
+                <div className="flex items-center gap-2 text-xs">
+                  <span style={{ color: 'var(--text-secondary)' }}>
+                    {language === 'zh' ? '开仓' : 'Entry'}: ${pos.entry_price.toFixed(2)}
+                  </span>
+                  <span style={{ color: 'var(--text-primary)' }}>
+                    {language === 'zh' ? '现价' : 'Mark'}: ${pos.mark_price.toFixed(2)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-end gap-1.5 mt-0.5">
+                  <span className="font-mono font-bold" style={{ color: pnlColor }}>
+                    {pos.unrealized_pnl >= 0 ? '+' : ''}${pos.unrealized_pnl.toFixed(2)}
+                  </span>
+                  <span
+                    className="px-1 py-0.5 rounded text-[10px] font-medium"
+                    style={{ background: `${pnlColor}20`, color: pnlColor }}
+                  >
+                    {pos.unrealized_pnl_pct >= 0 ? '+' : ''}{pos.unrealized_pnl_pct.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ============ Main Component ============
+export function BacktestPage() {
+  const { language } = useLanguage()
+  const tr = useCallback(
+    (key: string, params?: Record<string, string | number>) => t(`backtestPage.${key}`, language, params),
+    [language]
+  )
+
+  // State
+  const now = new Date()
+  const [wizardStep, setWizardStep] = useState<WizardStep>(1)
+  const [viewTab, setViewTab] = useState<ViewTab>('overview')
+  const [selectedRunId, setSelectedRunId] = useState<string>()
+  const [compareRunIds, setCompareRunIds] = useState<string[]>([])
+  const [isStarting, setIsStarting] = useState(false)
+  const [toast, setToast] = useState<{ text: string; tone: 'info' | 'error' | 'success' } | null>(null)
+
+  // Form state
+  const [formState, setFormState] = useState({
+    runId: '',
+    symbols: 'BTCUSDT,ETHUSDT,SOLUSDT',
+    timeframes: ['3m', '15m', '4h'],
+    decisionTf: '3m',
+    cadence: 20,
+    start: toLocalInput(new Date(now.getTime() - 3 * 24 * 3600 * 1000)),
+    end: toLocalInput(now),
+    balance: 1000,
+    fee: 5,
+    slippage: 2,
+    btcEthLeverage: 5,
+    altcoinLeverage: 5,
+    fill: 'next_open',
+    prompt: 'baseline',
+    promptTemplate: 'default',
+    customPrompt: '',
+    overridePrompt: false,
+    cacheAI: false,
+    replayOnly: false,
+    aiModelId: '',
+    strategyId: '', // Optional: use saved strategy from Strategy Studio
+  })
+
+  // Data fetching
+  const { data: runsResp, mutate: refreshRuns } = useSWR(['backtest-runs'], () =>
+    api.getBacktestRuns({ limit: 100, offset: 0 })
+    , { refreshInterval: 5000 })
+  const runs = runsResp?.items ?? []
+
+  const { data: aiModels } = useSWR<AIModel[]>('ai-models', api.getModelConfigs, { refreshInterval: 30000 })
+  const { data: strategies } = useSWR<Strategy[]>('strategies', api.getStrategies, { refreshInterval: 30000 })
+
+  const isRunActive = (state: string | undefined) =>
+    state === 'running' || state === 'paused'
+
+  const { data: status } = useSWR<BacktestStatusPayload>(
+    selectedRunId ? ['bt-status', selectedRunId] : null,
+    () => api.getBacktestStatus(selectedRunId!),
+    {
+      refreshInterval: (data) =>
+        isRunActive(data?.state) ? 2000 : (data ? 0 : 3000),
+    }
+  )
+
+  const { data: equity } = useSWR<BacktestEquityPoint[]>(
+    selectedRunId ? ['bt-equity', selectedRunId] : null,
+    () => api.getBacktestEquity(selectedRunId!, '1m', 2000),
+    {
+      refreshInterval: isRunActive(status?.state) ? 5000 : (status ? 0 : 5000),
+    }
+  )
+
+  const { data: trades } = useSWR<BacktestTradeEvent[]>(
+    selectedRunId ? ['bt-trades', selectedRunId] : null,
+    () => api.getBacktestTrades(selectedRunId!, 500),
+    {
+      refreshInterval: isRunActive(status?.state) ? 5000 : (status ? 0 : 5000),
+    }
+  )
+
+  const { data: metrics } = useSWR<BacktestMetrics>(
+    selectedRunId ? ['bt-metrics', selectedRunId] : null,
+    () => api.getBacktestMetrics(selectedRunId!),
+    {
+      refreshInterval: isRunActive(status?.state) ? 10000 : (status ? 0 : 10000),
+    }
+  )
+
+  const { data: decisions } = useSWR<DecisionRecord[]>(
+    selectedRunId ? ['bt-decisions', selectedRunId] : null,
+    () => api.getBacktestDecisions(selectedRunId!, 30),
+    {
+      refreshInterval: isRunActive(status?.state) ? 5000 : (status ? 0 : 5000),
+    }
+  )
+
+  const selectedRun = runs.find((r) => r.run_id === selectedRunId)
+  const selectedModel = aiModels?.find((m) => m.id === formState.aiModelId)
+  const selectedStrategy = strategies?.find((s) => s.id === formState.strategyId)
+
+  // Check if selected strategy has dynamic coin source
+  const strategyHasDynamicCoins = useMemo(() => {
+    if (!selectedStrategy) return false
+    const coinSource = selectedStrategy.config?.coin_source
+    if (!coinSource) return false
+
+    // Check explicit source_type
+    if (coinSource.source_type === 'ai500' || coinSource.source_type === 'oi_top') {
+      return true
+    }
+    if (coinSource.source_type === 'mixed' && (coinSource.use_ai500 || coinSource.use_oi_top)) {
+      return true
+    }
+
+    // Also check flags for backward compatibility (when source_type is empty or not set)
+    const srcType = coinSource.source_type as string
+    if (!srcType) {
+      if (coinSource.use_ai500 || coinSource.use_oi_top) {
+        return true
+      }
+    }
+
+    return false
+  }, [selectedStrategy])
+
+  // Get coin source description
+  const coinSourceDescription = useMemo(() => {
+    if (!selectedStrategy?.config?.coin_source) return null
+    const cs = selectedStrategy.config.coin_source
+
+    // Infer source_type from flags if empty (backward compatibility)
+    let sourceType = cs.source_type as string
+    if (!sourceType) {
+      if (cs.use_ai500 && cs.use_oi_top) {
+        sourceType = 'mixed'
+      } else if (cs.use_ai500) {
+        sourceType = 'ai500'
+      } else if (cs.use_oi_top) {
+        sourceType = 'oi_top'
+      } else if (cs.static_coins?.length) {
+        sourceType = 'static'
+      }
+    }
+
+    switch (sourceType) {
+      case 'ai500':
+        return { type: 'AI500', limit: cs.ai500_limit || 30 }
+      case 'oi_top':
+        return { type: 'OI Top', limit: cs.oi_top_limit || 30 }
+      case 'mixed':
+        const sources = []
+        if (cs.use_ai500) sources.push(`AI500(${cs.ai500_limit || 30})`)
+        if (cs.use_oi_top) sources.push(`OI Top(${cs.oi_top_limit || 30})`)
+        if (cs.static_coins?.length) sources.push(`Static(${cs.static_coins.length})`)
+        return { type: 'Mixed', desc: sources.join(' + ') }
+      case 'static':
+        return { type: 'Static', coins: cs.static_coins || [] }
+      default:
+        return null
+    }
+  }, [selectedStrategy])
+
+  // Auto-select first model
+  useEffect(() => {
+    if (!formState.aiModelId && aiModels?.length) {
+      const enabled = aiModels.find((m) => m.enabled)
+      if (enabled) setFormState((s) => ({ ...s, aiModelId: enabled.id }))
+    }
+  }, [aiModels, formState.aiModelId])
+
+  // Auto-select first run
+  useEffect(() => {
+    if (!selectedRunId && runs.length > 0) {
+      setSelectedRunId(runs[0].run_id)
+    }
+  }, [runs, selectedRunId])
+
+  // Handlers
+  const handleFormChange = (key: string, value: string | number | boolean | string[]) => {
+    setFormState((prev) => ({ ...prev, [key]: value }))
+  }
+
+  const handleStart = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!selectedModel?.enabled) {
+      setToast({ text: tr('toasts.selectModel'), tone: 'error' })
+      return
+    }
+
+    try {
+      setIsStarting(true)
+      const start = new Date(formState.start).getTime()
+      const end = new Date(formState.end).getTime()
+      if (end <= start) throw new Error(tr('toasts.invalidRange'))
+
+      // Parse user symbols - if using dynamic coin strategy, allow empty
+      const userSymbols = formState.symbols.split(',').map((s) => s.trim()).filter(Boolean)
+
+      // Only send empty symbols if user deliberately cleared them and strategy has dynamic coin source
+      const symbolsToSend = (userSymbols.length === 0 && strategyHasDynamicCoins) ? [] : userSymbols
+
+      const payload = await api.startBacktest({
+        run_id: formState.runId.trim() || undefined,
+        strategy_id: formState.strategyId || undefined, // Use saved strategy from Strategy Studio
+        symbols: symbolsToSend,
+        timeframes: formState.timeframes,
+        decision_timeframe: formState.decisionTf,
+        decision_cadence_nbars: formState.cadence,
+        start_ts: Math.floor(start / 1000),
+        end_ts: Math.floor(end / 1000),
+        initial_balance: formState.balance,
+        fee_bps: formState.fee,
+        slippage_bps: formState.slippage,
+        fill_policy: formState.fill,
+        prompt_variant: formState.prompt,
+        prompt_template: formState.promptTemplate,
+        custom_prompt: formState.customPrompt.trim() || undefined,
+        override_prompt: formState.overridePrompt,
+        cache_ai: formState.cacheAI,
+        replay_only: formState.replayOnly,
+        ai_model_id: formState.aiModelId,
+        leverage: {
+          btc_eth_leverage: formState.btcEthLeverage,
+          altcoin_leverage: formState.altcoinLeverage,
+        },
+      })
+
+      setToast({ text: tr('toasts.startSuccess', { id: payload.run_id }), tone: 'success' })
+      setSelectedRunId(payload.run_id)
+      setWizardStep(1)
+      await refreshRuns()
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : tr('toasts.startFailed')
+      setToast({ text: errMsg, tone: 'error' })
+    } finally {
+      setIsStarting(false)
+    }
+  }
+
+  const handleControl = async (action: 'pause' | 'resume' | 'stop') => {
+    if (!selectedRunId) return
+    try {
+      if (action === 'pause') await api.pauseBacktest(selectedRunId)
+      if (action === 'resume') await api.resumeBacktest(selectedRunId)
+      if (action === 'stop') await api.stopBacktest(selectedRunId)
+      setToast({ text: tr('toasts.actionSuccess', { action, id: selectedRunId }), tone: 'success' })
+      await refreshRuns()
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : tr('toasts.actionFailed')
+      setToast({ text: errMsg, tone: 'error' })
+    }
+  }
+
+  const handleRerun = async (runId: string) => {
+    try {
+      const cfg = await api.getBacktestConfig(runId)
+      const startDate = cfg.start_ts ? new Date(cfg.start_ts * 1000) : new Date(now.getTime() - 3 * 24 * 3600 * 1000)
+      const endDate = cfg.end_ts ? new Date(cfg.end_ts * 1000) : now
+      setFormState({
+        ...formState,
+        runId,
+        symbols: Array.isArray(cfg.symbols) ? cfg.symbols.join(',') : (cfg.symbols as unknown as string) || 'BTCUSDT',
+        timeframes: cfg.timeframes || ['3m', '15m', '4h'],
+        decisionTf: cfg.decision_timeframe || '3m',
+        cadence: cfg.decision_cadence_nbars || 20,
+        start: toLocalInput(startDate),
+        end: toLocalInput(endDate),
+        balance: cfg.initial_balance || 1000,
+        fee: cfg.fee_bps || 5,
+        slippage: cfg.slippage_bps || 2,
+        btcEthLeverage: cfg.leverage?.btc_eth_leverage ?? 5,
+        altcoinLeverage: cfg.leverage?.altcoin_leverage ?? 5,
+        fill: cfg.fill_policy || 'next_open',
+        prompt: cfg.prompt_variant || 'baseline',
+        promptTemplate: cfg.prompt_template || 'default',
+        customPrompt: cfg.custom_prompt || '',
+        overridePrompt: cfg.override_prompt ?? false,
+        cacheAI: true,
+        replayOnly: cfg.replay_only ?? false,
+        aiModelId: cfg.ai_model_id || formState.aiModelId,
+        strategyId: cfg.strategy_id || formState.strategyId,
+      })
+      setWizardStep(1)
+      setToast({ text: language === 'zh' ? '已加载配置，缓存已启用' : 'Config loaded, cache enabled for re-run', tone: 'success' })
+    } catch (err) {
+      setToast({ text: err instanceof Error ? err.message : (language === 'zh' ? '加载配置失败' : 'Failed to load config'), tone: 'error' })
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!selectedRunId) return
+    const confirmed = await confirmToast(tr('toasts.confirmDelete', { id: selectedRunId }), {
+      title: language === 'zh' ? '确认删除' : 'Confirm Delete',
+      okText: language === 'zh' ? '删除' : 'Delete',
+      cancelText: language === 'zh' ? '取消' : 'Cancel',
+    })
+    if (!confirmed) return
+    const runIdToDelete = selectedRunId
+    try {
+      // Clear selection and optimistically remove from list so UI updates immediately
+      setSelectedRunId(undefined)
+      setCompareRunIds((prev) => prev.filter((id) => id !== runIdToDelete))
+      refreshRuns(
+        (current) => {
+          if (!current) return current
+          return {
+            ...current,
+            total: Math.max(0, current.total - 1),
+            items: current.items.filter((r) => r.run_id !== runIdToDelete),
+          }
+        },
+        { revalidate: false }
+      )
+      await api.deleteBacktestRun(runIdToDelete)
+      setToast({ text: tr('toasts.deleteSuccess'), tone: 'success' })
+      await refreshRuns()
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : tr('toasts.deleteFailed')
+      setToast({ text: errMsg, tone: 'error' })
+      await refreshRuns()
+    }
+  }
+
+  const handleExport = async () => {
+    if (!selectedRunId) return
+    try {
+      const blob = await api.exportBacktest(selectedRunId)
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `${selectedRunId}_export.zip`
+      link.click()
+      URL.revokeObjectURL(url)
+      setToast({ text: tr('toasts.exportSuccess', { id: selectedRunId }), tone: 'success' })
+    } catch (error: unknown) {
+      const errMsg = error instanceof Error ? error.message : tr('toasts.exportFailed')
+      setToast({ text: errMsg, tone: 'error' })
+    }
+  }
+
+  const toggleCompare = (runId: string) => {
+    setCompareRunIds((prev) =>
+      prev.includes(runId) ? prev.filter((id) => id !== runId) : [...prev, runId].slice(-3)
+    )
+  }
+
+  const quickRanges = [
+    { label: language === 'zh' ? '24小时' : '24h', hours: 24 },
+    { label: language === 'zh' ? '3天' : '3d', hours: 72 },
+    { label: language === 'zh' ? '7天' : '7d', hours: 168 },
+    { label: language === 'zh' ? '30天' : '30d', hours: 720 },
+  ]
+
+  const applyQuickRange = (hours: number) => {
+    const endDate = new Date()
+    const startDate = new Date(endDate.getTime() - hours * 3600 * 1000)
+    handleFormChange('start', toLocalInput(startDate))
+    handleFormChange('end', toLocalInput(endDate))
+  }
+
+  const getStateColor = (state: string) => {
+    switch (state) {
+      case 'running':
+        return 'var(--nofx-gold)'
+      case 'completed':
+        return 'var(--binance-green)'
+      case 'failed':
+      case 'liquidated':
+        return 'var(--binance-red)'
+      case 'paused':
+        return 'var(--text-secondary)'
+      default:
+        return 'var(--text-secondary)'
+    }
+  }
+
+  const getStateIcon = (state: string) => {
+    switch (state) {
+      case 'running':
+        return <Activity className="w-4 h-4" />
+      case 'completed':
+        return <CheckCircle2 className="w-4 h-4" />
+      case 'failed':
+      case 'liquidated':
+        return <XCircle className="w-4 h-4" />
+      case 'paused':
+        return <Pause className="w-4 h-4" />
+      default:
+        return <Clock className="w-4 h-4" />
+    }
+  }
+
+  // Render
+  return (
+    <DeepVoidBackground className="py-8" disableAnimation>
+      <div className="w-full px-4 md:px-8 space-y-6">
+        {/* Toast */}
+        <AnimatePresence>
+          {toast && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="p-3 rounded-lg text-sm"
+              style={{
+                background:
+                  toast.tone === 'error'
+                    ? 'var(--binance-red-bg)'
+                    : toast.tone === 'success'
+                      ? 'var(--binance-green-bg)'
+                      : 'var(--nofx-border)',
+                color: toast.tone === 'error' ? 'var(--binance-red)' : toast.tone === 'success' ? 'var(--binance-green)' : 'var(--nofx-gold)',
+                border: `1px solid ${toast.tone === 'error' ? 'var(--binance-red-border)' : toast.tone === 'success' ? 'var(--binance-green-border)' : 'var(--accent-primary-border)'}`,
+              }}
+            >
+              {toast.text}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Header */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold flex items-center gap-3" style={{ color: 'var(--text-primary)' }}>
+              {tr('title')}
+            </h1>
+            <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+              {tr('subtitle')}
+            </p>
+          </div>
+          <button
+            onClick={() => setWizardStep(1)}
+            className="px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all hover:opacity-90"
+            style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+          >
+            <Play className="w-4 h-4" />
+            {language === 'zh' ? '新建回测' : 'New Backtest'}
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Left Panel - Config / History */}
+          <div className="space-y-4">
+            {/* Wizard */}
+            <div className="binance-card p-5">
+              <div className="flex items-center gap-2 mb-4">
+                {[1, 2, 3].map((step) => (
+                  <div key={step} className="flex items-center">
+                    <button
+                      onClick={() => setWizardStep(step as WizardStep)}
+                      className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all"
+                      style={{
+                        background: wizardStep >= step ? 'var(--nofx-gold)' : 'var(--surface-tertiary)',
+                        color: wizardStep >= step ? 'var(--surface-primary)' : 'var(--text-secondary)',
+                      }}
+                    >
+                      {step}
+                    </button>
+                    {step < 3 && (
+                      <div
+                        className="w-8 h-0.5 mx-1"
+                        style={{ background: wizardStep > step ? 'var(--nofx-gold)' : 'var(--surface-tertiary)' }}
+                      />
+                    )}
+                  </div>
+                ))}
+                <span className="ml-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  {wizardStep === 1
+                    ? language === 'zh'
+                      ? '选择模型'
+                      : 'Select Model'
+                    : wizardStep === 2
+                      ? language === 'zh'
+                        ? '配置参数'
+                        : 'Configure'
+                      : language === 'zh'
+                        ? '确认启动'
+                        : 'Confirm'}
+                </span>
+              </div>
+
+              <form onSubmit={handleStart}>
+                <AnimatePresence mode="wait">
+                  {/* Step 1: Model & Symbols */}
+                  {wizardStep === 1 && (
+                    <motion.div
+                      key="step1"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                          {tr('form.aiModelLabel')}
+                        </label>
+                        <select
+                          className="w-full p-3 rounded-lg text-sm"
+                          style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                          value={formState.aiModelId}
+                          onChange={(e) => handleFormChange('aiModelId', e.target.value)}
+                        >
+                          <option value="">{tr('form.selectAiModel')}</option>
+                          {aiModels?.map((m) => (
+                            <option key={m.id} value={m.id}>
+                              {m.name} ({m.provider}) {!m.enabled && '⚠️'}
+                            </option>
+                          ))}
+                        </select>
+                        {selectedModel && (
+                          <div className="mt-2 flex items-center gap-2 text-xs flex-wrap">
+                            <span
+                              className="px-2 py-0.5 rounded"
+                              style={{
+                                background: selectedModel.enabled ? 'var(--binance-green-bg)' : 'var(--binance-red-bg)',
+                                color: selectedModel.enabled ? 'var(--binance-green)' : 'var(--binance-red)',
+                              }}
+                            >
+                              {selectedModel.enabled ? tr('form.enabled') : tr('form.disabled')}
+                            </span>
+                            {selectedModel.hasSystemKey && (
+                              <span
+                                className="px-2 py-0.5 rounded"
+                                style={{ background: 'var(--accent-primary-bg)', color: 'var(--accent-primary)' }}
+                              >
+                                {language === 'zh' ? '系统 Key' : 'System Key'}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Strategy Selection (Optional) */}
+                      <div>
+                        <label className="block text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                          {language === 'zh' ? '策略配置（可选）' : 'Strategy (Optional)'}
+                        </label>
+                        <select
+                          className="w-full p-3 rounded-lg text-sm"
+                          style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                          value={formState.strategyId}
+                          onChange={(e) => handleFormChange('strategyId', e.target.value)}
+                        >
+                          <option value="">{language === 'zh' ? '不使用保存的策略' : 'No saved strategy'}</option>
+                          {strategies?.map((s) => (
+                            <option key={s.id} value={s.id}>
+                              {s.name} {s.is_active && '✓'} {s.is_default && '⭐'}
+                            </option>
+                          ))}
+                        </select>
+                        {formState.strategyId && coinSourceDescription && (
+                          <div className="mt-2 p-2 rounded" style={{ background: 'var(--nofx-border)', border: '1px solid var(--nofx-border)' }}>
+                            <div className="flex items-center gap-2 text-xs">
+                              <span style={{ color: 'var(--nofx-gold)' }}>
+                                {language === 'zh' ? '币种来源:' : 'Coin Source:'}
+                              </span>
+                              <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
+                                {coinSourceDescription.type}
+                                {coinSourceDescription.limit && ` (${coinSourceDescription.limit})`}
+                                {coinSourceDescription.desc && ` - ${coinSourceDescription.desc}`}
+                              </span>
+                            </div>
+                            {strategyHasDynamicCoins && (
+                              <div className="text-xs mt-1" style={{ color: 'var(--nofx-gold)' }}>
+                                {language === 'zh'
+                                  ? '⚡ 清空下方币种输入框即可使用策略的动态币种'
+                                  : '⚡ Clear the symbols field below to use strategy\'s dynamic coins'}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div>
+                        <label className="block text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                          {tr('form.symbolsLabel')}
+                          {strategyHasDynamicCoins && (
+                            <span className="ml-2" style={{ color: 'var(--text-tertiary)' }}>
+                              ({language === 'zh' ? '可选 - 策略已配置币种来源' : 'Optional - strategy has coin source'})
+                            </span>
+                          )}
+                        </label>
+                        {!strategyHasDynamicCoins && (
+                          <div className="flex flex-wrap gap-1 mb-2">
+                            {POPULAR_SYMBOLS.map((sym) => {
+                              const isSelected = formState.symbols.includes(sym)
+                              return (
+                                <button
+                                  key={sym}
+                                  type="button"
+                                  onClick={() => {
+                                    const current = formState.symbols.split(',').map((s) => s.trim()).filter(Boolean)
+                                    const updated = isSelected
+                                      ? current.filter((s) => s !== sym)
+                                      : [...current, sym]
+                                    handleFormChange('symbols', updated.join(','))
+                                  }}
+                                  className="px-2 py-1 rounded text-xs transition-all"
+                                  style={{
+                                    background: isSelected ? 'var(--nofx-border)' : 'var(--surface-secondary)',
+                                    border: `1px solid ${isSelected ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
+                                    color: isSelected ? 'var(--nofx-gold)' : 'var(--text-secondary)',
+                                  }}
+                                >
+                                  {sym.replace('USDT', '')}
+                                </button>
+                              )
+                            })}
+                          </div>
+                        )}
+                        <div className="relative">
+                          <textarea
+                            className="w-full p-2 rounded-lg text-xs font-mono"
+                            style={{
+                              background: 'var(--surface-primary)',
+                              border: '1px solid var(--surface-tertiary)',
+                              color: 'var(--text-primary)',
+                            }}
+                            value={formState.symbols}
+                            onChange={(e) => handleFormChange('symbols', e.target.value)}
+                            rows={2}
+                            placeholder={strategyHasDynamicCoins
+                              ? (language === 'zh' ? '留空将使用策略配置的币种来源' : 'Leave empty to use strategy coin source')
+                              : ''
+                            }
+                          />
+                          {strategyHasDynamicCoins && formState.symbols && (
+                            <button
+                              type="button"
+                              onClick={() => handleFormChange('symbols', '')}
+                              className="absolute top-2 right-2 px-2 py-1 rounded text-xs"
+                              style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                            >
+                              {language === 'zh' ? '清空使用策略币种' : 'Clear to use strategy'}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setWizardStep(2)}
+                        disabled={!selectedModel?.enabled}
+                        className="w-full py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+                        style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                      >
+                        {language === 'zh' ? '下一步' : 'Next'}
+                        <ChevronRight className="w-4 h-4" />
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {/* Step 2: Parameters */}
+                  {wizardStep === 2 && (
+                    <motion.div
+                      key="step2"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="space-y-4"
+                    >
+                      <div>
+                        <label className="block text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                          {tr('form.timeRangeLabel')}
+                        </label>
+                        <div className="flex flex-wrap gap-1 mb-2">
+                          {quickRanges.map((r) => (
+                            <button
+                              key={r.hours}
+                              type="button"
+                              onClick={() => applyQuickRange(r.hours)}
+                              className="px-3 py-1 rounded text-xs"
+                              style={{ background: 'var(--surface-secondary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            >
+                              {r.label}
+                            </button>
+                          ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            type="datetime-local"
+                            className="p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.start}
+                            onChange={(e) => handleFormChange('start', e.target.value)}
+                          />
+                          <input
+                            type="datetime-local"
+                            className="p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.end}
+                            onChange={(e) => handleFormChange('end', e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs mb-2" style={{ color: 'var(--text-secondary)' }}>
+                          {language === 'zh' ? '时间周期' : 'Timeframes'}
+                        </label>
+                        <div className="flex flex-wrap gap-1">
+                          {TIMEFRAME_OPTIONS.map((tf) => {
+                            const isSelected = formState.timeframes.includes(tf)
+                            return (
+                              <button
+                                key={tf}
+                                type="button"
+                                onClick={() => {
+                                  const updated = isSelected
+                                    ? formState.timeframes.filter((t) => t !== tf)
+                                    : [...formState.timeframes, tf]
+                                  if (updated.length > 0) handleFormChange('timeframes', updated)
+                                }}
+                                className="px-2 py-1 rounded text-xs transition-all"
+                                style={{
+                                  background: isSelected ? 'var(--nofx-border)' : 'var(--surface-secondary)',
+                                  border: `1px solid ${isSelected ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
+                                  color: isSelected ? 'var(--nofx-gold)' : 'var(--text-secondary)',
+                                }}
+                              >
+                                {tf}
+                              </button>
+                            )
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {tr('form.initialBalanceLabel')}
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.balance}
+                            onChange={(e) => handleFormChange('balance', Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {tr('form.decisionTfLabel')}
+                          </label>
+                          <select
+                            className="w-full p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.decisionTf}
+                            onChange={(e) => handleFormChange('decisionTf', e.target.value)}
+                          >
+                            {formState.timeframes.map((tf) => (
+                              <option key={tf} value={tf}>
+                                {tf}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setWizardStep(1)}
+                          className="flex-1 py-2 rounded-lg font-medium flex items-center justify-center gap-2"
+                          style={{ background: 'var(--surface-secondary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          {language === 'zh' ? '上一步' : 'Back'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setWizardStep(3)}
+                          className="flex-1 py-2 rounded-lg font-medium flex items-center justify-center gap-2"
+                          style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                        >
+                          {language === 'zh' ? '下一步' : 'Next'}
+                          <ChevronRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+
+                  {/* Step 3: Advanced & Confirm */}
+                  {wizardStep === 3 && (
+                    <motion.div
+                      key="step3"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                      className="space-y-4"
+                    >
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {tr('form.btcEthLeverageLabel')}
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.btcEthLeverage}
+                            onChange={(e) => handleFormChange('btcEthLeverage', Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {tr('form.altcoinLeverageLabel')}
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.altcoinLeverage}
+                            onChange={(e) => handleFormChange('altcoinLeverage', Number(e.target.value))}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                        <div>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {tr('form.feeLabel')}
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.fee}
+                            onChange={(e) => handleFormChange('fee', Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {tr('form.slippageLabel')}
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.slippage}
+                            onChange={(e) => handleFormChange('slippage', Number(e.target.value))}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                            {tr('form.cadenceLabel')}
+                          </label>
+                          <input
+                            type="number"
+                            className="w-full p-2 rounded-lg text-xs"
+                            style={{ background: 'var(--surface-primary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                            value={formState.cadence}
+                            onChange={(e) => handleFormChange('cadence', Number(e.target.value))}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
+                          {language === 'zh' ? '策略风格' : 'Strategy Style'}
+                        </label>
+                        <div className="flex flex-wrap gap-1">
+                          {['baseline', 'aggressive', 'conservative', 'scalping'].map((p) => (
+                            <button
+                              key={p}
+                              type="button"
+                              onClick={() => handleFormChange('prompt', p)}
+                              className="px-3 py-1.5 rounded text-xs transition-all"
+                              style={{
+                                background: formState.prompt === p ? 'var(--nofx-border)' : 'var(--surface-secondary)',
+                                border: `1px solid ${formState.prompt === p ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
+                                color: formState.prompt === p ? 'var(--nofx-gold)' : 'var(--text-secondary)',
+                              }}
+                            >
+                              {tr(`form.promptPresets.${p}`)}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex flex-wrap gap-4 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formState.cacheAI}
+                            onChange={(e) => handleFormChange('cacheAI', e.target.checked)}
+                            className="accent-[var(--nofx-gold)]"
+                          />
+                          {tr('form.cacheAiLabel')}
+                        </label>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={formState.replayOnly}
+                            onChange={(e) => handleFormChange('replayOnly', e.target.checked)}
+                            className="accent-[var(--nofx-gold)]"
+                          />
+                          {tr('form.replayOnlyLabel')}
+                        </label>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setWizardStep(2)}
+                          className="flex-1 py-2 rounded-lg font-medium flex items-center justify-center gap-2"
+                          style={{ background: 'var(--surface-secondary)', border: '1px solid var(--surface-tertiary)', color: 'var(--text-primary)' }}
+                        >
+                          <ChevronLeft className="w-4 h-4" />
+                          {language === 'zh' ? '上一步' : 'Back'}
+                        </button>
+                        <button
+                          type="submit"
+                          disabled={isStarting}
+                          className="flex-1 py-2 rounded-lg font-bold flex items-center justify-center gap-2 disabled:opacity-50"
+                          style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                        >
+                          {isStarting ? (
+                            <RefreshCw className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Zap className="w-4 h-4" />
+                          )}
+                          {isStarting ? tr('starting') : tr('start')}
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </form>
+            </div>
+
+            {/* Run History */}
+            <div className="binance-card p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
+                  <Layers className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+                  {tr('runList.title')}
+                </h3>
+                <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                  {runs.length} {language === 'zh' ? '条' : 'runs'}
+                </span>
+              </div>
+
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {runs.length === 0 ? (
+                  <div className="py-8 text-center text-sm" style={{ color: 'var(--text-tertiary)' }}>
+                    {tr('emptyStates.noRuns')}
+                  </div>
+                ) : (
+                  runs.map((run) => (
+                    <button
+                      key={run.run_id}
+                      onClick={() => setSelectedRunId(run.run_id)}
+                      className="w-full p-3 rounded-lg text-left transition-all"
+                      style={{
+                        background: run.run_id === selectedRunId ? 'var(--nofx-border)' : 'var(--surface-secondary)',
+                        border: `1px solid ${run.run_id === selectedRunId ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
+                      }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-xs" style={{ color: 'var(--text-primary)' }}>
+                          {run.run_id.slice(0, 20)}...
+                        </span>
+                        <span
+                          className="flex items-center gap-1 text-xs"
+                          style={{ color: getStateColor(run.state) }}
+                        >
+                          {getStateIcon(run.state)}
+                          {tr(`states.${run.state}`)}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between mt-1">
+                        <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                          {run.summary.progress_pct.toFixed(0)}% · ${run.summary.equity_last.toFixed(0)}
+                        </span>
+                        <div className="flex items-center gap-1">
+                          {(run.state === 'completed' || run.state === 'failed' || run.state === 'stopped') && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleRerun(run.run_id)
+                              }}
+                              className="p-1 rounded"
+                              title={tr('actions.rerunUseCache')}
+                            >
+                              <RotateCw
+                                className="w-3 h-3"
+                                style={{ color: 'var(--nofx-gold)' }}
+                              />
+                            </button>
+                          )}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              toggleCompare(run.run_id)
+                            }}
+                            className="p-1 rounded"
+                            style={{
+                              background: compareRunIds.includes(run.run_id)
+                                ? 'var(--nofx-border)'
+                                : 'transparent',
+                            }}
+                            title={language === 'zh' ? '添加到对比' : 'Add to compare'}
+                          >
+                            <Eye
+                              className="w-3 h-3"
+                              style={{
+                                color: compareRunIds.includes(run.run_id) ? 'var(--nofx-gold)' : 'var(--text-tertiary)',
+                              }}
+                            />
+                          </button>
+                        </div>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel - Results */}
+          <div className="xl:col-span-2 space-y-4">
+            {!selectedRunId ? (
+              <div
+                className="binance-card p-12 text-center"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                <Brain className="w-12 h-12 mx-auto mb-4 opacity-30" />
+                <p>{tr('emptyStates.selectRun')}</p>
+              </div>
+            ) : (
+              <>
+                {/* Status Bar */}
+                <div className="binance-card p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <ProgressRing progress={status?.progress_pct ?? selectedRun?.summary.progress_pct ?? 0} size={80} />
+                      <div>
+                        <h2 className="font-mono font-bold" style={{ color: 'var(--text-primary)' }}>
+                          {selectedRunId}
+                        </h2>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span
+                            className="flex items-center gap-1 px-2 py-0.5 rounded text-xs font-medium"
+                            style={{
+                              background: `${getStateColor(status?.state ?? selectedRun?.state ?? '')}20`,
+                              color: getStateColor(status?.state ?? selectedRun?.state ?? ''),
+                            }}
+                          >
+                            {getStateIcon(status?.state ?? selectedRun?.state ?? '')}
+                            {tr(`states.${status?.state ?? selectedRun?.state}`)}
+                          </span>
+                          {selectedRun?.summary.decision_tf && (
+                            <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                              {selectedRun.summary.decision_tf} · {selectedRun.summary.symbol_count} symbols
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {(status?.state === 'running' || selectedRun?.state === 'running') && (
+                        <>
+                          <button
+                            onClick={() => handleControl('pause')}
+                            className="p-2 rounded-lg transition-all hover:bg-[var(--surface-tertiary)]"
+                            style={{ border: '1px solid var(--surface-tertiary)' }}
+                            title={tr('actions.pause')}
+                          >
+                            <Pause className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+                          </button>
+                          <button
+                            onClick={() => handleControl('stop')}
+                            className="p-2 rounded-lg transition-all hover:bg-[var(--surface-tertiary)]"
+                            style={{ border: '1px solid var(--surface-tertiary)' }}
+                            title={tr('actions.stop')}
+                          >
+                            <Square className="w-4 h-4" style={{ color: 'var(--binance-red)' }} />
+                          </button>
+                        </>
+                      )}
+                      {status?.state === 'paused' && (
+                        <button
+                          onClick={() => handleControl('resume')}
+                          className="p-2 rounded-lg transition-all hover:bg-[var(--surface-tertiary)]"
+                          style={{ border: '1px solid var(--surface-tertiary)' }}
+                          title={tr('actions.resume')}
+                        >
+                          <Play className="w-4 h-4" style={{ color: 'var(--binance-green)' }} />
+                        </button>
+                      )}
+                      <button
+                        onClick={handleExport}
+                        className="p-2 rounded-lg transition-all hover:bg-[var(--surface-tertiary)]"
+                        style={{ border: '1px solid var(--surface-tertiary)' }}
+                        title={tr('detail.exportLabel')}
+                      >
+                        <Download className="w-4 h-4" style={{ color: 'var(--text-primary)' }} />
+                      </button>
+                      <button
+                        onClick={handleDelete}
+                        className="p-2 rounded-lg transition-all hover:bg-[var(--surface-tertiary)]"
+                        style={{ border: '1px solid var(--surface-tertiary)' }}
+                        title={tr('detail.deleteLabel')}
+                      >
+                        <Trash2 className="w-4 h-4" style={{ color: 'var(--binance-red)' }} />
+                      </button>
+                    </div>
+                  </div>
+
+                  {(status?.note || status?.last_error) && (
+                    <div
+                      className="mt-3 p-2 rounded-lg text-xs flex items-center gap-2"
+                      style={{
+                        background: 'var(--binance-red-bg)',
+                        border: '1px solid rgba(246,70,93,0.3)',
+                        color: 'var(--binance-red)',
+                      }}
+                    >
+                      <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+                      {status?.note || status?.last_error}
+                    </div>
+                  )}
+
+                  {/* Real-time Positions Display */}
+                  {status?.positions && status.positions.length > 0 && (
+                    <PositionsDisplay positions={status.positions} language={language} />
+                  )}
+                </div>
+
+                {/* Stats Grid - use selectedRun.summary as fallback when status/metrics are loading or zero */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <StatCard
+                    icon={Target}
+                    label={language === 'zh' ? '当前净值' : 'Equity'}
+                    value={(status?.equity ?? selectedRun?.summary?.equity_last ?? formState.balance ?? 0).toFixed(2)}
+                    suffix="USDT"
+                    language={language}
+                  />
+                  <StatCard
+                    icon={TrendingUp}
+                    label={language === 'zh' ? '总收益率' : 'Return'}
+                    value={`${(metrics?.total_return_pct ?? 0).toFixed(2)}%`}
+                    trend={(metrics?.total_return_pct ?? 0) >= 0 ? 'up' : 'down'}
+                    color={(metrics?.total_return_pct ?? 0) >= 0 ? 'var(--binance-green)' : 'var(--binance-red)'}
+                    metricKey="total_return"
+                    language={language}
+                  />
+                  <StatCard
+                    icon={AlertTriangle}
+                    label={language === 'zh' ? '最大回撤' : 'Max DD'}
+                    value={`${(metrics?.max_drawdown_pct ?? selectedRun?.summary?.max_drawdown_pct ?? 0).toFixed(2)}%`}
+                    color="var(--binance-red)"
+                    metricKey="max_drawdown"
+                    language={language}
+                  />
+                  <StatCard
+                    icon={BarChart3}
+                    label={language === 'zh' ? '夏普比率' : 'Sharpe'}
+                    value={(metrics?.sharpe_ratio ?? 0).toFixed(2)}
+                    metricKey="sharpe_ratio"
+                    language={language}
+                  />
+                </div>
+
+                {/* Tabs */}
+                <div className="binance-card">
+                  <div className="flex border-b" style={{ borderColor: 'var(--surface-tertiary)' }}>
+                    {(['overview', 'chart', 'trades', 'decisions'] as ViewTab[]).map((tab) => (
+                      <button
+                        key={tab}
+                        onClick={() => setViewTab(tab)}
+                        className="px-4 py-3 text-sm font-medium transition-all relative"
+                        style={{ color: viewTab === tab ? 'var(--nofx-gold)' : 'var(--text-secondary)' }}
+                      >
+                        {tab === 'overview'
+                          ? language === 'zh'
+                            ? '概览'
+                            : 'Overview'
+                          : tab === 'chart'
+                            ? language === 'zh'
+                              ? '图表'
+                              : 'Chart'
+                            : tab === 'trades'
+                              ? language === 'zh'
+                                ? '交易'
+                                : 'Trades'
+                              : language === 'zh'
+                                ? 'AI决策'
+                                : 'Decisions'}
+                        {viewTab === tab && (
+                          <motion.div
+                            layoutId="tab-indicator"
+                            className="absolute bottom-0 left-0 right-0 h-0.5"
+                            style={{ background: 'var(--nofx-gold)' }}
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="p-4">
+                    <AnimatePresence mode="wait">
+                      {viewTab === 'overview' && (
+                        <motion.div
+                          key="overview"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          {equity && equity.length > 0 ? (
+                            <BacktestChart equity={equity} trades={trades ?? []} />
+                          ) : (
+                            <div className="py-12 text-center" style={{ color: 'var(--text-tertiary)' }}>
+                              {tr('charts.equityEmpty')}
+                            </div>
+                          )}
+
+                          {metrics && !('error' in metrics) && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                              <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                                <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                  {language === 'zh' ? '胜率' : 'Win Rate'}
+                                  <MetricTooltip metricKey="win_rate" language={language} size={11} />
+                                </div>
+                                <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                                  {(metrics.win_rate ?? 0).toFixed(1)}%
+                                </div>
+                              </div>
+                              <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                                <div className="flex items-center gap-1 text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                  {language === 'zh' ? '盈亏因子' : 'Profit Factor'}
+                                  <MetricTooltip metricKey="profit_factor" language={language} size={11} />
+                                </div>
+                                <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                                  {(metrics.profit_factor ?? 0).toFixed(2)}
+                                </div>
+                              </div>
+                              <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                                <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                  {language === 'zh' ? '总交易数' : 'Total Trades'}
+                                </div>
+                                <div className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>
+                                  {metrics.trades ?? 0}
+                                </div>
+                              </div>
+                              <div className="p-3 rounded-lg" style={{ background: 'var(--surface-secondary)' }}>
+                                <div className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                                  {language === 'zh' ? '最佳币种' : 'Best Symbol'}
+                                </div>
+                                <div className="text-lg font-bold" style={{ color: 'var(--binance-green)' }}>
+                                  {metrics.best_symbol?.replace('USDT', '') || '-'}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+
+                      {viewTab === 'chart' && (
+                        <motion.div
+                          key="chart"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="space-y-6"
+                        >
+                          {/* Equity Chart */}
+                          <div>
+                            <h4 className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+                              {language === 'zh' ? '资金曲线' : 'Equity Curve'}
+                            </h4>
+                            {equity && equity.length > 0 ? (
+                              <BacktestChart equity={equity} trades={trades ?? []} />
+                            ) : (
+                              <div className="py-12 text-center" style={{ color: 'var(--text-tertiary)' }}>
+                                {tr('charts.equityEmpty')}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Candlestick Chart with Trade Markers */}
+                          {selectedRunId && trades && trades.length > 0 && (
+                            <div>
+                              <h4 className="text-sm font-medium mb-3" style={{ color: 'var(--text-primary)' }}>
+                                {language === 'zh' ? 'K线图 & 交易标记' : 'Candlestick & Trade Markers'}
+                              </h4>
+                              <CandlestickChartComponent
+                                runId={selectedRunId}
+                                trades={trades}
+                                language={language}
+                              />
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+
+                      {viewTab === 'trades' && (
+                        <motion.div
+                          key="trades"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                        >
+                          <TradeTimeline trades={trades ?? []} />
+                        </motion.div>
+                      )}
+
+                      {viewTab === 'decisions' && (
+                        <motion.div
+                          key="decisions"
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="space-y-3 max-h-[500px] overflow-y-auto"
+                        >
+                          {decisions && decisions.length > 0 ? (
+                            decisions.map((d) => (
+                              <DecisionCard
+                                key={`${d.cycle_number}-${d.timestamp}`}
+                                decision={d}
+                                language={language}
+                              />
+                            ))
+                          ) : (
+                            <div className="py-12 text-center" style={{ color: 'var(--text-tertiary)' }}>
+                              {tr('decisionTrail.emptyHint')}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+    </DeepVoidBackground>
+  )
+}
