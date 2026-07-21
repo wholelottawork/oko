@@ -148,23 +148,17 @@ router.get('/market/chart', (_req, res) => {
   })
 })
 
-// Futures data for liquidation map + AI signals
-const FUTURES_PRICES = {
-  BTC: 67234.5, ETH: 3456.78, SOL: 178.92, BNB: 612.34, XRP: 0.6234,
-}
-const FUTURES_OI = {
-  BTC: 580000, ETH: 3200000, SOL: 12000000, BNB: 950000, XRP: 45000000,
+// Futures data for liquidation map + AI signals — fetches live from Binance
+const BINANCE_FAPI = 'https://fapi.binance.com'
+const BINANCE_DATA = 'https://fapi.binance.com/futures/data'
+
+async function fetchJson(url) {
+  const r = await fetch(url)
+  if (!r.ok) throw new Error(`${r.status} ${url}`)
+  return r.json()
 }
 
-router.get('/market/futures', (_req, res) => {
-  const { symbol = 'BTC' } = _req.query
-  const sym = symbol.toUpperCase()
-  const basePrice = FUTURES_PRICES[sym] || 67234.5
-  const baseOI = FUTURES_OI[sym] || 580000
-  const price = basePrice * (1 + (Math.random() - 0.5) * 0.002)
-  const oi = baseOI * (1 + (Math.random() - 0.5) * 0.01)
-
-  // Liquidation levels
+function buildLiqLevels(price, oi) {
   const LEVELS = 20, RANGE = 0.15
   const step = (price * RANGE * 2) / LEVELS
   const levels = []
@@ -175,45 +169,51 @@ router.get('/market/futures', (_req, res) => {
     levels.push({ price: liqPrice, weight, isLong: liqPrice < price })
   }
   const totalWeight = levels.reduce((s, l) => s + l.weight, 0)
+  return levels.map(l => ({
+    price: l.price,
+    weight: l.weight,
+    maxWeight: Math.max(...levels.map(x => x.weight)),
+    isLong: l.isLong,
+    oiEstimate: (oi * l.weight / totalWeight * price / 1e6),
+  }))
+}
 
-  // OI flow history (12 x 5min intervals)
-  const oiHist = []
-  let oiVal = oi * 0.98
-  const now = Date.now()
-  for (let i = 0; i < 12; i++) {
-    oiVal *= 1 + (Math.random() - 0.48) * 0.005
-    oiHist.push({ sumOpenInterest: oiVal.toFixed(2), timestamp: now - (11 - i) * 300000 })
+router.get('/market/futures', async (req, res) => {
+  const { symbol = 'BTC' } = req.query
+  const sym = symbol.toUpperCase()
+  const pair = `${sym}USDT`
+
+  try {
+    const [ticker, oiData, lsRatio, takerRatio, oiHist, fundingArr] = await Promise.all([
+      fetchJson(`${BINANCE_FAPI}/fapi/v1/ticker/24hr?symbol=${pair}`),
+      fetchJson(`${BINANCE_FAPI}/fapi/v1/openInterest?symbol=${pair}`),
+      fetchJson(`${BINANCE_DATA}/globalLongShortAccountRatio?symbol=${pair}&period=5m&limit=1`),
+      fetchJson(`${BINANCE_DATA}/takerlongshortRatio?symbol=${pair}&period=5m&limit=1`),
+      fetchJson(`${BINANCE_DATA}/openInterestHist?symbol=${pair}&period=5m&limit=12`),
+      fetchJson(`${BINANCE_FAPI}/fapi/v1/fundingRate?symbol=${pair}&limit=1`),
+    ])
+
+    const price = parseFloat(ticker.lastPrice)
+    const oi = parseFloat(oiData.openInterest)
+    const funding = fundingArr[0]?.fundingRate || '0'
+
+    res.json({
+      sym,
+      ticker: {
+        lastPrice: ticker.lastPrice,
+        priceChangePercent: ticker.priceChangePercent,
+        lastFundingRate: funding,
+      },
+      oiData: { openInterest: oiData.openInterest },
+      lsRatio: lsRatio.map(r => ({ longAccount: r.longAccount, shortAccount: r.shortAccount })),
+      takerRatio: takerRatio.map(r => ({ buyVol: r.buyVol, sellVol: r.sellVol })),
+      oiHist: oiHist.map(h => ({ sumOpenInterest: h.sumOpenInterest, timestamp: h.timestamp })),
+      levels: buildLiqLevels(price, oi),
+    })
+  } catch (err) {
+    console.error('Binance futures fetch failed:', err.message)
+    res.status(502).json({ error: 'Failed to fetch live data from Binance' })
   }
-
-  // AI signals data
-  const longRatio = 0.45 + Math.random() * 0.12
-  const shortRatio = 1 - longRatio
-  const takerBuyRatio = 0.8 + Math.random() * 0.4
-  const fundingRate = (Math.random() - 0.5) * 0.0008
-  const oiFirst = parseFloat(oiHist[0].sumOpenInterest)
-  const oiLast = parseFloat(oiHist[oiHist.length - 1].sumOpenInterest)
-  const oiTrend = ((oiLast - oiFirst) / oiFirst) * 100
-  const priceChange24h = (Math.random() - 0.4) * 6
-
-  res.json({
-    sym,
-    ticker: {
-      lastPrice: price.toString(),
-      priceChangePercent: priceChange24h.toFixed(2),
-      lastFundingRate: fundingRate.toFixed(6),
-    },
-    oiData: { openInterest: oi.toFixed(2) },
-    lsRatio: [{ longAccount: longRatio.toFixed(4), shortAccount: shortRatio.toFixed(4) }],
-    takerRatio: [{ buyVol: (takerBuyRatio * 1000).toFixed(2), sellVol: '1000.00' }],
-    oiHist,
-    levels: levels.map(l => ({
-      price: l.price,
-      weight: l.weight,
-      maxWeight: Math.max(...levels.map(x => x.weight)),
-      isLong: l.isLong,
-      oiEstimate: (oi * l.weight / totalWeight * price / 1e6),
-    })),
-  })
 })
 
 export default router
