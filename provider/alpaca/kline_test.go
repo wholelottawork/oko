@@ -14,22 +14,21 @@ func TestGetBars(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	t.Log("=== AAPL 日线数据 (Alpaca IEX feed) ===")
+	t.Log("=== AAPL Daily Data (Alpaca IEX feed) ===")
 	for i, bar := range resp {
-		t.Logf("\n[%d] 时间: %s", i, bar.Timestamp.Format("2006-01-02 15:04:05"))
+		t.Logf("\n[%d] Time: %s", i, bar.Timestamp.Format("2006-01-02 15:04:05"))
 		t.Logf("    Open:       %.2f", bar.Open)
 		t.Logf("    High:       %.2f", bar.High)
 		t.Logf("    Low:        %.2f", bar.Low)
 		t.Logf("    Close:      %.2f", bar.Close)
-		t.Logf("    Volume:     %d (股数)", bar.Volume)
-		t.Logf("    TradeCount: %d (成交笔数)", bar.TradeCount)
-		t.Logf("    VWAP:       %.2f (成交量加权平均价)", bar.VWAP)
+		t.Logf("    Volume:     %d (shares)", bar.Volume)
+		t.Logf("    TradeCount: %d (trades)", bar.TradeCount)
+		t.Logf("    VWAP:       %.2f (volume-weighted average price)", bar.VWAP)
 
-		// 计算成交额
 		quoteVolume := float64(bar.Volume) * bar.Close
-		t.Logf("    成交额:     %.2f USD (Volume × Close)", quoteVolume)
+		t.Logf("    Turnover:   %.2f USD (Volume × Close)", quoteVolume)
 	}
 
-	fmt.Printf("\n⚠️ 注意：IEX feed 只包含 IEX 交易所的数据，不是完整市场数据\n")
-	fmt.Printf("完整市场数据需要使用 SIP feed（付费）\n")
+	fmt.Printf("\n⚠️ Note: the IEX feed contains only IEX exchange data, not full-market data\n")
+	fmt.Printf("Full-market data requires the paid SIP feed\n")
 }

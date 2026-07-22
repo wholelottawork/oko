@@ -2,7 +2,7 @@
 
 **Language:** [English](README.md) | [中文](README.zh-CN.md)
 
-This directory contains documentation for NOFX project maintainers and contributors who want to understand our processes.
+This directory contains documentation for OKO project maintainers and contributors who want to understand our processes.
 
 ---
 
@@ -14,7 +14,7 @@ This directory contains documentation for NOFX project maintainers and contribut
 | [PROJECT_MANAGEMENT.md](PROJECT_MANAGEMENT.md) | Project management workflow and processes |
 | [SETUP_GUIDE.md](SETUP_GUIDE.md) | Setup guide for the PR management system |
 
-**Available in:** 🇬🇧 English | 🇨🇳 中文
+**Available in:** 🇬🇧 English | 🇨🇳 Chinese
 
 ---
 
@@ -42,7 +42,7 @@ Everything here is transparent and designed to help you contribute successfully!
 
 ## 📞 Questions?
 
-- **Public questions:** Use [GitHub Discussions](https://github.com/NoFxAiOS/nofx/discussions)
+- **Public questions:** Use [GitHub Discussions](https://github.com/oko-trading/okotrading/discussions)
 - **Maintainer questions:** Use the maintainer channel
 - **Migration questions:** See [Migration Announcement](../community/MIGRATION_ANNOUNCEMENT.md)
 

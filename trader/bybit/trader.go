@@ -7,17 +7,17 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"oko/logger"
 	"io"
 	"math"
 	"net/http"
-	"nofx/logger"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	bybit "github.com/bybit-exchange/bybit.go.api"
-	"nofx/trader/types"
+	"oko/trader/types"
 )
 
 // BybitTrader Bybit USDT Perpetual Futures Trader

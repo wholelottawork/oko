@@ -2,7 +2,7 @@ package market
 
 import (
 	"encoding/json"
-	"nofx/logger"
+	"oko/logger"
 	"sync"
 	"time"
 
@@ -42,9 +42,9 @@ var tickerService = &fanoutService{
 }
 
 type fanoutService struct {
-	mu      sync.RWMutex
-	cache   sync.Map // string → TickerUpdate
-	subs    map[chan TickerUpdate]struct{}
+	mu    sync.RWMutex
+	cache sync.Map // string → TickerUpdate
+	subs  map[chan TickerUpdate]struct{}
 }
 
 // Subscribe registers a new subscriber and returns a receive channel plus a
@@ -221,7 +221,7 @@ func formatFloatManual(f float64, decimals int) string {
 	for i := 0; i < decimals; i++ {
 		mul *= 10
 	}
-	fracPart := int64((f-float64(intPart))*float64(mul)+0.5)
+	fracPart := int64((f-float64(intPart))*float64(mul) + 0.5)
 	if fracPart >= mul {
 		intPart++
 		fracPart = 0

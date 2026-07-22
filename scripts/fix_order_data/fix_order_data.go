@@ -3,8 +3,8 @@ package main
 import (
 	"flag"
 	"fmt"
+	"oko/store"
 	"log"
-	"nofx/store"
 	"os"
 	"path/filepath"
 	"time"
@@ -14,34 +14,31 @@ func main() {
 	var dbPath string
 	var dryRun bool
 
-	flag.StringVar(&dbPath, "db", "./data/data.db", "数据库文件路径")
-	flag.BoolVar(&dryRun, "dry-run", false, "只检查不修复（预览模式）")
+	flag.StringVar(&dbPath, "db", "./data/data.db", "Database file path")
+	flag.BoolVar(&dryRun, "dry-run", false, "Inspect without repairing (preview mode)")
 	flag.Parse()
 
-	// 确保数据库文件存在
 	absPath, err := filepath.Abs(dbPath)
 	if err != nil {
-		log.Fatalf("❌ 无效的数据库路径: %v", err)
+		log.Fatalf("❌ Invalid database path: %v", err)
 	}
 
 	if _, err := os.Stat(absPath); os.IsNotExist(err) {
-		log.Fatalf("❌ 数据库文件不存在: %s", absPath)
+		log.Fatalf("❌ Database file does not exist: %s", absPath)
 	}
 
-	fmt.Printf("📂 数据库路径: %s\n", absPath)
+	fmt.Printf("📂 Database path: %s\n", absPath)
 
-	// 打开数据库
 	s, err := store.New(absPath)
 	if err != nil {
-		log.Fatalf("❌ 无法打开数据库: %v", err)
+		log.Fatalf("❌ Unable to open database: %v", err)
 	}
 	defer s.Close()
 
 	db := s.DB()
 
-	fmt.Println("\n🔍 检查需要修复的订单...")
+	fmt.Println("\n🔍 Checking for orders that need repair...")
 
-	// 1. 修复缺少 filled_at 的 FILLED 订单（使用 updated_at 或 created_at）
 	var needFixFilledAt int
 	err = db.QueryRow(`
 		SELECT COUNT(*)
@@ -49,12 +46,11 @@ func main() {
 		WHERE status = 'FILLED' AND (filled_at IS NULL OR filled_at = '')
 	`).Scan(&needFixFilledAt)
 	if err != nil {
-		log.Fatalf("❌ 查询失败: %v", err)
+		log.Fatalf("❌ Query failed: %v", err)
 	}
 
-	fmt.Printf("   📋 缺少成交时间的订单: %d 条\n", needFixFilledAt)
+	fmt.Printf("   📋 Orders missing a fill time: %d\n", needFixFilledAt)
 
-	// 2. 修复 avg_fill_price = 0 的 FILLED 订单（使用 price 字段）
 	var needFixAvgPrice int
 	err = db.QueryRow(`
 		SELECT COUNT(*)
@@ -62,25 +58,24 @@ func main() {
 		WHERE status = 'FILLED' AND (avg_fill_price = 0 OR avg_fill_price IS NULL) AND price > 0
 	`).Scan(&needFixAvgPrice)
 	if err != nil {
-		log.Fatalf("❌ 查询失败: %v", err)
+		log.Fatalf("❌ Query failed: %v", err)
 	}
 
-	fmt.Printf("   💰 成交价为0的订单: %d 条\n", needFixAvgPrice)
+	fmt.Printf("   💰 Orders with a zero fill price: %d\n", needFixAvgPrice)
 
 	if needFixFilledAt == 0 && needFixAvgPrice == 0 {
-		fmt.Println("\n✅ 没有需要修复的订单！")
+		fmt.Println("\n✅ No orders need repair!")
 		return
 	}
 
 	if dryRun {
-		fmt.Println("\n⚠️  预览模式（--dry-run），不会修改数据")
-		fmt.Println("   运行 'go run scripts/fix_order_data.go' 来执行实际修复")
+		fmt.Println("\n⚠️  Preview mode (--dry-run); no data will be changed")
+		fmt.Println("   Run 'go run scripts/fix_order_data.go' to perform the repair")
 		return
 	}
 
-	fmt.Println("\n🔧 开始修复...")
+	fmt.Println("\n🔧 Starting repair...")
 
-	// 修复缺少 filled_at 的订单
 	if needFixFilledAt > 0 {
 		result, err := db.Exec(`
 			UPDATE trader_orders
@@ -88,13 +83,12 @@ func main() {
 			WHERE status = 'FILLED' AND (filled_at IS NULL OR filled_at = '')
 		`)
 		if err != nil {
-			log.Fatalf("❌ 修复成交时间失败: %v", err)
+			log.Fatalf("❌ Failed to repair fill times: %v", err)
 		}
 		rows, _ := result.RowsAffected()
-		fmt.Printf("   ✅ 修复了 %d 条订单的成交时间\n", rows)
+		fmt.Printf("   ✅ Repaired fill times for %d orders\n", rows)
 	}
 
-	// 修复 avg_fill_price = 0 的订单
 	if needFixAvgPrice > 0 {
 		result, err := db.Exec(`
 			UPDATE trader_orders
@@ -105,14 +99,13 @@ func main() {
 			  AND price > 0
 		`)
 		if err != nil {
-			log.Fatalf("❌ 修复成交价失败: %v", err)
+			log.Fatalf("❌ Failed to repair fill prices: %v", err)
 		}
 		rows, _ := result.RowsAffected()
-		fmt.Printf("   ✅ 修复了 %d 条订单的成交价\n", rows)
+		fmt.Printf("   ✅ Repaired fill prices for %d orders\n", rows)
 	}
 
-	// 验证修复结果
-	fmt.Println("\n🔍 验证修复结果...")
+	fmt.Println("\n🔍 Verifying repair results...")
 	time.Sleep(100 * time.Millisecond)
 
 	var stillMissingFilledAt int
@@ -129,13 +122,13 @@ func main() {
 		WHERE status = 'FILLED' AND (avg_fill_price = 0 OR avg_fill_price IS NULL)
 	`).Scan(&stillMissingAvgPrice)
 
-	fmt.Printf("   📋 仍缺少成交时间: %d 条\n", stillMissingFilledAt)
-	fmt.Printf("   💰 仍缺少成交价: %d 条\n", stillMissingAvgPrice)
+	fmt.Printf("   📋 Still missing a fill time: %d\n", stillMissingFilledAt)
+	fmt.Printf("   💰 Still missing a fill price: %d\n", stillMissingAvgPrice)
 
 	if stillMissingFilledAt == 0 && stillMissingAvgPrice == 0 {
-		fmt.Println("\n✅ 修复完成！所有订单数据已完整")
-		fmt.Println("\n💡 现在刷新图表页面，应该能看到 B/S 标记了")
+		fmt.Println("\n✅ Repair complete! All order data is complete")
+		fmt.Println("\n💡 Refresh the chart page; the B/S markers should now appear")
 	} else {
-		fmt.Println("\n⚠️  仍有部分订单无法修复，可能需要手动检查")
+		fmt.Println("\n⚠️  Some orders could not be repaired and may require manual review")
 	}
 }

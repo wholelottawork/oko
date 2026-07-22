@@ -1,17 +1,17 @@
 package main
 
 import (
-	"nofx/api"
-	"nofx/auth"
-	"nofx/backtest"
-	"nofx/config"
-	"nofx/crypto"
-	"nofx/experience"
-	"nofx/logger"
-	"nofx/manager"
-	"nofx/market"
-	"nofx/mcp"
-	"nofx/store"
+	"oko/api"
+	"oko/auth"
+	"oko/backtest"
+	"oko/config"
+	"oko/crypto"
+	"oko/experience"
+	"oko/logger"
+	"oko/manager"
+	"oko/market"
+	"oko/mcp"
+	"oko/store"
 	"os"
 	"os/signal"
 	"path/filepath"
@@ -37,7 +37,7 @@ func main() {
 	logger.Init(nil)
 
 	logger.Info("╔════════════════════════════════════════════════════════════╗")
-	logger.Info("║           🚀 NOFX - AI-Powered Trading System              ║")
+	logger.Info("║           🚀 OKO - AI-Powered Trading System              ║")
 	logger.Info("╚════════════════════════════════════════════════════════════╝")
 
 	// Initialize global configuration (loaded from .env)

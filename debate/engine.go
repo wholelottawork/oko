@@ -9,12 +9,12 @@ import (
 	"sync"
 	"time"
 
-	"nofx/config"
-	"nofx/kernel"
-	"nofx/logger"
-	"nofx/market"
-	"nofx/mcp"
-	"nofx/store"
+	"oko/config"
+	"oko/kernel"
+	"oko/logger"
+	"oko/market"
+	"oko/mcp"
+	"oko/store"
 )
 
 // TraderExecutor interface for executing trades
@@ -420,12 +420,12 @@ Then output your decisions in STRICT JSON ARRAY format (can include multiple coi
 </decision>
 
 ### IMPORTANT: action field MUST be exactly one of:
-- "open_long" (做多/买入)
-- "open_short" (做空/卖出)
-- "close_long" (平多仓)
-- "close_short" (平空仓)
-- "hold" (持仓观望)
-- "wait" (空仓等待)
+- "open_long" (buy/open a long position)
+- "open_short" (sell/open a short position)
+- "close_long" (close a long position)
+- "close_short" (close a short position)
+- "hold" (keep an existing position)
+- "wait" (remain flat and wait)
 
 ### Field Requirements for each coin:
 - symbol: REQUIRED, the trading pair
@@ -631,10 +631,10 @@ func (e *DebateEngine) getParticipantVote(
 	// If no valid decisions, create a default one with session symbol
 	if primaryDecision == nil && session.Symbol != "" {
 		primaryDecision = &store.DebateDecision{
-			Action:     "hold",
-			Symbol:     session.Symbol,
-			Confidence: 50,
-			Leverage:   5,
+			Action:      "hold",
+			Symbol:      session.Symbol,
+			Confidence:  50,
+			Leverage:    5,
 			PositionPct: 0.2,
 		}
 		decisions = []*store.DebateDecision{primaryDecision}
@@ -699,12 +699,12 @@ You may vote differently from your earlier position if convinced by others' argu
 </final_vote>
 
 ### IMPORTANT: action field MUST be exactly one of:
-- "open_long" (做多/买入)
-- "open_short" (做空/卖出)
-- "close_long" (平多仓)
-- "close_short" (平空仓)
-- "hold" (持仓观望)
-- "wait" (空仓等待)
+- "open_long" (buy/open a long position)
+- "open_short" (sell/open a short position)
+- "close_long" (close a long position)
+- "close_short" (close a short position)
+- "hold" (keep an existing position)
+- "wait" (remain flat and wait)
 
 ---
 
@@ -1116,16 +1116,16 @@ func parseDecisions(response string) ([]*store.DebateDecision, int) {
 	if jsonContent != "" {
 		// Intermediate struct to handle both field naming conventions
 		type rawDecision struct {
-			Action       string  `json:"action"`
-			Symbol       string  `json:"symbol"`
-			Confidence   int     `json:"confidence"`
-			Leverage     int     `json:"leverage"`
-			PositionPct  float64 `json:"position_pct"`
-			StopLoss     float64 `json:"stop_loss"`
-			TakeProfit   float64 `json:"take_profit"`
-			StopLossPct  float64 `json:"stop_loss_pct"`  // Alternative field name
+			Action        string  `json:"action"`
+			Symbol        string  `json:"symbol"`
+			Confidence    int     `json:"confidence"`
+			Leverage      int     `json:"leverage"`
+			PositionPct   float64 `json:"position_pct"`
+			StopLoss      float64 `json:"stop_loss"`
+			TakeProfit    float64 `json:"take_profit"`
+			StopLossPct   float64 `json:"stop_loss_pct"`   // Alternative field name
 			TakeProfitPct float64 `json:"take_profit_pct"` // Alternative field name
-			Reasoning    string  `json:"reasoning"`
+			Reasoning     string  `json:"reasoning"`
 		}
 
 		convertRawDecision := func(r *rawDecision) *store.DebateDecision {

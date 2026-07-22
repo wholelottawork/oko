@@ -13,7 +13,7 @@ export default function HowItWorksSection({ language }: HowItWorksSectionProps) 
       number: '01',
       title: 'One-Click Deploy',
       desc: 'Run a single command on your server to deploy',
-      code: 'curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash',
+      code: 'curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash',
     },
     {
       icon: Rocket,
@@ -36,7 +36,7 @@ export default function HowItWorksSection({ language }: HowItWorksSectionProps) 
       {/* Background Decoration */}
       <div
         className="absolute left-0 top-1/2 -translate-y-1/2 w-96 h-96 rounded-full blur-3xl opacity-20"
-        style={{ background: 'radial-gradient(circle, var(--nofx-border) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, var(--oko-border) 0%, transparent 70%)' }}
       />
 
       <div className="max-w-6xl mx-auto px-4 relative z-10">
@@ -86,11 +86,11 @@ export default function HowItWorksSection({ language }: HowItWorksSectionProps) 
                       className="w-20 h-20 rounded-2xl flex items-center justify-center"
                       style={{
                         background: 'linear-gradient(135deg, var(--accent-primary-bg) 0%, var(--accent-primary-bg) 100%)',
-                        border: '1px solid var(--nofx-border)',
+                        border: '1px solid var(--oko-border)',
                       }}
                       whileHover={{ scale: 1.1 }}
                     >
-                      <step.icon className="w-8 h-8" style={{ color: 'var(--nofx-gold)' }} />
+                      <step.icon className="w-8 h-8" style={{ color: 'var(--oko-gold)' }} />
                     </motion.div>
                   </div>
 
@@ -99,7 +99,7 @@ export default function HowItWorksSection({ language }: HowItWorksSectionProps) 
                     <div className="flex items-center gap-3 mb-2">
                       <span
                         className="text-sm font-mono font-bold"
-                        style={{ color: 'var(--nofx-gold)' }}
+                        style={{ color: 'var(--oko-gold)' }}
                       >
                         {step.number}
                       </span>
@@ -133,8 +133,8 @@ export default function HowItWorksSection({ language }: HowItWorksSectionProps) 
         <motion.div
           className="mt-12 p-6 rounded-2xl flex items-start gap-4"
           style={{
-            background: 'var(--nofx-border)',
-            border: '1px solid var(--nofx-border)',
+            background: 'var(--oko-border)',
+            border: '1px solid var(--oko-border)',
           }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -142,12 +142,12 @@ export default function HowItWorksSection({ language }: HowItWorksSectionProps) 
         >
           <div
             className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: 'var(--nofx-border)' }}
+            style={{ background: 'var(--oko-border)' }}
           >
-            <AlertTriangle className="w-6 h-6" style={{ color: 'var(--nofx-gold)' }} />
+            <AlertTriangle className="w-6 h-6" style={{ color: 'var(--oko-gold)' }} />
           </div>
           <div>
-            <div className="font-semibold mb-2" style={{ color: 'var(--nofx-gold)' }}>
+            <div className="font-semibold mb-2" style={{ color: 'var(--oko-gold)' }}>
               {t('importantRiskWarning', language)}
             </div>
             <p className="text-sm leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>

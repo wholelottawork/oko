@@ -156,7 +156,7 @@ export function LoginPage() {
         >
           {/* Logo & heading */}
           <div className="text-center mb-5 sm:mb-8">
-            <img src="/logo.png" alt="NoFx" className="w-10 sm:w-12 h-auto mx-auto mb-4 sm:mb-6 opacity-90" />
+            <img src="/logo.png" alt="OKO" className="w-10 sm:w-12 h-auto mx-auto mb-4 sm:mb-6 opacity-90" />
             <h1 className="text-2xl font-bold mb-1" style={{ color: 'var(--text-primary)' }}>
               {step === 'login'
                 ? 'Sign in'

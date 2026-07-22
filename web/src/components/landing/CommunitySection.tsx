@@ -28,7 +28,7 @@ function TweetCard({ quote, authorName, handle, avatarUrl, tweetUrl, delay }: Tw
       transition={{ delay }}
       whileHover={{
         y: -4,
-        borderColor: 'var(--nofx-border)',
+        borderColor: 'var(--oko-border)',
       }}
     >
       {/* Header */}
@@ -83,7 +83,7 @@ function TweetCard({ quote, authorName, handle, avatarUrl, tweetUrl, delay }: Tw
           <span>Like</span>
         </div>
         <div className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity">
-          <ExternalLink className="w-3.5 h-3.5" style={{ color: 'var(--nofx-gold)' }} />
+          <ExternalLink className="w-3.5 h-3.5" style={{ color: 'var(--oko-gold)' }} />
         </div>
       </div>
     </motion.a>
@@ -136,7 +136,7 @@ export default function CommunitySection(_: CommunitySectionProps) {
           viewport={{ once: true }}
         >
           <a
-            href="https://twitter.com/nofx_official"
+            href="https://x.com/okoagent"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all hover:scale-105"

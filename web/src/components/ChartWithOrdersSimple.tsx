@@ -101,7 +101,7 @@ export function ChartWithOrdersSimple({
             {traderID && (
               <div className="p-4 rounded" style={{ background: 'var(--surface-secondary)', border: '1px solid var(--surface-tertiary)' }}>
                 <div className="text-sm mb-2" style={{ color: 'var(--text-secondary)' }}></div>
-                <div className="text-2xl font-bold" style={{ color: 'var(--nofx-gold)' }}>
+                <div className="text-2xl font-bold" style={{ color: 'var(--oko-gold)' }}>
                   {orderCount}
                 </div>
               </div>

@@ -1,8 +1,8 @@
-# 📘 NOFX User Guides
+# 📘 OKO User Guides
 
 **Language:** [English](README.md) | [中文](README.zh-CN.md)
 
-Comprehensive guides to help you use NOFX effectively.
+Comprehensive guides to help you use OKO effectively.
 
 ---
 
@@ -13,7 +13,7 @@ Comprehensive guides to help you use NOFX effectively.
 | Guide | Description | Status |
 |-------|-------------|--------|
 | [FAQ (English)](faq.en.md) | Frequently asked questions | ✅ Available |
-| [FAQ (中文)](faq.zh-CN.md) | 常见问题解答 | ✅ Available |
+| [FAQ (legacy alternate path)](faq.zh-CN.md) | Frequently asked questions | ✅ Available |
 | Configuration Guide | Advanced settings and options | 🚧 Coming Soon |
 | Trading Strategies | AI trading strategy examples | 🚧 Coming Soon |
 
@@ -119,19 +119,19 @@ Run multiple AI models simultaneously:
 ## 🔗 Related Documentation
 
 - [Getting Started (EN)](../getting-started/README.md) - Initial setup
-- [Getting Started (中文)](../getting-started/README.zh-CN.md) - 初始设置
+- [Getting Started (legacy alternate path)](../getting-started/README.zh-CN.md) - Initial setup
 - [Community](../community/README.md) - Contributing and bounties
 - [FAQ (English)](faq.en.md) - Common questions
-- [FAQ (中文)](faq.zh-CN.md) - 常见问题
+- [FAQ (legacy alternate path)](faq.zh-CN.md) - Frequently asked questions
 
 ---
 
 ## 🆘 Need Help?
 
 **Can't find what you need?**
-- 💬 [Telegram Community](https://t.me/nofx_dev_community)
-- 🐛 [GitHub Issues](https://github.com/NoFxAiOS/nofx/issues)
-- 🐦 [Twitter @nofx_official](https://x.com/nofx_official)
+- 💬 [Telegram Community](https://t.me/okoagent_channel)
+- 🐛 [GitHub Issues](https://github.com/oko-trading/okotrading/issues)
+- 🐦 [Twitter @okoagent](https://x.com/okoagent)
 
 ---
 

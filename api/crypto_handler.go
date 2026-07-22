@@ -1,10 +1,10 @@
 package api
 
 import (
+	"oko/config"
+	"oko/crypto"
 	"log"
 	"net/http"
-	"nofx/config"
-	"nofx/crypto"
 
 	"github.com/gin-gonic/gin"
 )

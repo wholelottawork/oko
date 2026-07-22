@@ -792,11 +792,11 @@ const ACT = {
 
 ```typescript
 const PERS = {
-  bull: { emoji: '🐂', color: '#22C55E', name: '多头', nameEn: 'Bull' },
-  bear: { emoji: '🐻', color: '#EF4444', name: '空头', nameEn: 'Bear' },
-  analyst: { emoji: '📊', color: '#3B82F6', name: '分析', nameEn: 'Analyst' },
-  contrarian: { emoji: '🔄', color: '#F59E0B', name: '逆势', nameEn: 'Contrarian' },
-  risk_manager: { emoji: '🛡️', color: '#8B5CF6', name: '风控', nameEn: 'Risk Mgr' },
+  bull: { emoji: '🐂', color: '#22C55E', name: 'Bull', nameEn: 'Bull' },
+  bear: { emoji: '🐻', color: '#EF4444', name: 'Bear', nameEn: 'Bear' },
+  analyst: { emoji: '📊', color: '#3B82F6', name: 'Analyst', nameEn: 'Analyst' },
+  contrarian: { emoji: '🔄', color: '#F59E0B', name: 'Contrarian', nameEn: 'Contrarian' },
+  risk_manager: { emoji: '🛡️', color: '#8B5CF6', name: 'Risk Mgr', nameEn: 'Risk Mgr' },
 }
 ```
 

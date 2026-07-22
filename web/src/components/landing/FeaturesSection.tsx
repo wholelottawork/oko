@@ -52,7 +52,7 @@ export default function FeaturesSection({ language }: FeaturesSectionProps) {
       <div
         className="absolute inset-0 opacity-[0.02]"
         style={{
-          backgroundImage: `linear-gradient(var(--nofx-gold) 1px, transparent 1px), linear-gradient(90deg, var(--nofx-gold) 1px, transparent 1px)`,
+          backgroundImage: `linear-gradient(var(--oko-gold) 1px, transparent 1px), linear-gradient(90deg, var(--oko-gold) 1px, transparent 1px)`,
           backgroundSize: '40px 40px',
         }}
       />
@@ -66,7 +66,7 @@ export default function FeaturesSection({ language }: FeaturesSectionProps) {
           viewport={{ once: true }}
         >
           <h2 className="text-4xl lg:text-5xl font-bold mb-4" style={{ color: 'var(--text-primary)' }}>
-            {t('whyChooseNofx', language)}
+            {t('whyChooseOko', language)}
           </h2>
           <p className="text-lg max-w-2xl mx-auto" style={{ color: 'var(--text-secondary)' }}>
             {'Not just a trading bot, but a complete AI trading operating system'}
@@ -91,7 +91,7 @@ export default function FeaturesSection({ language }: FeaturesSectionProps) {
                   ? 'linear-gradient(135deg, var(--accent-primary-bg) 0%, var(--accent-primary-bg) 100%)'
                   : '#12161C',
                 border: feature.highlight
-                  ? '1px solid var(--nofx-border)'
+                  ? '1px solid var(--oko-border)'
                   : '1px solid var(--glass-border)',
               }}
             >
@@ -100,8 +100,8 @@ export default function FeaturesSection({ language }: FeaturesSectionProps) {
                 <div
                   className="absolute top-4 right-4 px-2 py-1 rounded text-xs font-medium"
                   style={{
-                    background: 'var(--nofx-border)',
-                    color: 'var(--nofx-gold)',
+                    background: 'var(--oko-border)',
+                    color: 'var(--oko-gold)',
                   }}
                 >
                   {feature.badge}
@@ -113,15 +113,15 @@ export default function FeaturesSection({ language }: FeaturesSectionProps) {
                 className="w-12 h-12 rounded-xl flex items-center justify-center mb-4"
                 style={{
                   background: feature.highlight
-                    ? 'var(--nofx-border)'
-                    : 'var(--nofx-border)',
-                  border: '1px solid var(--nofx-border)',
+                    ? 'var(--oko-border)'
+                    : 'var(--oko-border)',
+                  border: '1px solid var(--oko-border)',
                 }}
                 whileHover={{ scale: 1.1, rotate: 5 }}
               >
                 <feature.icon
                   className="w-6 h-6"
-                  style={{ color: 'var(--nofx-gold)' }}
+                  style={{ color: 'var(--oko-gold)' }}
                 />
               </motion.div>
 
@@ -142,7 +142,7 @@ export default function FeaturesSection({ language }: FeaturesSectionProps) {
               {/* Hover Glow */}
               <div
                 className="absolute -bottom-10 -right-10 w-32 h-32 rounded-full blur-3xl opacity-0 group-hover:opacity-30 transition-opacity duration-500"
-                style={{ background: 'var(--nofx-gold)' }}
+                style={{ background: 'var(--oko-gold)' }}
               />
             </motion.div>
           ))}
@@ -172,7 +172,7 @@ export default function FeaturesSection({ language }: FeaturesSectionProps) {
               <div
                 className="text-2xl font-bold mb-1"
                 style={{
-                  background: 'linear-gradient(135deg, var(--nofx-gold) 0%, var(--accent-primary-hover) 100%)',
+                  background: 'linear-gradient(135deg, var(--oko-gold) 0%, var(--accent-primary-hover) 100%)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}

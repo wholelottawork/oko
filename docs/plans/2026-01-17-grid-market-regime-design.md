@@ -1,151 +1,91 @@
-# 网格策略市场状态识别与风控设计
+# Grid Strategy Market-Regime and Risk-Control Design
 
-## 概述
+## Overview
 
-增强网格策略的市场状态识别能力，实现震荡/趋势的精准判断，并根据不同震荡级别自动调整网格参数和风控策略。
+This design improves the grid strategy's ability to distinguish ranging markets from trends. Grid density, range, position limits, and leverage adjust to the detected regime.
 
----
+## Regime detection
 
-## 一、市场状态识别
+Use three groups of signals:
 
-### 1.1 识别维度（3个）
+| Dimension | Indicators | Purpose |
+| --- | --- | --- |
+| Volatility | ATR14 and Bollinger bandwidth | Estimate range amplitude |
+| Trend strength | EMA20/EMA50 distance and MACD | Detect directional movement |
+| Momentum | RSI14 and 1-hour/4-hour price change | Detect overbought and oversold conditions |
 
-| 维度 | 指标 | 作用 |
-|------|------|------|
-| 价格波动 | ATR14 + Bollinger带宽 | 判断震荡幅度 |
-| 趋势强度 | EMA20/50距离 + MACD | 判断是否有趋势 |
-| 动量 | RSI14 + 1h/4h涨跌幅 | 判断超买超卖 |
+Add Donchian channels calculated from 1-hour candles:
 
-### 1.2 箱体指标（新增）
+| Box | Period | Approximate coverage | Use |
+| --- | ---: | --- | --- |
+| Short | 72 | 3 days | Intraday boundaries |
+| Medium | 240 | 10 days | Weekly range |
+| Long | 500 | 21 days | Major trend boundaries |
 
-基于1小时K线的多周期Donchian通道：
+The AI evaluates these indicators, the raw candle sequence, and the current position inside each box.
 
-| 箱体级别 | 周期 | 覆盖时间 | 用途 |
-|----------|------|----------|------|
-| 短期箱体 | 72根1小时 | 3天 | 日内波动边界 |
-| 中期箱体 | 240根1小时 | 10天 | 周级别震荡区间 |
-| 长期箱体 | 500根1小时 | ~21天 | 大级别趋势边界 |
+## Range classification
 
-### 1.3 判断方式
+| Level | Characteristics | Typical evidence |
+| --- | --- | --- |
+| Narrow | Small movement inside the short box | Bandwidth below 2%, low ATR |
+| Standard | Normal movement inside the medium box | Bandwidth 2–3%, normal ATR |
+| Wide | Price approaches a medium-box boundary | Bandwidth 3–4%, elevated ATR |
+| Volatile | Price approaches a long-box boundary | Bandwidth above 4%, high ATR |
 
-由AI综合分析以上指标 + 原始K线序列 + 箱体位置，输出市场状态判断。
+Grid policy by level:
 
----
+| Level | Density | Range | Per-grid size | Total-position cap | Effective-leverage cap |
+| --- | --- | --- | --- | --- | --- |
+| Narrow | Dense | Narrow | Small | 30–40% | 2x |
+| Standard | Normal | Medium | Normal | 60–70% | 3–4x |
+| Wide | Sparse | Wide | Normal | 50–60% | 3x |
+| Volatile | Sparsest | Widest | Small | 30–40% | 2x |
 
-## 二、震荡分级与网格策略
+Narrow and volatile regimes are intentionally conservative. Standard ranging conditions permit the largest allocation.
 
-### 2.1 四级震荡分类
+## Breakouts and recovery
 
-| 级别 | 特征 | 判断依据 |
-|------|------|----------|
-| 窄幅震荡 | 价格在短期箱体内小幅波动 | Bollinger带宽 < 2%，ATR低 |
-| 标准震荡 | 价格在中期箱体内正常波动 | Bollinger带宽 2-3%，ATR正常 |
-| 宽幅震荡 | 价格接近中期箱体边缘 | Bollinger带宽 3-4%，ATR较高 |
-| 剧烈震荡 | 价格接近长期箱体边缘 | Bollinger带宽 > 4%，ATR高 |
+A breakout is confirmed when three consecutive 1-hour candle closes remain outside a box.
 
-### 2.2 各级别对应的网格策略
+| Breakout | Response |
+| --- | --- |
+| Short box | Reduce the position to 50% |
+| Medium box | Pause the grid and cancel open orders |
+| Long box | Pause, cancel open orders, and close all positions |
 
-| 级别 | 网格密度 | 网格范围 | 单格仓位 | 总仓位上限 | 有效杠杆上限 |
-|------|----------|----------|----------|------------|--------------|
-| 窄幅震荡 | 密集 | 窄 | 小 | 30-40% | 2x |
-| 标准震荡 | 正常 | 中等 | 正常 | 60-70% | 3-4x |
-| 宽幅震荡 | 稀疏 | 宽 | 正常 | 50-60% | 3x |
-| 剧烈震荡 | 最稀疏 | 最宽 | 小 | 30-40% | 2x |
+If price returns inside the box after a false breakout, resume the grid at 50% allocation and scale up only after the regime stabilizes.
 
-**核心原则：**
-- 窄幅震荡：单格仓位小 + 总仓位上限低（防击穿风险）
-- 剧烈震荡：同样保守（随时可能变趋势）
-- 标准震荡：才是放量的最佳时机
+## Risk panel
 
----
+The frontend should display:
 
-## 三、突破处理与恢复机制
+- configured, effective, and recommended leverage;
+- current position, maximum position, and utilization;
+- liquidation price and distance;
+- current regime level; and
+- short-, medium-, and long-box boundaries and current price position.
 
-### 3.1 突破判断与处理
+## Implementation
 
-**确认方式：** 收盘价突破箱体后，持续3根1小时K线不回箱体
+Backend work:
 
-| 箱体级别 | 突破处理 |
-|----------|----------|
-| 短期箱体突破 | 降低仓位到 50% |
-| 中期箱体突破 | 暂停网格 + 取消挂单 |
-| 长期箱体突破 | 暂停网格 + 取消挂单 + 平掉所有持仓 |
+1. Add `calculateDonchian(klines, period)` in `market/data.go`.
+2. Add box inputs and regime output to the prompt in `kernel/grid_engine.go`.
+3. Adjust density, range, position size, and effective leverage in `trader/auto_trader_grid.go`.
+4. Implement three-level breakout detection, three-candle confirmation, and recovery.
 
-### 3.2 假突破恢复
+Model additions:
 
-**价格回到箱体内 → 以50%仓位恢复网格**
+- `GridConfigModel`: `EffectiveLeverageLimit`, `ShortBoxPeriod`, `MidBoxPeriod`, and `LongBoxPeriod`.
+- `GridInstanceModel`: current regime, all box boundaries, breakout status, and confirmation count.
 
----
+## Risk-control summary
 
-## 四、前端风控面板
-
-### 4.1 需要展示的信息
-
-| 类别 | 显示内容 |
-|------|----------|
-| 杠杆信息 | 当前杠杆、有效杠杆、系统推荐杠杆 |
-| 仓位信息 | 当前仓位、最大仓位、仓位占比 |
-| 爆仓信息 | 爆仓价格、爆仓距离(%) |
-| 市场状态 | 当前震荡级别(窄幅/标准/宽幅/剧烈) |
-| 箱体状态 | 短期/中期/长期箱体上下沿、当前价格位置 |
-
----
-
-## 五、实现要点
-
-### 5.1 后端新增
-
-1. **箱体指标计算** (`market/data.go`)
-   - 新增 `calculateDonchian(klines, period)` 函数
-   - 返回 upper(最高价), lower(最低价)
-   - 支持72/240/500三个周期
-
-2. **市场状态评估** (`kernel/grid_engine.go`)
-   - 更新AI prompt，加入箱体指标和K线序列
-   - AI输出震荡级别判断
-
-3. **网格参数动态调整** (`trader/auto_trader_grid.go`)
-   - 根据震荡级别自动调整：网格密度、范围、仓位、杠杆
-   - 实现有效杠杆上限控制
-
-4. **突破处理逻辑** (`trader/auto_trader_grid.go`)
-   - 实现三级箱体突破检测
-   - 实现3根K线确认逻辑
-   - 实现降级恢复机制
-
-### 5.2 前端新增
-
-1. **风控面板组件**
-   - 杠杆信息展示
-   - 仓位信息展示
-   - 爆仓信息展示
-   - 市场状态展示
-   - 箱体状态可视化
-
-### 5.3 数据模型更新
-
-1. **GridConfigModel** 新增字段：
-   - `EffectiveLeverageLimit` - 有效杠杆上限
-   - `ShortBoxPeriod` - 短期箱体周期 (默认72)
-   - `MidBoxPeriod` - 中期箱体周期 (默认240)
-   - `LongBoxPeriod` - 长期箱体周期 (默认500)
-
-2. **GridInstanceModel** 新增字段：
-   - `CurrentRegimeLevel` - 当前震荡级别 (narrow/standard/wide/volatile)
-   - `ShortBoxUpper/Lower` - 短期箱体上下沿
-   - `MidBoxUpper/Lower` - 中期箱体上下沿
-   - `LongBoxUpper/Lower` - 长期箱体上下沿
-   - `BreakoutStatus` - 突破状态 (none/short/mid/long)
-   - `BreakoutConfirmCount` - 突破确认K线计数
-
----
-
-## 六、风险控制总结
-
-| 控制点 | 机制 |
-|--------|------|
-| 仓位控制 | 根据震荡级别限制总仓位上限 (30-70%) |
-| 杠杆控制 | 根据震荡级别限制有效杠杆 (2-4x) |
-| 突破保护 | 三级箱体突破分级处理 |
-| 假突破恢复 | 50%仓位降级恢复 |
-| 爆仓预防 | 前端展示爆仓距离，系统自动限制杠杆 |
+| Control | Mechanism |
+| --- | --- |
+| Position exposure | Regime-dependent 30–70% cap |
+| Leverage | Regime-dependent 2–4x effective cap |
+| Breakout protection | Escalating response across three boxes |
+| False-breakout recovery | Resume at 50% allocation |
+| Liquidation prevention | Display distance and enforce leverage limits |

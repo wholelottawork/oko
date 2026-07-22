@@ -260,7 +260,7 @@ export function MetricTooltip({
             width: '8px',
             height: '8px',
             borderRadius: '50%',
-            background: 'var(--nofx-gold)'
+            background: 'var(--oko-gold)'
           }} />
           <span style={{ fontWeight: 'bold', fontSize: '14px', color: 'var(--text-primary)' }}>
             {name}

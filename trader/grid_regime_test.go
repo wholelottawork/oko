@@ -1,7 +1,7 @@
 package trader
 
 import (
-	"nofx/market"
+	"oko/market"
 	"testing"
 )
 

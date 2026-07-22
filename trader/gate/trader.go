@@ -11,8 +11,8 @@ import (
 
 	"github.com/antihax/optional"
 	"github.com/gateio/gateapi-go/v6"
-	"nofx/logger"
-	"nofx/trader/types"
+	"oko/logger"
+	"oko/trader/types"
 )
 
 // GateTrader implements types.Trader interface for Gate.io Futures
@@ -37,6 +37,7 @@ type GateTrader struct {
 // NewGateTrader creates a new Gate trader instance
 func NewGateTrader(apiKey, secretKey string) *GateTrader {
 	config := gateapi.NewConfiguration()
+	// Registered exchange integration ID; this is an external contract, not UI branding.
 	config.AddDefaultHeader("X-Gate-Channel-Id", "nofx")
 	client := gateapi.NewAPIClient(config)
 
@@ -273,7 +274,7 @@ func (t *GateTrader) OpenLong(symbol string, quantity float64, leverage int) (ma
 		Size:     size, // Positive for long
 		Price:    "0",  // Market order
 		Tif:      "ioc",
-		Text:     "t-nofx",
+		Text:     "t-oko",
 	}
 
 	logger.Infof("  [Gate] OpenLong: symbol=%s, size=%d, leverage=%d", symbol, size, leverage)
@@ -330,7 +331,7 @@ func (t *GateTrader) OpenShort(symbol string, quantity float64, leverage int) (m
 		Size:     -size, // Negative for short
 		Price:    "0",   // Market order
 		Tif:      "ioc",
-		Text:     "t-nofx",
+		Text:     "t-oko",
 	}
 
 	logger.Infof("  [Gate] OpenShort: symbol=%s, size=%d, leverage=%d", symbol, -size, leverage)
@@ -398,7 +399,7 @@ func (t *GateTrader) CloseLong(symbol string, quantity float64) (map[string]inte
 		Price:      "0",
 		Tif:        "ioc",
 		ReduceOnly: true,
-		Text:       "t-nofx-close",
+		Text:       "t-oko-close",
 	}
 
 	logger.Infof("  [Gate] CloseLong: symbol=%s, size=%d", symbol, -size)
@@ -471,7 +472,7 @@ func (t *GateTrader) CloseShort(symbol string, quantity float64) (map[string]int
 		Price:      "0",
 		Tif:        "ioc",
 		ReduceOnly: true,
-		Text:       "t-nofx-close",
+		Text:       "t-oko-close",
 	}
 
 	logger.Infof("  [Gate] CloseShort: symbol=%s, size=%d", symbol, size)

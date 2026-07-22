@@ -402,7 +402,7 @@ export function ComparisonChart({ traders }: ComparisonChartProps) {
           fontFamily: 'monospace',
           letterSpacing: '0.1em',
         }}>
-          NOFX
+          OKO
         </div>
 
         <ResponsiveContainer width="100%" height={420}>
@@ -547,7 +547,7 @@ export function ComparisonChart({ traders }: ComparisonChartProps) {
           <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--text-secondary)' }}>
             {t('leader', language)}
           </div>
-          <div className="text-sm font-bold truncate" style={{ color: 'var(--nofx-gold)' }}>
+          <div className="text-sm font-bold truncate" style={{ color: 'var(--oko-gold)' }}>
             {leader?.trader_name || '-'}
           </div>
         </div>

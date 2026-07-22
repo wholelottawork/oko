@@ -28,8 +28,8 @@ interface DecisionCardProps {
 const ACTION_CONFIG: Record<string, { color: string; bg: string; Icon: LucideIcon; label: string }> = {
   open_long: { color: '#0ECB81', bg: 'var(--binance-green-bg)', Icon: TrendingUp, label: 'LONG' },
   open_short: { color: '#F6465D', bg: 'var(--binance-red-bg)', Icon: TrendingDown, label: 'SHORT' },
-  close_long: { color: 'var(--accent-primary)', bg: 'var(--nofx-border)', Icon: X, label: 'CLOSE' },
-  close_short: { color: 'var(--accent-primary)', bg: 'var(--nofx-border)', Icon: X, label: 'CLOSE' },
+  close_long: { color: 'var(--accent-primary)', bg: 'var(--oko-border)', Icon: X, label: 'CLOSE' },
+  close_short: { color: 'var(--accent-primary)', bg: 'var(--oko-border)', Icon: X, label: 'CLOSE' },
   hold: { color: '#848E9C', bg: 'rgba(132, 142, 156, 0.15)', Icon: Pause, label: 'HOLD' },
   wait: { color: '#848E9C', bg: 'rgba(132, 142, 156, 0.15)', Icon: Clock, label: 'WAIT' },
 }
@@ -162,7 +162,7 @@ function ActionCard({ action, language, onSymbolClick }: { action: DecisionActio
             <div className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
               {t('leverage', language)}
             </div>
-            <div className="font-mono font-semibold" style={{ color: 'var(--nofx-gold)' }}>
+            <div className="font-mono font-semibold" style={{ color: 'var(--oko-gold)' }}>
               {action.leverage}x
             </div>
           </div>
@@ -178,7 +178,7 @@ function ActionCard({ action, language, onSymbolClick }: { action: DecisionActio
               const slDist = Math.abs(action.price - action.stop_loss)
               const tpDist = Math.abs(action.take_profit - action.price)
               const ratio = slDist > 0 ? (tpDist / slDist) : 0
-              const ratioColor = ratio >= 3 ? 'var(--binance-green)' : ratio >= 2 ? 'var(--nofx-gold)' : 'var(--binance-red)'
+              const ratioColor = ratio >= 3 ? 'var(--binance-green)' : ratio >= 2 ? 'var(--oko-gold)' : 'var(--binance-red)'
               return (
                 <>
                   <div className="flex gap-1">
@@ -280,7 +280,7 @@ export function DecisionCard({ decision, language, onSymbolClick }: DecisionCard
         <div className="flex items-center gap-3">
           <div
             className="w-10 h-10 rounded-lg flex items-center justify-center"
-            style={{ background: 'var(--nofx-border)' }}
+            style={{ background: 'var(--oko-border)' }}
           >
             <Bot size={22} className="text-white" />
           </div>
@@ -443,13 +443,13 @@ export function DecisionCard({ decision, language, onSymbolClick }: DecisionCard
             >
               <div className="flex items-center gap-2">
                 <Brain size={18} className="text-white shrink-0" />
-                <span className="font-semibold" style={{ color: 'var(--nofx-gold)' }}>
+                <span className="font-semibold" style={{ color: 'var(--oko-gold)' }}>
                   {t('aiThinking', language)}
                 </span>
               </div>
               <span
                 className="text-xs px-2 py-0.5 rounded"
-                style={{ background: 'var(--nofx-border)', color: 'var(--nofx-gold)' }}
+                style={{ background: 'var(--oko-border)', color: 'var(--oko-gold)' }}
               >
                 {showCoT ? t('collapse', language) : t('expand', language)}
               </span>

@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"oko/config"
 	"io"
 	"net/http"
 	"net/url"
-	"nofx/config"
 	"time"
 )
 

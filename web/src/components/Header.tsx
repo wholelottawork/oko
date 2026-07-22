@@ -16,7 +16,7 @@ export function Header({ simple = false }: HeaderProps) {
           {/* Left - Logo and Title */}
           <div className="flex items-center gap-3">
             <div className="flex items-center justify-center">
-              <img src="/logo.png" alt="NoFx Logo" className="w-8 h-auto" />
+              <img src="/logo.png" alt="OKO Logo" className="w-8 h-auto" />
             </div>
             <div>
               <h1 className="text-xl font-bold" style={{ color: '#2d7ccf' }}>

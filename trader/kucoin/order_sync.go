@@ -3,9 +3,9 @@ package kucoin
 import (
 	"encoding/json"
 	"fmt"
-	"nofx/logger"
-	"nofx/store"
-	"nofx/trader/types"
+	"oko/logger"
+	"oko/store"
+	"oko/trader/types"
 	"sort"
 	"strings"
 	"time"

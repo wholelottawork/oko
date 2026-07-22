@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"math"
-	"nofx/market"
-	"nofx/provider/coinank"
-	"nofx/provider/coinank/coinank_api"
-	"nofx/provider/coinank/coinank_enum"
+	"oko/market"
+	"oko/provider/coinank"
+	"oko/provider/coinank/coinank_api"
+	"oko/provider/coinank/coinank_enum"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,7 +16,6 @@ import (
 	"time"
 )
 
-// IndicatorResult AI 计算的指标结果
 type IndicatorResult struct {
 	EMA12   float64 `json:"ema12"`
 	EMA26   float64 `json:"ema26"`
@@ -29,7 +28,6 @@ type IndicatorResult struct {
 	SMA20   float64 `json:"sma20"`
 }
 
-// 本地计算指标（使用 market 包的函数）
 func calculateLocalIndicators(klines []market.Kline) IndicatorResult {
 	result := IndicatorResult{}
 
@@ -45,7 +43,6 @@ func calculateLocalIndicators(klines []market.Kline) IndicatorResult {
 	}
 	if len(klines) >= 20 {
 		result.BOLLUp, result.BOLLMid, result.BOLLLow = market.ExportCalculateBOLL(klines, 20, 2.0)
-		// SMA20 就是 BOLL 中轨
 		result.SMA20 = result.BOLLMid
 	}
 	if len(klines) > 14 {
@@ -55,7 +52,6 @@ func calculateLocalIndicators(klines []market.Kline) IndicatorResult {
 	return result
 }
 
-// 格式化 K 线数据为文本，发给 AI
 func formatKlinesForAI(klines []market.Kline) string {
 	var sb strings.Builder
 	sb.WriteString("以下是K线数据（从旧到新排列）：\n")
@@ -71,7 +67,6 @@ func formatKlinesForAI(klines []market.Kline) string {
 	return sb.String()
 }
 
-// 构建 AI 计算指标的 prompt
 func buildIndicatorPrompt(klines []market.Kline) string {
 	klinesText := formatKlinesForAI(klines)
 
@@ -109,20 +104,16 @@ func buildIndicatorPrompt(klines []market.Kline) string {
 	return prompt
 }
 
-// 从 AI 响应中提取 JSON
 func extractJSONFromResponse(text string) (IndicatorResult, error) {
 	var result IndicatorResult
 
-	// 尝试直接解析
 	if err := json.Unmarshal([]byte(text), &result); err == nil {
 		return result, nil
 	}
 
-	// 提取 JSON 部分
 	re := regexp.MustCompile(`\{[^{}]*"ema12"[^{}]*\}`)
 	match := re.FindString(text)
 	if match == "" {
-		// 尝试更宽松的匹配
 		start := strings.Index(text, "{")
 		end := strings.LastIndex(text, "}")
 		if start != -1 && end != -1 && end > start {
@@ -141,7 +132,6 @@ func extractJSONFromResponse(text string) (IndicatorResult, error) {
 	return result, nil
 }
 
-// 比较两个指标结果，返回误差百分比
 func compareIndicators(local, ai IndicatorResult) map[string]float64 {
 	errors := make(map[string]float64)
 
@@ -150,7 +140,7 @@ func compareIndicators(local, ai IndicatorResult) map[string]float64 {
 			if aiVal == 0 {
 				errors[name] = 0
 			} else {
-				errors[name] = 100 // 本地为0但AI不为0
+				errors[name] = 100
 			}
 			return
 		}
@@ -170,15 +160,13 @@ func compareIndicators(local, ai IndicatorResult) map[string]float64 {
 	return errors
 }
 
-// 生成测试用 K 线数据
 func generateTestKlines(count int, basePrice float64) []market.Kline {
 	klines := make([]market.Kline, count)
 	price := basePrice
 	now := time.Now()
 
 	for i := 0; i < count; i++ {
-		// 模拟价格波动
-		change := (float64(i%7) - 3) * 0.5 // -1.5 到 +1.5 的波动
+		change := (float64(i%7) - 3) * 0.5
 		price = price + change
 
 		open := price
@@ -200,12 +188,10 @@ func generateTestKlines(count int, basePrice float64) []market.Kline {
 	return klines
 }
 
-// TestQwenIndicatorCalculation 测试 AI 计算技术指标
 func TestQwenIndicatorCalculation(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
 
-	// 生成 30 根测试 K 线
 	klines := generateTestKlines(30, 95000)
 
 	t.Log("===== K线数据 (最后5根) =====")
@@ -214,7 +200,6 @@ func TestQwenIndicatorCalculation(t *testing.T) {
 		t.Logf("  [%d] O:%.2f H:%.2f L:%.2f C:%.2f", i+1, k.Open, k.High, k.Low, k.Close)
 	}
 
-	// 本地计算
 	t.Log("\n===== 本地计算结果 =====")
 	localResult := calculateLocalIndicators(klines)
 	t.Logf("  EMA12:    %.2f", localResult.EMA12)
@@ -227,7 +212,6 @@ func TestQwenIndicatorCalculation(t *testing.T) {
 	t.Logf("  ATR14:    %.2f", localResult.ATR14)
 	t.Logf("  SMA20:    %.2f", localResult.SMA20)
 
-	// AI 计算
 	t.Log("\n===== 调用 AI 计算 =====")
 	prompt := buildIndicatorPrompt(klines)
 	t.Logf("Prompt 长度: %d 字符", len(prompt))
@@ -243,7 +227,6 @@ func TestQwenIndicatorCalculation(t *testing.T) {
 	t.Logf("AI 响应耗时: %v", elapsed)
 	t.Logf("AI 原始响应:\n%s", resp.Output.Text)
 
-	// 解析 AI 结果
 	aiResult, err := extractJSONFromResponse(resp.Output.Text)
 	if err != nil {
 		t.Fatalf("解析 AI 结果失败: %v", err)
@@ -260,7 +243,6 @@ func TestQwenIndicatorCalculation(t *testing.T) {
 	t.Logf("  ATR14:    %.2f", aiResult.ATR14)
 	t.Logf("  SMA20:    %.2f", aiResult.SMA20)
 
-	// 对比结果
 	t.Log("\n===== 误差对比 (%) =====")
 	errors := compareIndicators(localResult, aiResult)
 
@@ -287,9 +269,7 @@ func TestQwenIndicatorCalculation(t *testing.T) {
 	}
 }
 
-// TestQwenIndicatorWithRealKlines 使用真实 K 线测试
 func TestQwenIndicatorWithRealKlines(t *testing.T) {
-	// 尝试获取真实 K 线数据
 	client := market.NewAPIClient()
 	klines, err := client.GetKlines("BTC", "1h", 30)
 	if err != nil {
@@ -308,14 +288,12 @@ func TestQwenIndicatorWithRealKlines(t *testing.T) {
 	t.Logf("获取到 %d 根 BTC 1h K线", len(klines))
 	t.Log("最新价格:", klines[len(klines)-1].Close)
 
-	// 本地计算
 	localResult := calculateLocalIndicators(klines)
 	t.Log("\n===== 本地计算 =====")
 	t.Logf("  EMA12: %.2f, EMA26: %.2f, MACD: %.2f", localResult.EMA12, localResult.EMA26, localResult.MACD)
 	t.Logf("  RSI14: %.2f", localResult.RSI14)
 	t.Logf("  BOLL: %.2f / %.2f / %.2f", localResult.BOLLUp, localResult.BOLLMid, localResult.BOLLLow)
 
-	// AI 计算
 	prompt := buildIndicatorPrompt(klines)
 	resp, err := agent.Chat(ctx, prompt)
 	if err != nil {
@@ -331,7 +309,6 @@ func TestQwenIndicatorWithRealKlines(t *testing.T) {
 		return
 	}
 
-	// 对比
 	errors := compareIndicators(localResult, aiResult)
 	t.Log("\n===== 误差 =====")
 	for name, errPct := range errors {
@@ -339,7 +316,6 @@ func TestQwenIndicatorWithRealKlines(t *testing.T) {
 	}
 }
 
-// TestQwenIndicatorMultiTimeframe 测试多个时间周期
 func TestQwenIndicatorMultiTimeframe(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -360,7 +336,6 @@ func TestQwenIndicatorMultiTimeframe(t *testing.T) {
 
 			localResult := calculateLocalIndicators(klines)
 
-			// 简化的 prompt
 			prompt := buildSimpleIndicatorPrompt(klines)
 
 			resp, err := agent.Chat(ctx, prompt)
@@ -377,7 +352,6 @@ func TestQwenIndicatorMultiTimeframe(t *testing.T) {
 
 			errors := compareIndicators(localResult, aiResult)
 
-			// 计算平均误差
 			total := 0.0
 			for _, e := range errors {
 				total += e
@@ -389,13 +363,11 @@ func TestQwenIndicatorMultiTimeframe(t *testing.T) {
 			t.Logf("平均误差: %.2f%%", avgErr)
 		})
 
-		time.Sleep(2 * time.Second) // 避免请求过快
+		time.Sleep(2 * time.Second)
 	}
 }
 
-// 简化的 prompt
 func buildSimpleIndicatorPrompt(klines []market.Kline) string {
-	// 只提供收盘价序列，减少 token
 	var prices []string
 	for _, k := range klines {
 		prices = append(prices, fmt.Sprintf("%.2f", k.Close))
@@ -415,19 +387,16 @@ func buildSimpleIndicatorPrompt(klines []market.Kline) string {
 只返回JSON格式：{"ema12":数值,"ema26":数值,...}`, strings.Join(prices, ","))
 }
 
-// TestQwenIndicatorAccuracy 精度测试：使用简单数据验证算法
 func TestQwenIndicatorAccuracy(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
 
-	// 使用简单递增数据，便于验证
 	prices := []float64{
 		100, 101, 102, 103, 104, 105, 106, 107, 108, 109, // 1-10
 		110, 111, 112, 113, 114, 115, 116, 117, 118, 119, // 11-20
 		120, 121, 122, 123, 124, 125, 126, 127, 128, 129, // 21-30
 	}
 
-	// 构建 K 线
 	klines := make([]market.Kline, len(prices))
 	for i, p := range prices {
 		klines[i] = market.Kline{
@@ -438,7 +407,6 @@ func TestQwenIndicatorAccuracy(t *testing.T) {
 		}
 	}
 
-	// 本地计算
 	localResult := calculateLocalIndicators(klines)
 
 	t.Log("===== 简单递增数据测试 =====")
@@ -448,7 +416,6 @@ func TestQwenIndicatorAccuracy(t *testing.T) {
 	t.Logf("  EMA12 = %.4f", localResult.EMA12)
 	t.Logf("  RSI14 = %.4f (持续上涨应接近100)", localResult.RSI14)
 
-	// AI 计算
 	var priceStrs []string
 	for _, p := range prices {
 		priceStrs = append(priceStrs, strconv.FormatFloat(p, 'f', 0, 64))
@@ -471,7 +438,6 @@ func TestQwenIndicatorAccuracy(t *testing.T) {
 
 	t.Logf("\nAI 响应: %s", resp.Output.Text)
 
-	// 简单解析
 	var aiSimple struct {
 		SMA20 float64 `json:"sma20"`
 		EMA12 float64 `json:"ema12"`
@@ -490,7 +456,6 @@ func TestQwenIndicatorAccuracy(t *testing.T) {
 	t.Logf("  EMA12 = %.4f", aiSimple.EMA12)
 	t.Logf("  RSI14 = %.4f", aiSimple.RSI14)
 
-	// 验证 SMA20 (理论值应该是 110+...+129 的平均 = 119.5)
 	expectedSMA := 119.5
 	if math.Abs(aiSimple.SMA20-expectedSMA) < 0.1 {
 		t.Log("\n✓ AI 的 SMA20 计算正确!")
@@ -499,7 +464,6 @@ func TestQwenIndicatorAccuracy(t *testing.T) {
 	}
 }
 
-// coinankKlinesToMarket 将 coinank K线转换为 market.Kline
 func coinankKlinesToMarket(klines []coinank.KlineResult) []market.Kline {
 	result := make([]market.Kline, len(klines))
 	for i, k := range klines {
@@ -516,12 +480,10 @@ func coinankKlinesToMarket(klines []coinank.KlineResult) []market.Kline {
 	return result
 }
 
-// TestQwenETHMultiTimeframe 使用 Coinank 免费 API 获取真实 ETH 数据测试多周期指标
 func TestQwenETHMultiTimeframe(t *testing.T) {
 	ctx := context.Background()
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 
-	// 测试多个时间周期
 	timeframes := []struct {
 		name     string
 		interval coinank_enum.Interval
@@ -537,7 +499,6 @@ func TestQwenETHMultiTimeframe(t *testing.T) {
 
 	for _, tf := range timeframes {
 		t.Run(tf.name, func(t *testing.T) {
-			// 使用 coinank 免费 API 获取 ETH K线数据
 			coinankKlines, err := coinank_api.Kline(ctx, "ETHUSDT", coinank_enum.Binance,
 				now.UnixMilli(), coinank_enum.To, tf.size, tf.interval)
 			if err != nil {
@@ -549,7 +510,6 @@ func TestQwenETHMultiTimeframe(t *testing.T) {
 				return
 			}
 
-			// 转换为 market.Kline
 			klines := coinankKlinesToMarket(coinankKlines)
 
 			t.Logf("获取到 %d 根 ETH %s K线", len(klines), tf.name)
@@ -557,7 +517,6 @@ func TestQwenETHMultiTimeframe(t *testing.T) {
 				klines[len(klines)-1].Close,
 				time.UnixMilli(klines[len(klines)-1].CloseTime).Format("2006-01-02 15:04"))
 
-			// 本地计算
 			localResult := calculateLocalIndicators(klines)
 			t.Log("\n===== 本地计算 =====")
 			t.Logf("  EMA12: %.2f, EMA26: %.2f, MACD: %.4f",
@@ -567,7 +526,6 @@ func TestQwenETHMultiTimeframe(t *testing.T) {
 				localResult.BOLLUp, localResult.BOLLMid, localResult.BOLLLow)
 			t.Logf("  ATR14: %.4f", localResult.ATR14)
 
-			// AI 计算 - 使用简化 prompt（只发收盘价）
 			prompt := buildSimpleIndicatorPrompt(klines)
 			t.Logf("\nPrompt 长度: %d 字符", len(prompt))
 
@@ -581,7 +539,6 @@ func TestQwenETHMultiTimeframe(t *testing.T) {
 
 			t.Logf("AI 响应耗时: %v", elapsed)
 
-			// 解析 AI 结果
 			aiResult, err := extractJSONFromResponse(resp.Output.Text)
 			if err != nil {
 				t.Logf("AI 原始响应:\n%s", resp.Output.Text[:min(500, len(resp.Output.Text))])
@@ -595,7 +552,6 @@ func TestQwenETHMultiTimeframe(t *testing.T) {
 			t.Logf("  BOLL: %.2f / %.2f / %.2f",
 				aiResult.BOLLUp, aiResult.BOLLMid, aiResult.BOLLLow)
 
-			// 对比误差
 			t.Log("\n===== 误差对比 =====")
 			errors := compareIndicators(localResult, aiResult)
 			totalErr := 0.0
@@ -622,18 +578,15 @@ func TestQwenETHMultiTimeframe(t *testing.T) {
 				t.Log("  ✗ AI 计算误差较大")
 			}
 
-			// 等待避免请求过快
 			time.Sleep(2 * time.Second)
 		})
 	}
 }
 
-// TestQwenETHIndicatorComparison ETH 指标对比：使用 Coinank 免费 API + Qwen 标准 API
 func TestQwenETHIndicatorComparison(t *testing.T) {
 	ctx := context.Background()
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 
-	// 使用 coinank 免费 API 获取 ETH 1小时 K线
 	now := time.Now()
 	coinankKlines, err := coinank_api.Kline(ctx, "ETHUSDT", coinank_enum.Binance,
 		now.UnixMilli(), coinank_enum.To, 30, coinank_enum.Hour1)
@@ -641,18 +594,15 @@ func TestQwenETHIndicatorComparison(t *testing.T) {
 		t.Fatalf("获取 K线失败: %v", err)
 	}
 
-	// 转换为 market.Kline
 	klines := coinankKlinesToMarket(coinankKlines)
 
 	t.Logf("获取到 %d 根 ETH 1h K线", len(klines))
 
-	// 只用收盘价，简化 prompt
 	var prices []string
 	for _, k := range klines {
 		prices = append(prices, fmt.Sprintf("%.2f", k.Close))
 	}
 
-	// 本地计算
 	localResult := calculateLocalIndicators(klines)
 
 	t.Log("\n===== 本地计算结果 =====")
@@ -662,7 +612,6 @@ func TestQwenETHIndicatorComparison(t *testing.T) {
 	t.Logf("MACD:  %.4f", localResult.MACD)
 	t.Logf("RSI14: %.2f", localResult.RSI14)
 
-	// 简化的 AI prompt
 	prompt := fmt.Sprintf(`ETH 最近30根1小时K线收盘价（从旧到新）:
 [%s]
 
@@ -678,7 +627,6 @@ func TestQwenETHIndicatorComparison(t *testing.T) {
 
 	t.Logf("\n发送 Prompt (%d 字符)", len(prompt))
 
-	// 使用标准 API
 	resp, err := agent.ChatWithModel(ctx, "qwen-max", prompt)
 	if err != nil {
 		t.Fatalf("AI 调用失败: %v", err)
@@ -687,7 +635,6 @@ func TestQwenETHIndicatorComparison(t *testing.T) {
 	aiText := resp.GetContent()
 	t.Logf("\nAI 响应:\n%s", aiText)
 
-	// 解析
 	var aiResult struct {
 		SMA20 float64 `json:"sma20"`
 		EMA12 float64 `json:"ema12"`
@@ -711,7 +658,6 @@ func TestQwenETHIndicatorComparison(t *testing.T) {
 	t.Logf("MACD:  %.4f", aiResult.MACD)
 	t.Logf("RSI14: %.2f", aiResult.RSI14)
 
-	// 计算误差
 	t.Log("\n===== 误差 =====")
 	calcErr := func(name string, local, ai float64) {
 		if local == 0 {

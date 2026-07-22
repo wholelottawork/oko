@@ -2,7 +2,7 @@
 
 ## What Changed?
 
-NOFX documentation has been reorganized into a structured `docs/` directory for better organization and navigation.
+OKO documentation has been reorganized into a structured `docs/` directory for better organization and navigation.
 
 ## 🗺️ File Locations (Old → New)
 
@@ -20,7 +20,7 @@ NOFX documentation has been reorganized into a structured `docs/` directory for 
 - `README.zh-CN.md` → `docs/i18n/zh-CN/README.md`
 - `README.ru.md` → `docs/i18n/ru/README.md`
 - `README.uk.md` → `docs/i18n/uk/README.md`
-- `常见问题.md` → `docs/guides/faq.zh-CN.md`
+- legacy FAQ file → `docs/guides/faq.zh-CN.md`
 
 ### Root Directory (Unchanged)
 These stay in the root for GitHub recognition:
@@ -34,7 +34,7 @@ These stay in the root for GitHub recognition:
 
 ### Before (❌ Problems)
 ```
-nofx/
+oko/
 ├── README.md
 ├── README.zh-CN.md
 ├── README.ru.md
@@ -45,7 +45,7 @@ nofx/
 ├── HOW_TO_POST_BOUNTY.md
 ├── INTEGRATION_BOUNTY_HYPERLIQUID.md
 ├── INTEGRATION_BOUNTY_ASTER.md
-├── 常见问题.md
+├── legacy-faq.md
 └── ... (15+ markdown files in root!)
 ```
 
@@ -57,7 +57,7 @@ nofx/
 
 ### After (✅ Benefits)
 ```
-nofx/
+oko/
 ├── README.md              # Project homepage
 ├── LICENSE                # Legal (GitHub needs it here)
 ├── CONTRIBUTING.md        # GitHub auto-links
@@ -98,11 +98,11 @@ Files GitHub needs to see:
 **Categories:**
 
 1. **`getting-started/`** - Deployment and setup
-   - Docker deployment (EN/中文)
+   - Docker deployment (EN/Chinese)
    - Custom API configuration
 
 2. **`guides/`** - Usage guides and tutorials
-   - FAQ (中文)
+   - FAQ (Chinese)
    - Troubleshooting (planned)
    - Configuration examples (planned)
 
@@ -143,7 +143,7 @@ Files GitHub needs to see:
 ```
 
 **GitHub URLs automatically redirect!**
-- Old: `github.com/NoFxAiOS/nofx/blob/main/DOCKER_DEPLOY.en.md`
+- Old: `github.com/oko-trading/okotrading/blob/main/DOCKER_DEPLOY.en.md`
 - Will redirect to: `github.com/.../docs/getting-started/docker-deploy.en.md`
 
 ## 🛠️ For Contributors
@@ -221,10 +221,10 @@ Closes #XXX
 **Can't find a document?**
 1. Check [docs/README.md](README.md) navigation hub
 2. Search GitHub repo
-3. Ask in [Telegram](https://t.me/nofx_dev_community)
+3. Ask in [Telegram](https://t.me/okoagent_channel)
 
 **Link broken?**
-- Report in [GitHub Issues](https://github.com/NoFxAiOS/nofx/issues)
+- Report in [GitHub Issues](https://github.com/oko-trading/okotrading/issues)
 - We'll fix it ASAP!
 
 **Want to contribute docs?**

@@ -13,15 +13,11 @@ import (
 	"time"
 )
 
-// 阿里云百炼平台配置 (从环境变量获取)
 var (
 	QwenAppID  = os.Getenv("QWEN_APP_ID")
 	QwenAPIKey = os.Getenv("QWEN_API_KEY")
 )
 
-// ============== 测试用例 ==============
-
-// TestQwenBasicChat 测试基本同步对话
 func TestQwenBasicChat(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -45,7 +41,6 @@ func TestQwenBasicChat(t *testing.T) {
 	t.Logf("耗时: %v, Token: %d", elapsed, resp.Usage.TotalTokens)
 }
 
-// TestQwenStreamChat 测试流式输出
 func TestQwenStreamChat(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -74,12 +69,10 @@ func TestQwenStreamChat(t *testing.T) {
 	t.Logf("耗时: %v, 字符数: %d", elapsed, fullText.Len())
 }
 
-// TestQwenMultiTurn 测试多轮对话（上下文记忆）
 func TestQwenMultiTurn(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
 
-	// 第一轮：设置上下文
 	resp1, err := agent.Chat(ctx, "我叫小明，我是一名 Go 程序员，请记住这些信息")
 	if err != nil {
 		t.Fatalf("Round 1 failed: %v", err)
@@ -88,7 +81,6 @@ func TestQwenMultiTurn(t *testing.T) {
 	t.Logf("[Round 1] 助手: %s", resp1.Output.Text)
 	t.Logf("[Round 1] SessionID: %s", agent.SessionID)
 
-	// 第二轮：验证记忆
 	resp2, err := agent.Chat(ctx, "请问我叫什么名字？我是做什么的？")
 	if err != nil {
 		t.Fatalf("Round 2 failed: %v", err)
@@ -96,19 +88,16 @@ func TestQwenMultiTurn(t *testing.T) {
 	t.Logf("[Round 2] 用户: 请问我叫什么名字？我是做什么的？")
 	t.Logf("[Round 2] 助手: %s", resp2.Output.Text)
 
-	// 检查是否记住了信息
 	text := strings.ToLower(resp2.Output.Text)
 	if !strings.Contains(text, "小明") && !strings.Contains(text, "go") {
 		t.Logf("警告: 模型可能没有正确记住上下文")
 	}
 }
 
-// TestQwenResetSession 测试重置会话
 func TestQwenResetSession(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
 
-	// 建立上下文
 	resp1, err := agent.Chat(ctx, "记住这个密码: ABC123XYZ")
 	if err != nil {
 		t.Fatalf("Setup context failed: %v", err)
@@ -118,11 +107,9 @@ func TestQwenResetSession(t *testing.T) {
 	oldSession := agent.SessionID
 	t.Logf("原 SessionID: %s", oldSession)
 
-	// 重置会话
 	agent.ResetSession()
 	t.Log("会话已重置")
 
-	// 新对话 - 应该不记得之前的内容
 	resp2, err := agent.Chat(ctx, "我之前告诉你的密码是什么？")
 	if err != nil {
 		t.Fatalf("New session chat failed: %v", err)
@@ -135,7 +122,6 @@ func TestQwenResetSession(t *testing.T) {
 	}
 }
 
-// TestQwenCodeGeneration 测试代码生成能力
 func TestQwenCodeGeneration(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -150,14 +136,12 @@ func TestQwenCodeGeneration(t *testing.T) {
 
 	t.Logf("助手:\n%s", resp.Output.Text)
 
-	// 检查是否包含代码特征
 	text := resp.Output.Text
 	if !strings.Contains(text, "func") || !strings.Contains(text, "float64") {
 		t.Log("警告: 响应可能不包含有效的 Go 代码")
 	}
 }
 
-// TestQwenJSONOutput 测试 JSON 格式输出
 func TestQwenJSONOutput(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -175,9 +159,7 @@ func TestQwenJSONOutput(t *testing.T) {
 
 	t.Logf("助手: %s", resp.Output.Text)
 
-	// 尝试解析 JSON
 	text := resp.Output.Text
-	// 提取 JSON 部分
 	start := strings.Index(text, "{")
 	end := strings.LastIndex(text, "}")
 	if start != -1 && end != -1 && end > start {
@@ -191,7 +173,6 @@ func TestQwenJSONOutput(t *testing.T) {
 	}
 }
 
-// TestQwenLongResponse 测试长文本生成
 func TestQwenLongResponse(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -213,7 +194,6 @@ func TestQwenLongResponse(t *testing.T) {
 	t.Logf("Token 使用: input=%d, output=%d, total=%d",
 		resp.Usage.InputTokens, resp.Usage.OutputTokens, resp.Usage.TotalTokens)
 
-	// 只显示前500字符
 	if len(text) > 500 {
 		t.Logf("助手(前500字): %s...", text[:500])
 	} else {
@@ -221,7 +201,6 @@ func TestQwenLongResponse(t *testing.T) {
 	}
 }
 
-// TestQwenTradingScenario 测试交易场景问答
 func TestQwenTradingScenario(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -233,7 +212,7 @@ func TestQwenTradingScenario(t *testing.T) {
 	}
 
 	for i, q := range questions {
-		agent.ResetSession() // 每个问题独立
+		agent.ResetSession()
 
 		t.Logf("\n[问题%d] %s", i+1, q)
 		resp, err := agent.Chat(ctx, q)
@@ -242,7 +221,6 @@ func TestQwenTradingScenario(t *testing.T) {
 			continue
 		}
 
-		// 截取显示
 		text := resp.Output.Text
 		if len(text) > 300 {
 			text = text[:300] + "..."
@@ -251,11 +229,9 @@ func TestQwenTradingScenario(t *testing.T) {
 	}
 }
 
-// TestQwenErrorHandling 测试错误处理
 func TestQwenErrorHandling(t *testing.T) {
 	ctx := context.Background()
 
-	// 测试无效 API Key
 	t.Run("InvalidAPIKey", func(t *testing.T) {
 		agent := NewQwenAgent(QwenAppID, "invalid-api-key")
 		_, err := agent.Chat(ctx, "测试")
@@ -266,7 +242,6 @@ func TestQwenErrorHandling(t *testing.T) {
 		}
 	})
 
-	// 测试无效 App ID
 	t.Run("InvalidAppID", func(t *testing.T) {
 		agent := NewQwenAgent("invalid-app-id", QwenAPIKey)
 		_, err := agent.Chat(ctx, "测试")
@@ -278,7 +253,6 @@ func TestQwenErrorHandling(t *testing.T) {
 	})
 }
 
-// TestQwenSpecialCharacters 测试特殊字符处理
 func TestQwenSpecialCharacters(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
@@ -307,27 +281,23 @@ func TestQwenSpecialCharacters(t *testing.T) {
 	}
 }
 
-// TestQwenConcurrentSessions 测试并发会话
 func TestQwenConcurrentSessions(t *testing.T) {
 	agent1 := NewQwenAgent(QwenAppID, QwenAPIKey)
 	agent2 := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
 
-	// Agent1 对话
 	resp1, err := agent1.Chat(ctx, "我是 Alice，请记住")
 	if err != nil {
 		t.Fatalf("Agent1 chat failed: %v", err)
 	}
 	t.Logf("[Agent1] 设置: 我是 Alice -> %s", resp1.Output.Text[:min(100, len(resp1.Output.Text))])
 
-	// Agent2 对话
 	resp2, err := agent2.Chat(ctx, "我是 Bob，请记住")
 	if err != nil {
 		t.Fatalf("Agent2 chat failed: %v", err)
 	}
 	t.Logf("[Agent2] 设置: 我是 Bob -> %s", resp2.Output.Text[:min(100, len(resp2.Output.Text))])
 
-	// 验证会话隔离
 	resp1Check, _ := agent1.Chat(ctx, "我叫什么？")
 	resp2Check, _ := agent2.Chat(ctx, "我叫什么？")
 
@@ -343,10 +313,9 @@ func TestQwenConcurrentSessions(t *testing.T) {
 	}
 }
 
-// TestQwenTimeout 测试超时处理
 func TestQwenTimeout(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
-	agent.Client.Timeout = 1 * time.Millisecond // 极短超时
+	agent.Client.Timeout = 1 * time.Millisecond
 
 	ctx := context.Background()
 	_, err := agent.Chat(ctx, "测试超时")
@@ -357,16 +326,14 @@ func TestQwenTimeout(t *testing.T) {
 		t.Logf("预期超时错误: %v", err)
 	}
 
-	// 恢复正常超时
 	agent.Client.Timeout = 120 * time.Second
 }
 
-// TestQwenContextCancel 测试上下文取消
 func TestQwenContextCancel(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 
 	ctx, cancel := context.WithCancel(context.Background())
-	cancel() // 立即取消
+	cancel()
 
 	_, err := agent.Chat(ctx, "测试取消")
 	if err == nil {
@@ -376,12 +343,10 @@ func TestQwenContextCancel(t *testing.T) {
 	}
 }
 
-// TestQwenWithBizParams 测试带业务参数的调用
 func TestQwenWithBizParams(t *testing.T) {
 	agent := NewQwenAgent(QwenAppID, QwenAPIKey)
 	ctx := context.Background()
 
-	// 构造带业务参数的请求
 	reqBody := QwenRequest{
 		Input: QwenInput{
 			Prompt: "根据提供的用户信息，给出个性化的投资建议",

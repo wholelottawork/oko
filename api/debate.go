@@ -7,11 +7,11 @@ import (
 	"strings"
 	"sync"
 
-	"nofx/config"
-	"nofx/debate"
-	"nofx/logger"
-	"nofx/provider/nofxos"
-	"nofx/store"
+	"oko/config"
+	"oko/debate"
+	"oko/logger"
+	"oko/provider/nofxos"
+	"oko/store"
 
 	"github.com/gin-gonic/gin"
 )

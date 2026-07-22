@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"nofx/logger"
+	"oko/logger"
 )
 
 const coingeckoBaseURL = "https://api.coingecko.com/api/v3"

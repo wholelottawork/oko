@@ -1,14 +1,14 @@
-<h1 align="center">NOFX — 오픈소스 AI 트레이딩 OS</h1>
+<h1 align="center">OKO — 오픈소스 AI 트레이딩 OS</h1>
 
 <p align="center">
   <strong>AI 기반 금융 거래를 위한 인프라 레이어</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NoFxAiOS/nofx/stargazers"><img src="https://img.shields.io/github/stars/NoFxAiOS/nofx?style=for-the-badge" alt="Stars"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/releases"><img src="https://img.shields.io/github/v/release/NoFxAiOS/nofx?style=for-the-badge" alt="Release"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://t.me/nofx_dev_community"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
+  <a href="https://github.com/oko-trading/okotrading/stargazers"><img src="https://img.shields.io/github/stars/oko-trading/okotrading?style=for-the-badge" alt="Stars"></a>
+  <a href="https://github.com/oko-trading/okotrading/releases"><img src="https://img.shields.io/github/v/release/oko-trading/okotrading?style=for-the-badge" alt="Release"></a>
+  <a href="https://github.com/oko-trading/okotrading/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://t.me/okoagent_channel"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@
 
 ### 공식 링크
 
-- **공식 웹사이트**: [https://nofxai.com](https://nofxai.com)
+- **공식 웹사이트**: [https://github.com/oko-trading/okotrading](https://github.com/oko-trading/okotrading)
 - **데이터 대시보드**: [https://nofxos.ai/dashboard](https://nofxos.ai/dashboard)
 - **API 문서**: [https://nofxos.ai/api-docs](https://nofxos.ai/api-docs)
 
@@ -40,13 +40,13 @@
 
 ## 개발자 커뮤니티
 
-Telegram 개발자 커뮤니티 참여: **[NOFX 개발자 커뮤니티](https://t.me/nofx_dev_community)**
+Telegram 개발자 커뮤니티 참여: **[OKO 개발자 커뮤니티](https://t.me/okoagent_channel)**
 
 ---
 
 ## 시작하기 전에
 
-NOFX를 사용하려면 다음이 필요합니다:
+OKO를 사용하려면 다음이 필요합니다:
 
 1. **거래소 계정** - 지원되는 거래소에 등록하고 거래 권한이 있는 API 자격 증명 생성
 2. **AI 모델 API 키** - 지원되는 제공업체에서 획득 (비용 효율성을 위해 DeepSeek 권장)
@@ -95,8 +95,8 @@ NOFX를 사용하려면 다음이 필요합니다:
 ### 옵션 1: Docker 배포 (권장)
 
 ```bash
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 chmod +x ./start.sh
 ./start.sh start --build
 ```
@@ -108,7 +108,7 @@ chmod +x ./start.sh
 > **💡 업데이트가 빈번합니다.** 최신 기능과 수정 사항을 받으려면 매일 이 명령을 실행하세요:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 이 명령은 최신 공식 이미지를 가져오고 서비스를 자동으로 다시 시작합니다.
@@ -122,13 +122,13 @@ curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bas
 brew install ta-lib
 
 # 클론 및 설정
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 go mod download
 cd web && npm install && cd ..
 
 # 백엔드 시작
-go build -o nofx && ./nofx
+go build -o oko && ./oko
 
 # 프론트엔드 시작 (새 터미널)
 cd web && npm run dev
@@ -158,11 +158,11 @@ cd web && npm run dev
 
 ### 빠른 배포 (IP를 통한 HTTP)
 
-기본적으로 전송 암호화가 **비활성화**되어 HTTPS 없이 IP 주소를 통해 NOFX에 액세스할 수 있습니다:
+기본적으로 전송 암호화가 **비활성화**되어 HTTPS 없이 IP 주소를 통해 OKO에 액세스할 수 있습니다:
 
 ```bash
 # 서버에 배포
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 `http://YOUR_SERVER_IP:3000`을 통해 액세스 - 즉시 작동합니다.
@@ -187,7 +187,7 @@ TRANSPORT_ENCRYPTION=true
 
 2. **DNS 레코드 생성**
    - 유형: `A`
-   - 이름: `nofx` (또는 서브도메인)
+   - 이름: `oko` (또는 서브도메인)
    - 콘텐츠: 서버 IP
    - 프록시 상태: **Proxied** (주황색 구름)
 
@@ -205,7 +205,7 @@ TRANSPORT_ENCRYPTION=true
    TRANSPORT_ENCRYPTION=true
    ```
 
-5. **완료!** `https://nofx.yourdomain.com`을 통해 액세스
+5. **완료!** `https://oko.yourdomain.com`을 통해 액세스
 
 ---
 
@@ -283,9 +283,9 @@ sudo apt-get install libta-lib0-dev
 
 ## 기여자 에어드롭 프로그램
 
-모든 기여는 GitHub에서 추적됩니다. NOFX가 수익을 창출하면 기여자는 기여도에 따라 에어드롭을 받게 됩니다.
+모든 기여는 GitHub에서 추적됩니다. OKO가 수익을 창출하면 기여자는 기여도에 따라 에어드롭을 받게 됩니다.
 
-**[고정된 Issue](https://github.com/NoFxAiOS/nofx/issues)를 해결하는 PR은 최고 보상을 받습니다!**
+**[고정된 Issue](https://github.com/oko-trading/okotrading/issues)를 해결하는 PR은 최고 보상을 받습니다!**
 
 | 기여 유형 | 가중치 |
 |------------------|:------:|
@@ -309,11 +309,11 @@ sudo apt-get install libta-lib0-dev
 
 ## 연락처
 
-- **GitHub Issues**: [Issue 제출](https://github.com/NoFxAiOS/nofx/issues)
-- **개발자 커뮤니티**: [Telegram 그룹](https://t.me/nofx_dev_community)
+- **GitHub Issues**: [Issue 제출](https://github.com/oko-trading/okotrading/issues)
+- **개발자 커뮤니티**: [Telegram 그룹](https://t.me/okoagent_channel)
 
 ---
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=NoFxAiOS/nofx&type=Date)](https://star-history.com/#NoFxAiOS/nofx&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=oko-trading/okotrading&type=Date)](https://star-history.com/#oko-trading/okotrading&Date)

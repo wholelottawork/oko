@@ -39,7 +39,7 @@ None (backward compatible, no breaking changes)
 ### 1. Initialize Encryption Manager (main.go)
 
 ```go
-import "nofx/crypto"
+import "github.com/oko-trading/okotrading/crypto"
 
 func main() {
     // Initialize secure storage

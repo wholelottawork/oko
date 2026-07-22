@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"nofx/mcp"
+	"oko/mcp"
 )
 
 const (
@@ -199,7 +199,7 @@ const chatSystemPromptZH = `你是 oko，一位专业的加密货币投资组合
 
 // ChatMessage represents a chat turn (user or assistant)
 type ChatMessage struct {
-	Role    string `json:"role"`    // "user" or "assistant"
+	Role    string `json:"role"` // "user" or "assistant"
 	Content string `json:"content"`
 }
 

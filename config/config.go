@@ -1,9 +1,9 @@
 package config
 
 import (
+	"oko/experience"
+	"oko/mcp"
 	"net/url"
-	"nofx/experience"
-	"nofx/mcp"
 	"os"
 	"strconv"
 	"strings"
@@ -85,7 +85,7 @@ func Init() {
 		DBHost:    "localhost",
 		DBPort:    5432,
 		DBUser:    "postgres",
-		DBName:    "nofx",
+		DBName:    "oko",
 		DBSSLMode: "disable",
 	}
 

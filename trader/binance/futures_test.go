@@ -10,9 +10,9 @@ import (
 	"time"
 
 	"github.com/adshao/go-binance/v2/futures"
+	"oko/trader/testutil"
+	"oko/trader/types"
 	"github.com/stretchr/testify/assert"
-	"nofx/trader/testutil"
-	"nofx/trader/types"
 )
 
 // ============================================================
@@ -23,7 +23,7 @@ import (
 // Inherits TraderTestSuite and adds Binance Futures specific mock logic
 type BinanceFuturesTestSuite struct {
 	*testutil.TraderTestSuite // Embeds base test suite
-	mockServer              *httptest.Server
+	mockServer                *httptest.Server
 }
 
 // NewBinanceFuturesTestSuite Creates Binance Futures test suite

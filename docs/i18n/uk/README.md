@@ -1,14 +1,14 @@
-<h1 align="center">NOFX — Open Source AI Торгова ОС</h1>
+<h1 align="center">OKO — Open Source AI Торгова ОС</h1>
 
 <p align="center">
   <strong>Інфраструктурний рівень для AI-powered фінансової торгівлі</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NoFxAiOS/nofx/stargazers"><img src="https://img.shields.io/github/stars/NoFxAiOS/nofx?style=for-the-badge" alt="Stars"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/releases"><img src="https://img.shields.io/github/v/release/NoFxAiOS/nofx?style=for-the-badge" alt="Release"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://t.me/nofx_dev_community"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
+  <a href="https://github.com/oko-trading/okotrading/stargazers"><img src="https://img.shields.io/github/stars/oko-trading/okotrading?style=for-the-badge" alt="Stars"></a>
+  <a href="https://github.com/oko-trading/okotrading/releases"><img src="https://img.shields.io/github/v/release/oko-trading/okotrading?style=for-the-badge" alt="Release"></a>
+  <a href="https://github.com/oko-trading/okotrading/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://t.me/okoagent_channel"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@
 
 ### Офіційні посилання
 
-- **Офіційний сайт**: [https://nofxai.com](https://nofxai.com)
+- **Офіційний сайт**: [https://github.com/oko-trading/okotrading](https://github.com/oko-trading/okotrading)
 - **Панель даних**: [https://nofxos.ai/dashboard](https://nofxos.ai/dashboard)
 - **Документація API**: [https://nofxos.ai/api-docs](https://nofxos.ai/api-docs)
 
@@ -40,13 +40,13 @@
 
 ## Спільнота розробників
 
-Приєднуйтесь до Telegram спільноти: **[NOFX Developer Community](https://t.me/nofx_dev_community)**
+Приєднуйтесь до Telegram спільноти: **[OKO Developer Community](https://t.me/okoagent_channel)**
 
 ---
 
 ## Перед початком
 
-Для використання NOFX вам знадобиться:
+Для використання OKO вам знадобиться:
 
 1. **Акаунт біржі** - Зареєструйтесь на підтримуваній біржі та створіть API ключі з правами торгівлі
 2. **API ключ AI моделі** - Отримайте від будь-якого підтримуваного провайдера (рекомендується DeepSeek для економії)
@@ -95,8 +95,8 @@
 ### Варіант 1: Docker розгортання (рекомендовано)
 
 ```bash
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 chmod +x ./start.sh
 ./start.sh start --build
 ```
@@ -108,7 +108,7 @@ chmod +x ./start.sh
 > **💡 Оновлення виходять часто.** Запускайте цю команду щодня для отримання останніх функцій та виправлень:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 Ця команда завантажує останні офіційні образи та автоматично перезапускає сервіси.
@@ -122,13 +122,13 @@ curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bas
 brew install ta-lib
 
 # Клонування та налаштування
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 go mod download
 cd web && npm install && cd ..
 
 # Запуск бекенду
-go build -o nofx && ./nofx
+go build -o oko && ./oko
 
 # Запуск фронтенду (новий термінал)
 cd web && npm run dev
@@ -162,5 +162,5 @@ cd web && npm run dev
 
 ## Контакти
 
-- **GitHub Issues**: [Створити Issue](https://github.com/NoFxAiOS/nofx/issues)
-- **Спільнота розробників**: [Telegram група](https://t.me/nofx_dev_community)
+- **GitHub Issues**: [Створити Issue](https://github.com/oko-trading/okotrading/issues)
+- **Спільнота розробників**: [Telegram група](https://t.me/okoagent_channel)

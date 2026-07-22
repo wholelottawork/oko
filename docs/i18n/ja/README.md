@@ -1,14 +1,14 @@
-<h1 align="center">NOFX — オープンソース AI トレーディング OS</h1>
+<h1 align="center">OKO — オープンソース AI トレーディング OS</h1>
 
 <p align="center">
   <strong>AI 駆動金融取引のインフラストラクチャレイヤー</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NoFxAiOS/nofx/stargazers"><img src="https://img.shields.io/github/stars/NoFxAiOS/nofx?style=for-the-badge" alt="Stars"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/releases"><img src="https://img.shields.io/github/v/release/NoFxAiOS/nofx?style=for-the-badge" alt="Release"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://t.me/nofx_dev_community"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
+  <a href="https://github.com/oko-trading/okotrading/stargazers"><img src="https://img.shields.io/github/stars/oko-trading/okotrading?style=for-the-badge" alt="Stars"></a>
+  <a href="https://github.com/oko-trading/okotrading/releases"><img src="https://img.shields.io/github/v/release/oko-trading/okotrading?style=for-the-badge" alt="Release"></a>
+  <a href="https://github.com/oko-trading/okotrading/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://t.me/okoagent_channel"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@
 
 ### 公式リンク
 
-- **公式サイト**: [https://nofxai.com](https://nofxai.com)
+- **公式サイト**: [https://github.com/oko-trading/okotrading](https://github.com/oko-trading/okotrading)
 - **データダッシュボード**: [https://nofxos.ai/dashboard](https://nofxos.ai/dashboard)
 - **API ドキュメント**: [https://nofxos.ai/api-docs](https://nofxos.ai/api-docs)
 
@@ -40,13 +40,13 @@
 
 ## 開発者コミュニティ
 
-Telegram 開発者コミュニティに参加: **[NOFX 開発者コミュニティ](https://t.me/nofx_dev_community)**
+Telegram 開発者コミュニティに参加: **[OKO 開発者コミュニティ](https://t.me/okoagent_channel)**
 
 ---
 
 ## 始める前に
 
-NOFXを使用するには以下が必要です:
+OKOを使用するには以下が必要です:
 
 1. **取引所アカウント** - サポートされている取引所に登録し、取引権限付きのAPI認証情報を作成
 2. **AI モデル API キー** - サポートされているプロバイダーから取得（コスト効率の良いDeepSeekを推奨）
@@ -95,8 +95,8 @@ NOFXを使用するには以下が必要です:
 ### オプション 1: Docker デプロイ（推奨）
 
 ```bash
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 chmod +x ./start.sh
 ./start.sh start --build
 ```
@@ -108,7 +108,7 @@ Web インターフェースにアクセス: **http://localhost:3000**
 > **💡 更新は頻繁です。** 最新の機能と修正を取得するために、毎日このコマンドを実行してください：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 このコマンドは最新の公式イメージを取得し、サービスを自動的に再起動します。
@@ -122,13 +122,13 @@ curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bas
 brew install ta-lib
 
 # クローンとセットアップ
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 go mod download
 cd web && npm install && cd ..
 
 # バックエンド起動
-go build -o nofx && ./nofx
+go build -o oko && ./oko
 
 # フロントエンド起動（新しいターミナル）
 cd web && npm run dev
@@ -158,11 +158,11 @@ cd web && npm run dev
 
 ### クイックデプロイ (HTTP経由のIP)
 
-デフォルトでは、トランスポート暗号化は**無効**になっており、HTTPSなしでIPアドレス経由でNOFXにアクセスできます:
+デフォルトでは、トランスポート暗号化は**無効**になっており、HTTPSなしでIPアドレス経由でOKOにアクセスできます:
 
 ```bash
 # サーバーにデプロイ
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 `http://YOUR_SERVER_IP:3000` 経由でアクセス - すぐに動作します。
@@ -187,7 +187,7 @@ TRANSPORT_ENCRYPTION=true
 
 2. **DNSレコードを作成**
    - タイプ: `A`
-   - 名前: `nofx` (またはサブドメイン)
+   - 名前: `oko` (またはサブドメイン)
    - コンテンツ: サーバーのIP
    - プロキシ状態: **Proxied** (オレンジ色の雲)
 
@@ -205,7 +205,7 @@ TRANSPORT_ENCRYPTION=true
    TRANSPORT_ENCRYPTION=true
    ```
 
-5. **完了!** `https://nofx.yourdomain.com` 経由でアクセス
+5. **完了!** `https://oko.yourdomain.com` 経由でアクセス
 
 ---
 
@@ -283,9 +283,9 @@ sudo apt-get install libta-lib0-dev
 
 ## 貢献者エアドロッププログラム
 
-すべての貢献はGitHubで追跡されます。NOFXが収益を生み出すと、貢献者は貢献に基づいてエアドロップを受け取ります。
+すべての貢献はGitHubで追跡されます。OKOが収益を生み出すと、貢献者は貢献に基づいてエアドロップを受け取ります。
 
-**[ピン留めされたIssue](https://github.com/NoFxAiOS/nofx/issues)を解決するPRは最高報酬を受け取ります！**
+**[ピン留めされたIssue](https://github.com/oko-trading/okotrading/issues)を解決するPRは最高報酬を受け取ります！**
 
 | 貢献タイプ | 重み |
 |------------------|:------:|
@@ -308,11 +308,11 @@ sudo apt-get install libta-lib0-dev
 
 ## コンタクト
 
-- **GitHub Issues**: [Issue を提出](https://github.com/NoFxAiOS/nofx/issues)
-- **開発者コミュニティ**: [Telegram グループ](https://t.me/nofx_dev_community)
+- **GitHub Issues**: [Issue を提出](https://github.com/oko-trading/okotrading/issues)
+- **開発者コミュニティ**: [Telegram グループ](https://t.me/okoagent_channel)
 
 ---
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=NoFxAiOS/nofx&type=Date)](https://star-history.com/#NoFxAiOS/nofx&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=oko-trading/okotrading&type=Date)](https://star-history.com/#oko-trading/okotrading&Date)

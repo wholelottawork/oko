@@ -106,7 +106,7 @@ function StatCard({
       style={{ background: 'var(--panel-bg)', border: '1px solid var(--surface-tertiary)' }}
     >
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+        <Icon className="w-4 h-4" style={{ color: 'var(--oko-gold)' }} />
         <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
           {label}
         </span>
@@ -155,7 +155,7 @@ function ProgressRing({ progress, size = 120 }: { progress: number; size?: numbe
           cx={size / 2}
           cy={size / 2}
           r={radius}
-          stroke="var(--nofx-gold)"
+          stroke="var(--oko-gold)"
           strokeWidth={strokeWidth}
           fill="none"
           strokeLinecap="round"
@@ -166,7 +166,7 @@ function ProgressRing({ progress, size = 120 }: { progress: number; size?: numbe
         />
       </svg>
       <div className="absolute inset-0 flex items-center justify-center flex-col">
-        <span className="text-2xl font-bold" style={{ color: 'var(--nofx-gold)' }}>
+        <span className="text-2xl font-bold" style={{ color: 'var(--oko-gold)' }}>
           {progress.toFixed(0)}%
         </span>
         <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -221,8 +221,8 @@ function BacktestChart({
         <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
           <defs>
             <linearGradient id="equityGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="var(--nofx-gold)" stopOpacity={0.4} />
-              <stop offset="95%" stopColor="var(--nofx-gold)" stopOpacity={0} />
+              <stop offset="5%" stopColor="var(--oko-gold)" stopOpacity={0.4} />
+              <stop offset="95%" stopColor="var(--oko-gold)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <CartesianGrid stroke="rgba(43, 49, 57, 0.5)" strokeDasharray="3 3" />
@@ -253,7 +253,7 @@ function BacktestChart({
           <Area
             type="monotone"
             dataKey="equity"
-            stroke="var(--nofx-gold)"
+            stroke="var(--oko-gold)"
             strokeWidth={2}
             fill="url(#equityGradient)"
             dot={false}
@@ -456,7 +456,7 @@ function CandlestickChartComponent({
       {/* Symbol and Timeframe selectors */}
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <CandlestickIcon size={16} style={{ color: 'var(--nofx-gold)' }} />
+          <CandlestickIcon size={16} style={{ color: 'var(--oko-gold)' }} />
           <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
             {'Symbol'}
           </span>
@@ -486,7 +486,7 @@ function CandlestickChartComponent({
                 onClick={() => setSelectedTimeframe(tf)}
                 className="px-2.5 py-1 text-xs font-medium transition-colors"
                 style={{
-                  background: selectedTimeframe === tf ? 'var(--nofx-gold)' : 'var(--surface-secondary)',
+                  background: selectedTimeframe === tf ? 'var(--oko-gold)' : 'var(--surface-secondary)',
                   color: selectedTimeframe === tf ? 'var(--surface-primary)' : 'var(--text-secondary)',
                 }}
               >
@@ -638,7 +638,7 @@ function PositionsDisplay({
     >
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
-          <Activity className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+          <Activity className="w-4 h-4" style={{ color: 'var(--oko-gold)' }} />
           <span className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
             {'Active Positions'}
           </span>
@@ -1100,7 +1100,7 @@ export function BacktestPage() {
   const getStateColor = (state: string) => {
     switch (state) {
       case 'running':
-        return 'var(--nofx-gold)'
+        return 'var(--oko-gold)'
       case 'completed':
         return 'var(--binance-green)'
       case 'failed':
@@ -1147,8 +1147,8 @@ export function BacktestPage() {
                     ? 'var(--binance-red-bg)'
                     : toast.tone === 'success'
                       ? 'var(--binance-green-bg)'
-                      : 'var(--nofx-border)',
-                color: toast.tone === 'error' ? 'var(--binance-red)' : toast.tone === 'success' ? 'var(--binance-green)' : 'var(--nofx-gold)',
+                      : 'var(--oko-border)',
+                color: toast.tone === 'error' ? 'var(--binance-red)' : toast.tone === 'success' ? 'var(--binance-green)' : 'var(--oko-gold)',
                 border: `1px solid ${toast.tone === 'error' ? 'var(--binance-red-border)' : toast.tone === 'success' ? 'var(--binance-green-border)' : 'var(--accent-primary-border)'}`,
               }}
             >
@@ -1170,7 +1170,7 @@ export function BacktestPage() {
           <button
             onClick={() => setWizardStep(1)}
             className="px-4 py-2 rounded-lg font-medium flex items-center gap-2 transition-all hover:opacity-90"
-            style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+            style={{ background: 'var(--oko-gold)', color: 'var(--surface-primary)' }}
           >
             <Play className="w-4 h-4" />
             {'New Backtest'}
@@ -1189,7 +1189,7 @@ export function BacktestPage() {
                       onClick={() => setWizardStep(step as WizardStep)}
                       className="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all"
                       style={{
-                        background: wizardStep >= step ? 'var(--nofx-gold)' : 'var(--surface-tertiary)',
+                        background: wizardStep >= step ? 'var(--oko-gold)' : 'var(--surface-tertiary)',
                         color: wizardStep >= step ? 'var(--surface-primary)' : 'var(--text-secondary)',
                       }}
                     >
@@ -1198,7 +1198,7 @@ export function BacktestPage() {
                     {step < 3 && (
                       <div
                         className="w-8 h-0.5 mx-1"
-                        style={{ background: wizardStep > step ? 'var(--nofx-gold)' : 'var(--surface-tertiary)' }}
+                        style={{ background: wizardStep > step ? 'var(--oko-gold)' : 'var(--surface-tertiary)' }}
                       />
                     )}
                   </div>
@@ -1282,9 +1282,9 @@ export function BacktestPage() {
                           ))}
                         </select>
                         {formState.strategyId && coinSourceDescription && (
-                          <div className="mt-2 p-2 rounded" style={{ background: 'var(--nofx-border)', border: '1px solid var(--nofx-border)' }}>
+                          <div className="mt-2 p-2 rounded" style={{ background: 'var(--oko-border)', border: '1px solid var(--oko-border)' }}>
                             <div className="flex items-center gap-2 text-xs">
-                              <span style={{ color: 'var(--nofx-gold)' }}>
+                              <span style={{ color: 'var(--oko-gold)' }}>
                                 {'Coin Source:'}
                               </span>
                               <span className="font-medium" style={{ color: 'var(--text-primary)' }}>
@@ -1294,7 +1294,7 @@ export function BacktestPage() {
                               </span>
                             </div>
                             {strategyHasDynamicCoins && (
-                              <div className="text-xs mt-1" style={{ color: 'var(--nofx-gold)' }}>
+                              <div className="text-xs mt-1" style={{ color: 'var(--oko-gold)' }}>
                                 {'⚡ Clear the symbols field below to use strategy\'s dynamic coins'}
                               </div>
                             )}
@@ -1328,9 +1328,9 @@ export function BacktestPage() {
                                   }}
                                   className="px-2 py-1 rounded text-xs transition-all"
                                   style={{
-                                    background: isSelected ? 'var(--nofx-border)' : 'var(--surface-secondary)',
-                                    border: `1px solid ${isSelected ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
-                                    color: isSelected ? 'var(--nofx-gold)' : 'var(--text-secondary)',
+                                    background: isSelected ? 'var(--oko-border)' : 'var(--surface-secondary)',
+                                    border: `1px solid ${isSelected ? 'var(--oko-gold)' : 'var(--surface-tertiary)'}`,
+                                    color: isSelected ? 'var(--oko-gold)' : 'var(--text-secondary)',
                                   }}
                                 >
                                   {sym.replace('USDT', '')}
@@ -1360,7 +1360,7 @@ export function BacktestPage() {
                               type="button"
                               onClick={() => handleFormChange('symbols', '')}
                               className="absolute top-2 right-2 px-2 py-1 rounded text-xs"
-                              style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                              style={{ background: 'var(--oko-gold)', color: 'var(--surface-primary)' }}
                             >
                               {'Clear to use strategy'}
                             </button>
@@ -1373,7 +1373,7 @@ export function BacktestPage() {
                         onClick={() => setWizardStep(2)}
                         disabled={!selectedModel?.enabled}
                         className="w-full py-2.5 rounded-lg font-medium flex items-center justify-center gap-2 transition-all disabled:opacity-50"
-                        style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                        style={{ background: 'var(--oko-gold)', color: 'var(--surface-primary)' }}
                       >
                         {'Next'}
                         <ChevronRight className="w-4 h-4" />
@@ -1444,9 +1444,9 @@ export function BacktestPage() {
                                 }}
                                 className="px-2 py-1 rounded text-xs transition-all"
                                 style={{
-                                  background: isSelected ? 'var(--nofx-border)' : 'var(--surface-secondary)',
-                                  border: `1px solid ${isSelected ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
-                                  color: isSelected ? 'var(--nofx-gold)' : 'var(--text-secondary)',
+                                  background: isSelected ? 'var(--oko-border)' : 'var(--surface-secondary)',
+                                  border: `1px solid ${isSelected ? 'var(--oko-gold)' : 'var(--surface-tertiary)'}`,
+                                  color: isSelected ? 'var(--oko-gold)' : 'var(--text-secondary)',
                                 }}
                               >
                                 {tf}
@@ -1502,7 +1502,7 @@ export function BacktestPage() {
                           type="button"
                           onClick={() => setWizardStep(3)}
                           className="flex-1 py-2 rounded-lg font-medium flex items-center justify-center gap-2"
-                          style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                          style={{ background: 'var(--oko-gold)', color: 'var(--surface-primary)' }}
                         >
                           {'Next'}
                           <ChevronRight className="w-4 h-4" />
@@ -1598,9 +1598,9 @@ export function BacktestPage() {
                               onClick={() => handleFormChange('prompt', p)}
                               className="px-3 py-1.5 rounded text-xs transition-all"
                               style={{
-                                background: formState.prompt === p ? 'var(--nofx-border)' : 'var(--surface-secondary)',
-                                border: `1px solid ${formState.prompt === p ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
-                                color: formState.prompt === p ? 'var(--nofx-gold)' : 'var(--text-secondary)',
+                                background: formState.prompt === p ? 'var(--oko-border)' : 'var(--surface-secondary)',
+                                border: `1px solid ${formState.prompt === p ? 'var(--oko-gold)' : 'var(--surface-tertiary)'}`,
+                                color: formState.prompt === p ? 'var(--oko-gold)' : 'var(--text-secondary)',
                               }}
                             >
                               {tr(`form.promptPresets.${p}`)}
@@ -1615,7 +1615,7 @@ export function BacktestPage() {
                             type="checkbox"
                             checked={formState.cacheAI}
                             onChange={(e) => handleFormChange('cacheAI', e.target.checked)}
-                            className="accent-[var(--nofx-gold)]"
+                            className="accent-[var(--oko-gold)]"
                           />
                           {tr('form.cacheAiLabel')}
                         </label>
@@ -1624,7 +1624,7 @@ export function BacktestPage() {
                             type="checkbox"
                             checked={formState.replayOnly}
                             onChange={(e) => handleFormChange('replayOnly', e.target.checked)}
-                            className="accent-[var(--nofx-gold)]"
+                            className="accent-[var(--oko-gold)]"
                           />
                           {tr('form.replayOnlyLabel')}
                         </label>
@@ -1644,7 +1644,7 @@ export function BacktestPage() {
                           type="submit"
                           disabled={isStarting}
                           className="flex-1 py-2 rounded-lg font-bold flex items-center justify-center gap-2 disabled:opacity-50"
-                          style={{ background: 'var(--nofx-gold)', color: 'var(--surface-primary)' }}
+                          style={{ background: 'var(--oko-gold)', color: 'var(--surface-primary)' }}
                         >
                           {isStarting ? (
                             <RefreshCw className="w-4 h-4 animate-spin" />
@@ -1664,7 +1664,7 @@ export function BacktestPage() {
             <div className="binance-card p-4">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="text-sm font-bold flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
-                  <Layers className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+                  <Layers className="w-4 h-4" style={{ color: 'var(--oko-gold)' }} />
                   {tr('runList.title')}
                 </h3>
                 <span className="text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -1684,8 +1684,8 @@ export function BacktestPage() {
                       onClick={() => setSelectedRunId(run.run_id)}
                       className="w-full p-3 rounded-lg text-left transition-all"
                       style={{
-                        background: run.run_id === selectedRunId ? 'var(--nofx-border)' : 'var(--surface-secondary)',
-                        border: `1px solid ${run.run_id === selectedRunId ? 'var(--nofx-gold)' : 'var(--surface-tertiary)'}`,
+                        background: run.run_id === selectedRunId ? 'var(--oko-border)' : 'var(--surface-secondary)',
+                        border: `1px solid ${run.run_id === selectedRunId ? 'var(--oko-gold)' : 'var(--surface-tertiary)'}`,
                       }}
                     >
                       <div className="flex items-center justify-between">
@@ -1716,7 +1716,7 @@ export function BacktestPage() {
                             >
                               <RotateCw
                                 className="w-3 h-3"
-                                style={{ color: 'var(--nofx-gold)' }}
+                                style={{ color: 'var(--oko-gold)' }}
                               />
                             </button>
                           )}
@@ -1728,7 +1728,7 @@ export function BacktestPage() {
                             className="p-1 rounded"
                             style={{
                               background: compareRunIds.includes(run.run_id)
-                                ? 'var(--nofx-border)'
+                                ? 'var(--oko-border)'
                                 : 'transparent',
                             }}
                             title={'Add to compare'}
@@ -1736,7 +1736,7 @@ export function BacktestPage() {
                             <Eye
                               className="w-3 h-3"
                               style={{
-                                color: compareRunIds.includes(run.run_id) ? 'var(--nofx-gold)' : 'var(--text-tertiary)',
+                                color: compareRunIds.includes(run.run_id) ? 'var(--oko-gold)' : 'var(--text-tertiary)',
                               }}
                             />
                           </button>
@@ -1799,7 +1799,7 @@ export function BacktestPage() {
                             style={{ border: '1px solid var(--surface-tertiary)' }}
                             title={tr('actions.pause')}
                           >
-                            <Pause className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+                            <Pause className="w-4 h-4" style={{ color: 'var(--oko-gold)' }} />
                           </button>
                           <button
                             onClick={() => handleControl('stop')}
@@ -1903,7 +1903,7 @@ export function BacktestPage() {
                         key={tab}
                         onClick={() => setViewTab(tab)}
                         className="px-4 py-3 text-sm font-medium transition-all relative"
-                        style={{ color: viewTab === tab ? 'var(--nofx-gold)' : 'var(--text-secondary)' }}
+                        style={{ color: viewTab === tab ? 'var(--oko-gold)' : 'var(--text-secondary)' }}
                       >
                         {tab === 'overview'
                           ? 'Overview'
@@ -1916,7 +1916,7 @@ export function BacktestPage() {
                           <motion.div
                             layoutId="tab-indicator"
                             className="absolute bottom-0 left-0 right-0 h-0.5"
-                            style={{ background: 'var(--nofx-gold)' }}
+                            style={{ background: 'var(--oko-gold)' }}
                           />
                         )}
                       </button>

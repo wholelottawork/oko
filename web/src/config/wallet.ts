@@ -22,9 +22,9 @@ if (!projectId) {
 }
 
 const metadata = {
-  name: 'NOFX',
+  name: 'OKO',
   description: 'AI Wallet Analyzer & Trading',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://nofx.com',
+  url: typeof window !== 'undefined' ? window.location.origin : 'https://oko.com',
   icons: ['/logo.png'],
 }
 

@@ -33,9 +33,9 @@ describe('RegistrationDisabled Component', () => {
       expect(container).toBeTruthy()
     })
 
-    it('should display the NoFx logo', () => {
+    it('should display the OKO logo', () => {
       renderComponent()
-      const logo = screen.getByAltText('NoFx Logo')
+      const logo = screen.getByAltText('OKO Logo')
       expect(logo).toBeTruthy()
       expect(logo.getAttribute('src')).toBe('/logo.png')
     })
@@ -81,15 +81,13 @@ describe('RegistrationDisabled Component', () => {
     it('should have correct background color', () => {
       const { container } = renderComponent()
       const mainDiv = container.firstChild as HTMLElement
-      // Browser converts hex to rgb
-      expect(mainDiv.style.background).toMatch(/rgb\(11,\s*14,\s*17\)|#0B0E11/i)
+      expect(mainDiv.style.background).toBe('var(--surface-primary)')
     })
 
     it('should have correct text color', () => {
       const { container } = renderComponent()
       const mainDiv = container.firstChild as HTMLElement
-      // Browser converts hex to rgb
-      expect(mainDiv.style.color).toMatch(/rgb\(234,\s*236,\s*239\)|#EAECEF/i)
+      expect(mainDiv.style.color).toBe('var(--text-primary)')
     })
 
     it('should have centered layout', () => {

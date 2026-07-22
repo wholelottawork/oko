@@ -60,7 +60,7 @@ export function RiskControlEditor({
       {/* Position Limits */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Shield className="w-5 h-5" style={{ color: 'var(--nofx-gold)' }} />
+          <Shield className="w-5 h-5" style={{ color: 'var(--oko-gold)' }} />
           <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>
             {t('positionLimits')}
           </h3>
@@ -98,7 +98,7 @@ export function RiskControlEditor({
 
         {/* Trading Leverage (Exchange) */}
         <div className="mb-2">
-          <p className="text-xs font-medium mb-2" style={{ color: 'var(--nofx-gold)' }}>
+          <p className="text-xs font-medium mb-2" style={{ color: 'var(--oko-gold)' }}>
             {t('tradingLeverage')}
           </p>
         </div>
@@ -127,7 +127,7 @@ export function RiskControlEditor({
               />
               <span
                 className="w-12 text-center font-mono"
-                style={{ color: 'var(--nofx-gold)' }}
+                style={{ color: 'var(--oko-gold)' }}
               >
                 {config.btc_eth_max_leverage ?? 5}x
               </span>
@@ -158,7 +158,7 @@ export function RiskControlEditor({
               />
               <span
                 className="w-12 text-center font-mono"
-                style={{ color: 'var(--nofx-gold)' }}
+                style={{ color: 'var(--oko-gold)' }}
               >
                 {config.altcoin_max_leverage ?? 5}x
               </span>

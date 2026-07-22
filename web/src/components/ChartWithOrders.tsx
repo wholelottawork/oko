@@ -472,7 +472,7 @@ export function ChartWithOrders({
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
             }}
           >
-            <div style={{ marginBottom: '6px', color: 'var(--nofx-gold)', fontWeight: 'bold', fontSize: '11px' }}>
+            <div style={{ marginBottom: '6px', color: 'var(--oko-gold)', fontWeight: 'bold', fontSize: '11px' }}>
               {new Date((tooltipData.time as number) * 1000).toLocaleString('en-US', {
                 month: 'short',
                 day: 'numeric',

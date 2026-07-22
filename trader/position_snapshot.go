@@ -2,9 +2,9 @@ package trader
 
 import (
 	"fmt"
-	"nofx/logger"
-	"nofx/market"
-	"nofx/store"
+	"oko/logger"
+	"oko/market"
+	"oko/store"
 	"time"
 )
 

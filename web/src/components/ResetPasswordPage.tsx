@@ -80,9 +80,9 @@ export function ResetPasswordPage() {
           <div className="text-center mb-8">
             <div
               className="w-16 h-16 mx-auto mb-4 flex items-center justify-center rounded-full"
-              style={{ background: 'var(--nofx-border)' }}
+              style={{ background: 'var(--oko-border)' }}
             >
-              <KeyRound className="w-8 h-8" style={{ color: 'var(--nofx-gold)' }} />
+              <KeyRound className="w-8 h-8" style={{ color: 'var(--oko-gold)' }} />
             </div>
             <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
               {t('resetPasswordTitle', language)}
@@ -279,7 +279,7 @@ export function ResetPasswordPage() {
                   type="submit"
                   disabled={loading || otpCode.length !== 6 || !passwordValid}
                   className="w-full px-4 py-2 rounded text-sm font-semibold transition-all hover:scale-105 disabled:opacity-50"
-                  style={{ background: 'var(--nofx-gold)', color: '#000' }}
+                  style={{ background: 'var(--oko-gold)', color: '#000' }}
                 >
                   {loading
                     ? t('loading', language)

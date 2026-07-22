@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"nofx/crypto"
+	"oko/crypto"
 
 	_ "modernc.org/sqlite"
 )

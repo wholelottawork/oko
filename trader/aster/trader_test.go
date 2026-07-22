@@ -9,9 +9,9 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"oko/trader/testutil"
+	"oko/trader/types"
 	"github.com/stretchr/testify/assert"
-	"nofx/trader/testutil"
-	"nofx/trader/types"
 )
 
 // ============================================================
@@ -22,7 +22,7 @@ import (
 // Inherits TraderTestSuite and adds Aster specific mock logic
 type AsterTraderTestSuite struct {
 	*testutil.TraderTestSuite // Embeds base test suite
-	mockServer              *httptest.Server
+	mockServer                *httptest.Server
 }
 
 // NewAsterTraderTestSuite creates Aster test suite

@@ -73,7 +73,6 @@ func (c *Client) fetchAI500() ([]CoinData, error) {
 		return nil, fmt.Errorf("API returned failure status")
 	}
 
-	// 空列表是正常情况，不是错误
 	if len(response.Data.Coins) == 0 {
 		log.Printf("ℹ️  AI500 returned empty coin list (no coins meet criteria currently)")
 		return []CoinData{}, nil

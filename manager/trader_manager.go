@@ -3,12 +3,12 @@ package manager
 import (
 	"context"
 	"fmt"
-	"nofx/config"
-	"nofx/debate"
-	"nofx/kernel"
-	"nofx/logger"
-	"nofx/store"
-	"nofx/trader"
+	"oko/config"
+	"oko/debate"
+	"oko/kernel"
+	"oko/logger"
+	"oko/store"
+	"oko/trader"
 	"sort"
 	"strings"
 	"sync"
@@ -419,7 +419,6 @@ func (tm *TraderManager) GetTopTradersData() (map[string]interface{}, error) {
 	return result, nil
 }
 
-
 // RemoveTrader removes a trader from memory (does not affect database)
 // Used to force reload when updating trader configuration
 // If the trader is running, it will be stopped first
@@ -678,11 +677,11 @@ func (tm *TraderManager) addTraderFromStore(traderCfg *store.Trader, aiModelCfg 
 		QwenKey:               "",
 		CustomAPIURL:          aiModelCfg.CustomAPIURL,
 		CustomModelName:       resolveModelName(aiModelCfg.CustomModelName, aiModelCfg.Provider),
-		ScanInterval:         time.Duration(traderCfg.ScanIntervalMinutes) * time.Minute,
-		InitialBalance:       traderCfg.InitialBalance,
-		IsCrossMargin:        traderCfg.IsCrossMargin,
-		ShowInCompetition:    traderCfg.ShowInCompetition,
-		StrategyConfig:       strategyConfig,
+		ScanInterval:          time.Duration(traderCfg.ScanIntervalMinutes) * time.Minute,
+		InitialBalance:        traderCfg.InitialBalance,
+		IsCrossMargin:         traderCfg.IsCrossMargin,
+		ShowInCompetition:     traderCfg.ShowInCompetition,
+		StrategyConfig:        strategyConfig,
 	}
 
 	logger.Infof("📊 Loading trader %s: ScanIntervalMinutes=%d (from DB), ScanInterval=%v",

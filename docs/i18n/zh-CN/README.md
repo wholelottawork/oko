@@ -1,14 +1,14 @@
-<h1 align="center">NOFX — 开源 AI 交易操作系统</h1>
+<h1 align="center">OKO — 开源 AI 交易操作系统</h1>
 
 <p align="center">
   <strong>AI 驱动金融交易的基础设施层</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NoFxAiOS/nofx/stargazers"><img src="https://img.shields.io/github/stars/NoFxAiOS/nofx?style=for-the-badge" alt="Stars"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/releases"><img src="https://img.shields.io/github/v/release/NoFxAiOS/nofx?style=for-the-badge" alt="Release"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://t.me/nofx_dev_community"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
+  <a href="https://github.com/oko-trading/okotrading/stargazers"><img src="https://img.shields.io/github/stars/oko-trading/okotrading?style=for-the-badge" alt="Stars"></a>
+  <a href="https://github.com/oko-trading/okotrading/releases"><img src="https://img.shields.io/github/v/release/oko-trading/okotrading?style=for-the-badge" alt="Release"></a>
+  <a href="https://github.com/oko-trading/okotrading/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://t.me/okoagent_channel"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
 <p align="center">
@@ -40,11 +40,11 @@
 ### 核心团队
 
 - **Tinkle** - [@Web3Tinkle](https://x.com/Web3Tinkle)
-- **官方 Twitter** - [@nofx_official](https://x.com/nofx_official)
+- **官方 Twitter** - [@okoagent](https://x.com/okoagent)
 
 ### 官方链接
 
-- **官网**: [https://nofxai.com](https://nofxai.com)
+- **官网**: [https://github.com/oko-trading/okotrading](https://github.com/oko-trading/okotrading)
 - **数据站点**: [https://nofxos.ai/dashboard](https://nofxos.ai/dashboard)
 - **API 文档**: [https://nofxos.ai/api-docs](https://nofxos.ai/api-docs)
 
@@ -52,13 +52,13 @@
 
 ## 开发者社区
 
-加入我们的 Telegram 开发者社区: **[NOFX 开发者社区](https://t.me/nofx_dev_community)**
+加入我们的 Telegram 开发者社区: **[OKO 开发者社区](https://t.me/okoagent_channel)**
 
 ---
 
 ## 开始之前
 
-使用 NOFX 你需要准备:
+使用 OKO 你需要准备:
 
 1. **交易所账户** - 在任意支持的交易所注册并创建具有交易权限的 API 凭证
 2. **AI 模型 API Key** - 从任意支持的提供商获取（推荐 DeepSeek，性价比最高）
@@ -124,7 +124,7 @@
 
 **Linux / macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 完成！打开浏览器访问 **http://127.0.0.1:3000**
@@ -133,15 +133,15 @@ curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bas
 
 一键部署到 Railway - 无需自己搭建服务器：
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/nofx?referralCode=nofx)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/oko?referralCode=oko)
 
-部署后，Railway 会提供一个公网 URL 访问你的 NOFX 实例。
+部署后，Railway 会提供一个公网 URL 访问你的 OKO 实例。
 
 ### Docker Compose (手动)
 
 ```bash
 # 下载并启动
-curl -O https://raw.githubusercontent.com/NoFxAiOS/nofx/main/docker-compose.prod.yml
+curl -O https://raw.githubusercontent.com/oko-trading/okotrading/main/docker-compose.prod.yml
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -160,7 +160,7 @@ docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compo
 > **💡 更新频繁。** 每天运行以下命令以获取最新功能和修复：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 此命令会拉取最新官方镜像并自动重启服务。
@@ -186,8 +186,8 @@ sudo apt-get install libta-lib0-dev
 
 ```bash
 # 1. 克隆仓库
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 
 # 2. 安装后端依赖
 go mod download
@@ -198,8 +198,8 @@ npm install
 cd ..
 
 # 4. 构建并启动后端
-go build -o nofx
-./nofx
+go build -o oko
+./oko
 
 # 5. 启动前端 (新终端)
 cd web
@@ -219,10 +219,10 @@ npm run dev
    - 运行安装程序并重启电脑
    - 启动 Docker Desktop 并等待就绪
 
-2. **运行 NOFX**
+2. **运行 OKO**
    ```powershell
    # 打开 PowerShell 运行：
-   curl -o docker-compose.prod.yml https://raw.githubusercontent.com/NoFxAiOS/nofx/main/docker-compose.prod.yml
+   curl -o docker-compose.prod.yml https://raw.githubusercontent.com/oko-trading/okotrading/main/docker-compose.prod.yml
    docker compose -f docker-compose.prod.yml up -d
    ```
 
@@ -264,13 +264,13 @@ npm run dev
    sudo apt-get install -y git
    ```
 
-4. **克隆并运行 NOFX**
+4. **克隆并运行 OKO**
    ```bash
-   git clone https://github.com/NoFxAiOS/nofx.git
-   cd nofx
+   git clone https://github.com/oko-trading/okotrading.git
+   cd okotrading
 
    # 构建并运行后端
-   go build -o nofx && ./nofx
+   go build -o oko && ./oko
 
    # 在另一个终端运行前端
    cd web && npm install && npm run dev
@@ -286,7 +286,7 @@ npm run dev
 
 2. **在 WSL2 终端运行**
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
    ```
 
 ---
@@ -295,11 +295,11 @@ npm run dev
 
 ### 快速部署 (HTTP/IP 访问)
 
-默认情况下，传输加密已**禁用**，可直接通过 IP 地址访问 NOFX：
+默认情况下，传输加密已**禁用**，可直接通过 IP 地址访问 OKO：
 
 ```bash
 # 部署到你的服务器
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 通过 `http://你的服务器IP:3000` 访问 - 立即可用。
@@ -324,7 +324,7 @@ TRANSPORT_ENCRYPTION=true
 
 2. **创建 DNS 记录**
    - 类型: `A`
-   - 名称: `nofx` (或你的子域名)
+   - 名称: `oko` (或你的子域名)
    - 内容: 你的服务器 IP
    - 代理状态: **已代理** (橙色云朵)
 
@@ -342,7 +342,7 @@ TRANSPORT_ENCRYPTION=true
    TRANSPORT_ENCRYPTION=true
    ```
 
-5. **完成！** 通过 `https://nofx.你的域名.com` 访问
+5. **完成！** 通过 `https://oko.你的域名.com` 访问
 
 ---
 
@@ -433,9 +433,9 @@ sudo apt-get install libta-lib0-dev
 
 ## 贡献者空投计划
 
-所有贡献都在 GitHub 上追踪。当 NOFX 产生收入时，贡献者将根据其贡献获得空投。
+所有贡献都在 GitHub 上追踪。当 OKO 产生收入时，贡献者将根据其贡献获得空投。
 
-**解决 [置顶 Issue](https://github.com/NoFxAiOS/nofx/issues) 的 PR 获得最高奖励！**
+**解决 [置顶 Issue](https://github.com/oko-trading/okotrading/issues) 的 PR 获得最高奖励！**
 
 | 贡献类型 | 权重 |
 |------------------|:------:|
@@ -450,11 +450,11 @@ sudo apt-get install libta-lib0-dev
 
 ## 联系方式
 
-- **GitHub Issues**: [提交 Issue](https://github.com/NoFxAiOS/nofx/issues)
-- **开发者社区**: [Telegram 群组](https://t.me/nofx_dev_community)
+- **GitHub Issues**: [提交 Issue](https://github.com/oko-trading/okotrading/issues)
+- **开发者社区**: [Telegram 群组](https://t.me/okoagent_channel)
 
 ---
 
 ## Star 历史
 
-[![Star History Chart](https://api.star-history.com/svg?repos=NoFxAiOS/nofx&type=Date)](https://star-history.com/#NoFxAiOS/nofx&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=oko-trading/okotrading&type=Date)](https://star-history.com/#oko-trading/okotrading&Date)

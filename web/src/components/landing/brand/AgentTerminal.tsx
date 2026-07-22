@@ -24,7 +24,7 @@ export default function AgentTerminal() {
                     </div>
                     {/* Title */}
                     <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-2">
-                        <span className="text-zinc-400 text-xs font-mono">NOFX Agent Terminal</span>
+                        <span className="text-zinc-400 text-xs font-mono">OKO Agent Terminal</span>
                     </div>
                     {/* Live indicator */}
                     <div className="flex items-center gap-1.5 px-2 py-0.5 rounded bg-green-500/10 border border-green-500/20">
@@ -38,7 +38,7 @@ export default function AgentTerminal() {
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-zinc-500 text-xs font-mono uppercase tracking-wider">Portfolio PnL</span>
                         <div className="flex gap-1">
-                            <button className="px-2 py-0.5 bg-nofx-gold/20 border border-nofx-gold/30 rounded text-[10px] text-nofx-gold font-mono">24H</button>
+                            <button className="px-2 py-0.5 bg-oko-gold/20 border border-oko-gold/30 rounded text-[10px] text-oko-gold font-mono">24H</button>
                             <button className="px-2 py-0.5 text-[10px] text-zinc-600 font-mono hover:text-zinc-400 transition-colors">7D</button>
                             <button className="px-2 py-0.5 text-[10px] text-zinc-600 font-mono hover:text-zinc-400 transition-colors">30D</button>
                         </div>
@@ -97,7 +97,7 @@ export default function AgentTerminal() {
                 <div className="p-4 border-b border-zinc-800/40">
                     <div className="flex items-center justify-between mb-3">
                         <span className="text-zinc-400 text-xs font-mono uppercase tracking-wider">Order Book</span>
-                        <span className="text-zinc-600 text-[10px] font-mono">Spread: <span className="text-nofx-gold">0.02%</span></span>
+                        <span className="text-zinc-600 text-[10px] font-mono">Spread: <span className="text-oko-gold">0.02%</span></span>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         {/* Asks */}

@@ -1,8 +1,8 @@
-# 🚀 Getting Started with NOFX
+# 🚀 Getting Started with OKO
 
 **Language:** [English](README.md) | [中文](README.zh-CN.md)
 
-This section contains all the documentation you need to get NOFX up and running.
+This section contains all the documentation you need to get OKO up and running.
 
 ## 📋 Deployment Options
 
@@ -13,7 +13,7 @@ Choose the method that best fits your needs:
 **Best for:** Beginners, quick setup, production deployments
 
 - **English:** [docker-deploy.en.md](docker-deploy.en.md)
-- **中文:** [docker-deploy.zh-CN.md](docker-deploy.zh-CN.md)
+- **Chinese:** [docker-deploy.zh-CN.md](docker-deploy.zh-CN.md)
 
 **Pros:**
 - ✅ One-command setup
@@ -35,7 +35,7 @@ cp config.json.example config.json
 ### Custom AI Providers
 
 - **English:** [custom-api.en.md](custom-api.en.md)
-- **中文:** [custom-api.md](custom-api.md)
+- **Chinese:** [custom-api.md](custom-api.md)
 
 Use custom AI models or third-party OpenAI-compatible APIs:
 - Custom DeepSeek endpoints
@@ -81,7 +81,7 @@ For single-tenant/self-hosted usage, you can enable strict admin-only access:
 }
 ```
 2) Set environment variables (Docker compose already wired):
-- `NOFX_ADMIN_PASSWORD` — admin password (plaintext; hashed on startup)
+- `OKO_ADMIN_PASSWORD` — admin password (plaintext; hashed on startup)
 
 3) Login at `/login` using the admin password. All non-essential endpoints are blocked to unauthenticated users while admin mode is enabled.
 
@@ -114,8 +114,8 @@ For single-tenant/self-hosted usage, you can enable strict admin-only access:
 
 **Need more help?**
 - 📖 [FAQ](../guides/faq.zh-CN.md)
-- 💬 [Telegram Community](https://t.me/nofx_dev_community)
-- 🐛 [GitHub Issues](https://github.com/NoFxAiOS/nofx/issues)
+- 💬 [Telegram Community](https://t.me/okoagent_channel)
+- 🐛 [GitHub Issues](https://github.com/oko-trading/okotrading/issues)
 
 ---
 

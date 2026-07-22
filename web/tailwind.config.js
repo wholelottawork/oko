@@ -7,18 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        'nofx-gold': {
-          DEFAULT: 'var(--nofx-gold)',
-          dim: 'var(--nofx-border)',
+        'oko-gold': {
+          DEFAULT: 'var(--oko-gold)',
+          dim: 'var(--oko-border)',
           glow: 'var(--panel-border-hover)',
           highlight: 'var(--accent-primary-hover)',
         },
-        'nofx-bg': {
+        'oko-bg': {
           DEFAULT: 'var(--background)',
-          deeper: 'var(--nofx-bg)',
+          deeper: 'var(--oko-bg)',
           lighter: 'var(--surface-secondary)',
         },
-        'nofx-accent': 'var(--nofx-accent)',
+        'oko-accent': 'var(--oko-accent)',
         'logo-blue': 'var(--logo-blue)',
         'accent': {
           DEFAULT: 'var(--accent-primary)',
@@ -28,13 +28,13 @@ export default {
           border: 'var(--accent-primary-border)',
           'border-strong': 'var(--accent-primary-border-strong)',
         },
-        'nofx-text': {
+        'oko-text': {
           DEFAULT: 'var(--text-primary)',
           main: 'var(--text-primary)',
           muted: 'var(--text-secondary)',
         },
-        'nofx-success': 'var(--binance-green)',
-        'nofx-danger': 'var(--binance-red)',
+        'oko-success': 'var(--binance-green)',
+        'oko-danger': 'var(--binance-red)',
 
         white: 'var(--color-white)',
         black: 'var(--color-black)',

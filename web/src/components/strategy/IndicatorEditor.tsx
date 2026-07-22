@@ -185,7 +185,7 @@ export function IndicatorEditor({
   }
 
   // Check if any NofxOS feature is enabled
-  const hasNofxosEnabled = config.enable_quant_data || config.enable_oi_ranking || config.enable_netflow_ranking || config.enable_price_ranking
+  const hasDataProviderEnabled = config.enable_quant_data || config.enable_oi_ranking || config.enable_netflow_ranking || config.enable_price_ranking
   const hasApiKey = !!config.nofxos_api_key
 
   return (
@@ -488,7 +488,7 @@ export function IndicatorEditor({
             </div>
 
             {/* Warning if features enabled but no API key */}
-            {hasNofxosEnabled && !hasApiKey && (
+            {hasDataProviderEnabled && !hasApiKey && (
               <div className="flex items-center gap-2 mt-3 p-2 rounded-lg bg-[var(--surface-primary)] border border-[var(--panel-border)]">
                 <AlertCircle className="w-4 h-4 flex-shrink-0 text-[var(--text-secondary)]" />
                 <span className="text-[10px] text-[var(--text-primary)]">

@@ -2,10 +2,10 @@ package binance
 
 import (
 	"fmt"
-	"nofx/logger"
-	"nofx/market"
-	"nofx/store"
-	"nofx/trader/types"
+	"oko/logger"
+	"oko/market"
+	"oko/store"
+	"oko/trader/types"
 	"sort"
 	"strings"
 	"sync"

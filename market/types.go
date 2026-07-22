@@ -210,11 +210,11 @@ type BoxData struct {
 type RegimeLevel string
 
 const (
-	RegimeLevelNarrow   RegimeLevel = "narrow"   // 窄幅震荡
-	RegimeLevelStandard RegimeLevel = "standard" // 标准震荡
-	RegimeLevelWide     RegimeLevel = "wide"     // 宽幅震荡
-	RegimeLevelVolatile RegimeLevel = "volatile" // 剧烈震荡
-	RegimeLevelTrending RegimeLevel = "trending" // 趋势
+	RegimeLevelNarrow   RegimeLevel = "narrow"
+	RegimeLevelStandard RegimeLevel = "standard"
+	RegimeLevelWide     RegimeLevel = "wide"
+	RegimeLevelVolatile RegimeLevel = "volatile"
+	RegimeLevelTrending RegimeLevel = "trending"
 )
 
 // BreakoutLevel represents which box level has been broken
@@ -231,11 +231,11 @@ const (
 type GridDirection string
 
 const (
-	GridDirectionNeutral   GridDirection = "neutral"     // 50% buy + 50% sell
-	GridDirectionLong      GridDirection = "long"        // 100% buy
-	GridDirectionShort     GridDirection = "short"       // 100% sell
-	GridDirectionLongBias  GridDirection = "long_bias"   // 70% buy + 30% sell (default)
-	GridDirectionShortBias GridDirection = "short_bias"  // 30% buy + 70% sell (default)
+	GridDirectionNeutral   GridDirection = "neutral"    // 50% buy + 50% sell
+	GridDirectionLong      GridDirection = "long"       // 100% buy
+	GridDirectionShort     GridDirection = "short"      // 100% sell
+	GridDirectionLongBias  GridDirection = "long_bias"  // 70% buy + 30% sell (default)
+	GridDirectionShortBias GridDirection = "short_bias" // 30% buy + 70% sell (default)
 )
 
 // GetBuySellRatio returns the buy and sell ratio for this direction

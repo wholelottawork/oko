@@ -16,7 +16,7 @@ export function WhitelistFullPage({ onBack }: WhitelistFullPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-nofx-bg-deeper text-white font-mono relative overflow-hidden flex items-center justify-center px-4">
+    <div className="min-h-screen bg-oko-bg-deeper text-white font-mono relative overflow-hidden flex items-center justify-center px-4">
 
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}

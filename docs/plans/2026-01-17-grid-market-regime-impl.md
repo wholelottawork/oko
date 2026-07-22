@@ -61,7 +61,7 @@ func TestCalculateDonchian_PartialPeriod(t *testing.T) {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./market/... -run TestCalculateDonchian`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./market/... -run TestCalculateDonchian`
 Expected: FAIL with "undefined: calculateDonchian"
 
 **Step 3: Write minimal implementation**
@@ -104,7 +104,7 @@ func ExportCalculateDonchian(klines []Kline, period int) (float64, float64) {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./market/... -run TestCalculateDonchian`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./market/... -run TestCalculateDonchian`
 Expected: PASS
 
 **Step 5: Commit**
@@ -148,11 +148,11 @@ type BoxData struct {
 type RegimeLevel string
 
 const (
-	RegimeLevelNarrow   RegimeLevel = "narrow"   // 窄幅震荡
-	RegimeLevelStandard RegimeLevel = "standard" // 标准震荡
-	RegimeLevelWide     RegimeLevel = "wide"     // 宽幅震荡
-	RegimeLevelVolatile RegimeLevel = "volatile" // 剧烈震荡
-	RegimeLevelTrending RegimeLevel = "trending" // 趋势
+	RegimeLevelNarrow   RegimeLevel = "narrow"   // Narrow range
+	RegimeLevelStandard RegimeLevel = "standard" // Standard range
+	RegimeLevelWide     RegimeLevel = "wide"     // Wide range
+	RegimeLevelVolatile RegimeLevel = "volatile" // Volatile range
+	RegimeLevelTrending RegimeLevel = "trending" // Trend
 )
 
 // BreakoutLevel represents which box level has been broken
@@ -218,7 +218,7 @@ func TestGetBoxData(t *testing.T) {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./market/... -run TestGetBoxData`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./market/... -run TestGetBoxData`
 Expected: FAIL with "undefined: calculateBoxData"
 
 **Step 3: Write minimal implementation**
@@ -279,7 +279,7 @@ func GetBoxData(symbol string) (*BoxData, error) {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./market/... -run TestGetBoxData`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./market/... -run TestGetBoxData`
 Expected: PASS
 
 **Step 5: Commit**
@@ -382,7 +382,7 @@ Create `trader/grid_regime_test.go`:
 package trader
 
 import (
-	"nofx/market"
+	"github.com/oko-trading/okotrading/market"
 	"testing"
 )
 
@@ -412,7 +412,7 @@ func TestClassifyRegimeLevel(t *testing.T) {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestClassifyRegimeLevel`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestClassifyRegimeLevel`
 Expected: FAIL with "undefined: classifyRegimeLevel"
 
 **Step 3: Write minimal implementation**
@@ -422,7 +422,7 @@ Create `trader/grid_regime.go`:
 ```go
 package trader
 
-import "nofx/market"
+import "github.com/oko-trading/okotrading/market"
 
 // classifyRegimeLevel determines the regime level based on market indicators
 // bollingerWidth: Bollinger band width as percentage
@@ -482,7 +482,7 @@ func getRegimePositionLimit(level market.RegimeLevel, config *store.GridStrategy
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestClassifyRegimeLevel`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestClassifyRegimeLevel`
 Expected: PASS
 
 **Step 5: Commit**
@@ -547,7 +547,7 @@ func TestDetectBoxBreakout(t *testing.T) {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestDetectBoxBreakout`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestDetectBoxBreakout`
 Expected: FAIL with "undefined: detectBoxBreakout"
 
 **Step 3: Write minimal implementation**
@@ -590,7 +590,7 @@ func detectBoxBreakout(box *market.BoxData) (market.BreakoutLevel, string) {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestDetectBoxBreakout`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestDetectBoxBreakout`
 Expected: PASS
 
 **Step 5: Commit**
@@ -649,7 +649,7 @@ func TestBreakoutConfirmation(t *testing.T) {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestBreakoutConfirmation`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestBreakoutConfirmation`
 Expected: FAIL with "undefined: BreakoutState"
 
 **Step 3: Write minimal implementation**
@@ -694,7 +694,7 @@ func confirmBreakout(state *BreakoutState, currentLevel market.BreakoutLevel, di
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestBreakoutConfirmation`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestBreakoutConfirmation`
 Expected: PASS
 
 **Step 5: Commit**
@@ -741,7 +741,7 @@ func TestGetBreakoutAction(t *testing.T) {
 
 **Step 2: Run test to verify it fails**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestGetBreakoutAction`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestGetBreakoutAction`
 Expected: FAIL with "undefined: BreakoutAction"
 
 **Step 3: Write minimal implementation**
@@ -776,7 +776,7 @@ func getBreakoutAction(level market.BreakoutLevel) BreakoutAction {
 
 **Step 4: Run test to verify it passes**
 
-Run: `cd /Users/yida/gopro/open-nofx && go test -v ./trader/... -run TestGetBreakoutAction`
+Run: `cd /Users/yida/gopro/open-oko && go test -v ./trader/... -run TestGetBreakoutAction`
 Expected: PASS
 
 **Step 5: Commit**
@@ -1308,29 +1308,29 @@ export function GridRiskPanel({ traderId, language }: GridRiskPanelProps) {
 
   const t = (key: string) => {
     const translations: Record<string, Record<string, string>> = {
-      leverageInfo: { zh: '杠杆信息', en: 'Leverage Info' },
-      currentLeverage: { zh: '当前杠杆', en: 'Current Leverage' },
-      effectiveLeverage: { zh: '有效杠杆', en: 'Effective Leverage' },
-      recommendedLeverage: { zh: '推荐杠杆', en: 'Recommended Leverage' },
-      positionInfo: { zh: '仓位信息', en: 'Position Info' },
-      currentPosition: { zh: '当前仓位', en: 'Current Position' },
-      maxPosition: { zh: '最大仓位', en: 'Max Position' },
-      liquidationInfo: { zh: '爆仓信息', en: 'Liquidation Info' },
-      liquidationPrice: { zh: '爆仓价格', en: 'Liquidation Price' },
-      liquidationDistance: { zh: '爆仓距离', en: 'Distance' },
-      marketState: { zh: '市场状态', en: 'Market State' },
-      regimeLevel: { zh: '震荡级别', en: 'Regime Level' },
-      boxState: { zh: '箱体状态', en: 'Box State' },
-      shortBox: { zh: '短期箱体', en: 'Short Box' },
-      midBox: { zh: '中期箱体', en: 'Mid Box' },
-      longBox: { zh: '长期箱体', en: 'Long Box' },
-      narrow: { zh: '窄幅震荡', en: 'Narrow' },
-      standard: { zh: '标准震荡', en: 'Standard' },
-      wide: { zh: '宽幅震荡', en: 'Wide' },
-      volatile: { zh: '剧烈震荡', en: 'Volatile' },
-      trending: { zh: '趋势', en: 'Trending' },
-      breakout: { zh: '突破', en: 'Breakout' },
-      none: { zh: '无', en: 'None' },
+      leverageInfo: { zh: 'Leverage Info', en: 'Leverage Info' },
+      currentLeverage: { zh: 'Current Leverage', en: 'Current Leverage' },
+      effectiveLeverage: { zh: 'Effective Leverage', en: 'Effective Leverage' },
+      recommendedLeverage: { zh: 'Recommended Leverage', en: 'Recommended Leverage' },
+      positionInfo: { zh: 'Position Info', en: 'Position Info' },
+      currentPosition: { zh: 'Current Position', en: 'Current Position' },
+      maxPosition: { zh: 'Max Position', en: 'Max Position' },
+      liquidationInfo: { zh: 'Liquidation Info', en: 'Liquidation Info' },
+      liquidationPrice: { zh: 'Liquidation Price', en: 'Liquidation Price' },
+      liquidationDistance: { zh: 'Distance', en: 'Distance' },
+      marketState: { zh: 'Market State', en: 'Market State' },
+      regimeLevel: { zh: 'Regime Level', en: 'Regime Level' },
+      boxState: { zh: 'Box State', en: 'Box State' },
+      shortBox: { zh: 'Short Box', en: 'Short Box' },
+      midBox: { zh: 'Mid Box', en: 'Mid Box' },
+      longBox: { zh: 'Long Box', en: 'Long Box' },
+      narrow: { zh: 'Narrow', en: 'Narrow' },
+      standard: { zh: 'Standard', en: 'Standard' },
+      wide: { zh: 'Wide', en: 'Wide' },
+      volatile: { zh: 'Volatile', en: 'Volatile' },
+      trending: { zh: 'Trending', en: 'Trending' },
+      breakout: { zh: 'Breakout', en: 'Breakout' },
+      none: { zh: 'None', en: 'None' },
     }
     return translations[key]?.[language] || key
   }
@@ -1567,7 +1567,7 @@ git commit -m "feat(kernel): add box indicators to AI prompt"
 The GORM AutoMigrate will handle adding new columns. Verify by running:
 
 ```bash
-cd /Users/yida/gopro/open-nofx && go run . migrate
+cd /Users/yida/gopro/open-oko && go run . migrate
 ```
 
 **Step 2: Commit**
@@ -1584,13 +1584,13 @@ git commit -m "chore(store): ensure new grid fields are migrated"
 **Step 1: Run backend tests**
 
 ```bash
-cd /Users/yida/gopro/open-nofx && go test -v ./...
+cd /Users/yida/gopro/open-oko && go test -v ./...
 ```
 
 **Step 2: Run frontend tests (if available)**
 
 ```bash
-cd /Users/yida/gopro/open-nofx/web && npm test
+cd /Users/yida/gopro/open-oko/web && npm test
 ```
 
 **Step 3: Fix any failing tests and commit**
@@ -1607,7 +1607,7 @@ git commit -m "test: fix tests for grid regime implementation"
 **Step 1: Start the server**
 
 ```bash
-cd /Users/yida/gopro/open-nofx && go run .
+cd /Users/yida/gopro/open-oko && go run .
 ```
 
 **Step 2: Verify API endpoint**

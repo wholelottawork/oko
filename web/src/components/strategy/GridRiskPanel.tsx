@@ -182,7 +182,7 @@ export function GridRiskPanel({
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-2">
-          <Shield className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
+          <Shield className="w-4 h-4" style={{ color: 'var(--oko-gold)' }} />
           <span className="font-medium text-sm" style={{ color: 'var(--text-primary)' }}>
             {t('gridRisk')}
           </span>
@@ -222,7 +222,7 @@ export function GridRiskPanel({
             {/* Leverage */}
             <div className="p-2 rounded" style={{ background: 'var(--surface-secondary)' }}>
               <div className="flex items-center gap-1 mb-2">
-                <TrendingUp className="w-3 h-3" style={{ color: 'var(--nofx-gold)' }} />
+                <TrendingUp className="w-3 h-3" style={{ color: 'var(--oko-gold)' }} />
                 <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('leverageInfo')}</span>
               </div>
               <div className="grid grid-cols-3 gap-1 text-xs">
@@ -232,7 +232,7 @@ export function GridRiskPanel({
                 </div>
                 <div>
                   <div style={{ color: 'var(--text-tertiary)' }}>{t('effectiveLeverage')}</div>
-                  <div className="font-mono" style={{ color: 'var(--nofx-gold)' }}>{riskInfo.effective_leverage.toFixed(2)}x</div>
+                  <div className="font-mono" style={{ color: 'var(--oko-gold)' }}>{riskInfo.effective_leverage.toFixed(2)}x</div>
                 </div>
                 <div>
                   <div style={{ color: 'var(--text-tertiary)' }}>{t('recommendedLeverage')}</div>
@@ -249,7 +249,7 @@ export function GridRiskPanel({
             {/* Position */}
             <div className="p-2 rounded" style={{ background: 'var(--surface-secondary)' }}>
               <div className="flex items-center gap-1 mb-2">
-                <Activity className="w-3 h-3" style={{ color: 'var(--nofx-gold)' }} />
+                <Activity className="w-3 h-3" style={{ color: 'var(--oko-gold)' }} />
                 <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('positionInfo')}</span>
               </div>
               <div className="grid grid-cols-3 gap-1 text-xs">
@@ -283,7 +283,7 @@ export function GridRiskPanel({
             {/* Market State */}
             <div className="p-2 rounded" style={{ background: 'var(--surface-secondary)' }}>
               <div className="flex items-center gap-1 mb-2">
-                <Shield className="w-3 h-3" style={{ color: 'var(--nofx-gold)' }} />
+                <Shield className="w-3 h-3" style={{ color: 'var(--oko-gold)' }} />
                 <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('marketState')}</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -341,7 +341,7 @@ export function GridRiskPanel({
           {/* Row 3: Box State */}
           <div className="p-2 rounded" style={{ background: 'var(--surface-secondary)' }}>
             <div className="flex items-center gap-1 mb-2">
-              <Box className="w-3 h-3" style={{ color: 'var(--nofx-gold)' }} />
+              <Box className="w-3 h-3" style={{ color: 'var(--oko-gold)' }} />
               <span className="text-xs font-medium" style={{ color: 'var(--text-secondary)' }}>{t('boxState')}</span>
             </div>
             <div className="grid grid-cols-3 gap-2 text-xs">

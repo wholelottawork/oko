@@ -1,6 +1,6 @@
-# 👥 NOFX Community
+# 👥 OKO Community
 
-Welcome to the NOFX community! This section contains everything you need to contribute and participate.
+Welcome to the OKO community! This section contains everything you need to contribute and participate.
 
 ---
 
@@ -10,7 +10,7 @@ Welcome to the NOFX community! This section contains everything you need to cont
 
 We're introducing a new PR management system to improve code quality and make contributing easier!
 
-**📖 Read:** [Migration Announcement](MIGRATION_ANNOUNCEMENT.md) | [迁移公告（中文）](MIGRATION_ANNOUNCEMENT.zh-CN.md)
+**📖 Read:** [Migration Announcement](MIGRATION_ANNOUNCEMENT.md) | [Legacy alternate path](MIGRATION_ANNOUNCEMENT.zh-CN.md)
 
 **Timeline:** 4-week gradual rollout starting soon
 
@@ -28,14 +28,14 @@ We're introducing a new PR management system to improve code quality and make co
    - [Security Policy](../../SECURITY.md) - Report vulnerabilities
 
 2. **Find Something to Work On**
-   - Browse [GitHub Issues](https://github.com/NoFxAiOS/nofx/issues)
+   - Browse [GitHub Issues](https://github.com/oko-trading/okotrading/issues)
    - Look for `good first issue` label
    - Check out [bounty tasks](#-bounty-program)
 
 3. **Join the Community**
-   - 💬 [Telegram Developer Community](https://t.me/nofx_dev_community)
-   - 🐦 [Twitter @nofx_official](https://x.com/nofx_official)
-   - 🐙 [GitHub Discussions](https://github.com/NoFxAiOS/nofx/discussions)
+   - 💬 [Telegram Developer Community](https://t.me/okoagent_channel)
+   - 🐦 [Twitter @okoagent](https://x.com/okoagent)
+   - 🐙 [GitHub Discussions](https://github.com/oko-trading/okotrading/discussions)
 
 ---
 
@@ -43,7 +43,7 @@ We're introducing a new PR management system to improve code quality and make co
 
 ### Active Bounties
 
-NOFX offers bounties for valuable contributions:
+OKO offers bounties for valuable contributions:
 
 | Category | Reward Range | Examples |
 |----------|--------------|----------|
@@ -110,7 +110,7 @@ NOFX offers bounties for valuable contributions:
 
 ### Documentation
 - Tutorial writing
-- Translation (中文, Русский, Українська)
+- Translation (Chinese, Русский, Українська)
 - FAQ updates
 - Video guides
 
@@ -138,9 +138,9 @@ NOFX offers bounties for valuable contributions:
 
 | Platform | Purpose | Link |
 |----------|---------|------|
-| 💬 Telegram | Real-time chat, questions | [Join](https://t.me/nofx_dev_community) |
-| 🐙 GitHub | Issues, PRs, discussions | [Visit](https://github.com/NoFxAiOS/nofx) |
-| 🐦 Twitter | Announcements, updates | [@nofx_official](https://x.com/nofx_official) |
+| 💬 Telegram | Real-time chat, questions | [Join](https://t.me/okoagent_channel) |
+| 🐙 GitHub | Issues, PRs, discussions | [Visit](https://github.com/oko-trading/okotrading) |
+| 🐦 Twitter | Announcements, updates | [@okoagent](https://x.com/okoagent) |
 
 ### Core Team
 
@@ -167,7 +167,7 @@ NOFX offers bounties for valuable contributions:
 **Want to organize an event?**
 - Contact core team on Telegram
 - Propose in GitHub Discussions
-- Tweet and tag @nofx_official
+- Tweet and tag @okoagent
 
 ---
 
@@ -175,7 +175,7 @@ NOFX offers bounties for valuable contributions:
 
 ### For Contributors
 
-**Understanding NOFX:**
+**Understanding OKO:**
 - [System Architecture](../architecture/README.md) *(coming soon)*
 - [API Reference](../architecture/api-reference.md) *(coming soon)*
 - [Database Schema](../architecture/database-schema.md) *(coming soon)*
@@ -228,10 +228,10 @@ NOFX offers bounties for valuable contributions:
 
 | Metric | Count |
 |--------|-------|
-| GitHub Stars | Check [repo](https://github.com/NoFxAiOS/nofx) |
+| GitHub Stars | Check [repo](https://github.com/oko-trading/okotrading) |
 | Contributors | 21+ |
-| Open Issues | Check [issues](https://github.com/NoFxAiOS/nofx/issues) |
-| Merged PRs | Check [pulls](https://github.com/NoFxAiOS/nofx/pulls?q=is%3Apr+is%3Amerged) |
+| Open Issues | Check [issues](https://github.com/oko-trading/okotrading/issues) |
+| Merged PRs | Check [pulls](https://github.com/oko-trading/okotrading/pulls?q=is%3Apr+is%3Amerged) |
 
 ---
 
@@ -240,7 +240,7 @@ NOFX offers bounties for valuable contributions:
 - **Want to contribute code?** → [Contributing Guide](../../CONTRIBUTING.md)
 - **Want to claim bounty?** → [Bounty Guide](bounty-guide.md)
 - **Found a security issue?** → [Security Policy](../../SECURITY.md)
-- **Have questions?** → [Telegram Community](https://t.me/nofx_dev_community)
+- **Have questions?** → [Telegram Community](https://t.me/okoagent_channel)
 - **Verify official accounts?** → [Official Accounts & Anti-Impersonation](OFFICIAL_ACCOUNTS.md)
 
 ---

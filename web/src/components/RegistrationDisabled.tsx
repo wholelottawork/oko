@@ -28,7 +28,7 @@ export function RegistrationDisabled() {
         </p>
         <button
           className="mt-6 px-4 py-2 rounded text-sm font-semibold transition-colors hover:opacity-90"
-          style={{ background: 'var(--nofx-gold)', color: '#000' }}
+          style={{ background: 'var(--oko-gold)', color: '#000' }}
           onClick={handleBackToLogin}
         >
           {t('backToLogin', language)}

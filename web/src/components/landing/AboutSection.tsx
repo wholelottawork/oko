@@ -30,7 +30,7 @@ export default function AboutSection({ language }: AboutSectionProps) {
       {/* Background Decoration */}
       <div
         className="absolute top-0 right-0 w-96 h-96 rounded-full blur-3xl opacity-30"
-        style={{ background: 'radial-gradient(circle, var(--nofx-border) 0%, transparent 70%)' }}
+        style={{ background: 'radial-gradient(circle, var(--oko-border) 0%, transparent 70%)' }}
       />
 
       <div className="max-w-6xl mx-auto px-4">
@@ -45,22 +45,22 @@ export default function AboutSection({ language }: AboutSectionProps) {
             <motion.div
               className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
               style={{
-                background: 'var(--nofx-border)',
-                border: '1px solid var(--nofx-border)',
+                background: 'var(--oko-border)',
+                border: '1px solid var(--oko-border)',
               }}
             >
-              <Terminal className="w-4 h-4" style={{ color: 'var(--nofx-gold)' }} />
-              <span className="text-xs font-medium" style={{ color: 'var(--nofx-gold)' }}>
-                {t('aboutNofx', language)}
+              <Terminal className="w-4 h-4" style={{ color: 'var(--oko-gold)' }} />
+              <span className="text-xs font-medium" style={{ color: 'var(--oko-gold)' }}>
+                {t('aboutOko', language)}
               </span>
             </motion.div>
 
             <h2 className="text-4xl lg:text-5xl font-bold mb-6" style={{ color: 'var(--text-primary)' }}>
-              {t('whatIsNofx', language)}
+              {t('whatIsOko', language)}
             </h2>
 
             <p className="text-lg mb-8 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-              {t('nofxNotAnotherBot', language)} {t('nofxDescription1', language)}
+              {t('okoNotAnotherBot', language)} {t('okoDescription1', language)}
             </p>
 
             {/* Feature Pills */}
@@ -80,9 +80,9 @@ export default function AboutSection({ language }: AboutSectionProps) {
                 >
                   <div
                     className="w-10 h-10 rounded-lg flex items-center justify-center"
-                    style={{ background: 'var(--nofx-border)' }}
+                    style={{ background: 'var(--oko-border)' }}
                   >
-                    <feature.icon className="w-5 h-5" style={{ color: 'var(--nofx-gold)' }} />
+                    <feature.icon className="w-5 h-5" style={{ color: 'var(--oko-gold)' }} />
                   </div>
                   <div>
                     <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -127,10 +127,10 @@ export default function AboutSection({ language }: AboutSectionProps) {
 
               {/* Terminal Content */}
               <div className="p-6 font-mono text-sm space-y-2">
-                <div style={{ color: 'var(--text-tertiary)' }}>$ git clone https://github.com/NoFxAiOS/nofx.git</div>
-                <div style={{ color: 'var(--text-tertiary)' }}>$ cd nofx && chmod +x start.sh</div>
+                <div style={{ color: 'var(--text-tertiary)' }}>$ git clone https://github.com/oko-trading/okotrading.git</div>
+                <div style={{ color: 'var(--text-tertiary)' }}>$ cd okotrading && chmod +x start.sh</div>
                 <div style={{ color: 'var(--text-tertiary)' }}>$ ./start.sh start --build</div>
-                <div className="pt-2" style={{ color: 'var(--nofx-gold)' }}>
+                <div className="pt-2" style={{ color: 'var(--oko-gold)' }}>
                   ✓ {t('startupMessages1', language)}
                 </div>
                 <div style={{ color: 'var(--binance-green)' }}>
@@ -144,7 +144,7 @@ export default function AboutSection({ language }: AboutSectionProps) {
                   animate={{ opacity: [1, 0.5, 1] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
-                  <span style={{ color: 'var(--nofx-gold)' }}>▸</span>
+                  <span style={{ color: 'var(--oko-gold)' }}>▸</span>
                   <span style={{ color: 'var(--text-primary)' }}>_</span>
                 </motion.div>
               </div>

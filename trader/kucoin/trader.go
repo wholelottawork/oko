@@ -7,11 +7,11 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"oko/logger"
+	"oko/trader/types"
 	"io"
 	"math"
 	"net/http"
-	"nofx/logger"
-	"nofx/trader/types"
 	"strconv"
 	"strings"
 	"sync"
@@ -37,6 +37,7 @@ const (
 
 // API channel configuration
 const (
+	// Registered exchange integration ID; keep it stable across the project rename.
 	kcPartnerID  = "NoFxFutures"
 	kcPartnerKey = "d7c05b0c-c81b-4630-8fa8-ca6d049d3aae"
 )
@@ -312,11 +313,11 @@ func (t *KuCoinTrader) GetBalance() (map[string]interface{}, error) {
 	}
 
 	result := map[string]interface{}{
-		"totalWalletBalance":    account.MarginBalance,        // Wallet balance (without unrealized PnL)
+		"totalWalletBalance":    account.MarginBalance, // Wallet balance (without unrealized PnL)
 		"availableBalance":      account.AvailableBalance,
 		"totalUnrealizedProfit": account.UnrealisedPNL,
 		"total_equity":          account.AccountEquity,
-		"totalEquity":           account.AccountEquity,        // For GetAccountInfo compatibility
+		"totalEquity":           account.AccountEquity, // For GetAccountInfo compatibility
 	}
 
 	logger.Infof("✓ KuCoin balance: Total equity=%.2f, Available=%.2f, Unrealized PnL=%.2f",
@@ -348,14 +349,14 @@ func (t *KuCoinTrader) GetPositions() ([]map[string]interface{}, error) {
 
 	var positions []struct {
 		Symbol           string  `json:"symbol"`
-		CurrentQty       int64   `json:"currentQty"`      // Position quantity (in lots, integer)
-		AvgEntryPrice    float64 `json:"avgEntryPrice"`   // Average entry price (string in API)
-		MarkPrice        float64 `json:"markPrice"`       // Mark price
-		UnrealisedPnl    float64 `json:"unrealisedPnl"`   // Unrealized PnL
-		Leverage         float64 `json:"leverage"`        // Leverage setting
-		RealLeverage     float64 `json:"realLeverage"`    // Effective leverage (may be nil in cross mode)
-		LiquidationPrice float64 `json:"liquidationPrice"`// Liquidation price
-		Multiplier       float64 `json:"multiplier"`      // Contract multiplier
+		CurrentQty       int64   `json:"currentQty"`       // Position quantity (in lots, integer)
+		AvgEntryPrice    float64 `json:"avgEntryPrice"`    // Average entry price (string in API)
+		MarkPrice        float64 `json:"markPrice"`        // Mark price
+		UnrealisedPnl    float64 `json:"unrealisedPnl"`    // Unrealized PnL
+		Leverage         float64 `json:"leverage"`         // Leverage setting
+		RealLeverage     float64 `json:"realLeverage"`     // Effective leverage (may be nil in cross mode)
+		LiquidationPrice float64 `json:"liquidationPrice"` // Liquidation price
+		Multiplier       float64 `json:"multiplier"`       // Contract multiplier
 		IsOpen           bool    `json:"isOpen"`
 		CrossMode        bool    `json:"crossMode"`
 		OpeningTimestamp int64   `json:"openingTimestamp"`
@@ -1132,17 +1133,17 @@ func (t *KuCoinTrader) GetClosedPnL(startTime time.Time, limit int) ([]types.Clo
 	var response struct {
 		HasMore  bool `json:"hasMore"`
 		DataList []struct {
-			Symbol       string  `json:"symbol"`
-			OpenPrice    float64 `json:"avgEntryPrice"`
-			ClosePrice   float64 `json:"avgClosePrice"`
-			Qty          int64   `json:"qty"`
-			RealisedPnl  float64 `json:"realisedGrossCost"`
-			CloseTime    int64   `json:"closeTime"`
-			OpenTime     int64   `json:"openTime"`
-			PositionId   string  `json:"id"`
-			CloseType    string  `json:"type"`
-			Leverage     int     `json:"leverage"`
-			SettleCurrency string `json:"settleCurrency"`
+			Symbol         string  `json:"symbol"`
+			OpenPrice      float64 `json:"avgEntryPrice"`
+			ClosePrice     float64 `json:"avgClosePrice"`
+			Qty            int64   `json:"qty"`
+			RealisedPnl    float64 `json:"realisedGrossCost"`
+			CloseTime      int64   `json:"closeTime"`
+			OpenTime       int64   `json:"openTime"`
+			PositionId     string  `json:"id"`
+			CloseType      string  `json:"type"`
+			Leverage       int     `json:"leverage"`
+			SettleCurrency string  `json:"settleCurrency"`
 		} `json:"dataList"`
 	}
 
@@ -1203,26 +1204,26 @@ func (t *KuCoinTrader) GetOpenOrders(symbol string) ([]types.OpenOrder, error) {
 
 	var response struct {
 		Items []struct {
-			Id       string  `json:"id"`
-			Symbol   string  `json:"symbol"`
-			Side     string  `json:"side"`
-			Type     string  `json:"type"`
-			Price    string  `json:"price"`
-			Size     int64   `json:"size"`
-			StopType string  `json:"stopType"`
+			Id       string `json:"id"`
+			Symbol   string `json:"symbol"`
+			Side     string `json:"side"`
+			Type     string `json:"type"`
+			Price    string `json:"price"`
+			Size     int64  `json:"size"`
+			StopType string `json:"stopType"`
 		} `json:"items"`
 	}
 
 	if err := json.Unmarshal(data, &response); err != nil {
 		// Try alternate format
 		var items []struct {
-			Id       string  `json:"id"`
-			Symbol   string  `json:"symbol"`
-			Side     string  `json:"side"`
-			Type     string  `json:"type"`
-			Price    string  `json:"price"`
-			Size     int64   `json:"size"`
-			StopType string  `json:"stopType"`
+			Id       string `json:"id"`
+			Symbol   string `json:"symbol"`
+			Side     string `json:"side"`
+			Type     string `json:"type"`
+			Price    string `json:"price"`
+			Size     int64  `json:"size"`
+			StopType string `json:"stopType"`
 		}
 		if err := json.Unmarshal(data, &items); err != nil {
 			return nil, err

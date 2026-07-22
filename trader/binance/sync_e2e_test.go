@@ -1,7 +1,7 @@
 package binance
 
 import (
-	"nofx/store"
+	"oko/store"
 	"os"
 	"testing"
 	"time"

@@ -61,10 +61,10 @@ export function FAQLayout({ language }: FAQLayoutProps) {
       <div className="w-full px-4 md:px-8">
         {/* Page Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 text-nofx-text-main">
+          <h1 className="text-4xl font-bold mb-4 text-oko-text-main">
             {t('faqTitle', language)}
           </h1>
-          <p className="text-lg mb-8 text-nofx-text-muted">
+          <p className="text-lg mb-8 text-oko-text-muted">
             {t('faqSubtitle', language)}
           </p>
 
@@ -110,7 +110,7 @@ export function FAQLayout({ language }: FAQLayoutProps) {
                   className="mt-4 px-6 py-2 rounded-lg font-semibold transition-all hover:opacity-90"
                   style={{
                     background:
-                      'linear-gradient(135deg, var(--nofx-gold) 0%, var(--accent-primary-hover) 100%)',
+                      'linear-gradient(135deg, var(--oko-gold) 0%, var(--accent-primary-hover) 100%)',
                     color: 'var(--surface-primary)',
                   }}
                 >
@@ -126,7 +126,7 @@ export function FAQLayout({ language }: FAQLayoutProps) {
           className="mt-16 p-8 rounded-lg text-center"
           style={{
             background:
-              'linear-gradient(135deg, var(--nofx-border) 0%, rgba(252, 213, 53, 0.05) 100%)',
+              'linear-gradient(135deg, var(--oko-border) 0%, rgba(252, 213, 53, 0.05) 100%)',
             border: '1px solid var(--accent-primary-border)',
           }}
         >
@@ -138,7 +138,7 @@ export function FAQLayout({ language }: FAQLayoutProps) {
           </p>
           <div className="flex items-center justify-center gap-4">
             <a
-              href="https://github.com/NoFxAiOS/nofx"
+              href="https://github.com/oko-trading/okotrading"
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105"
@@ -151,12 +151,12 @@ export function FAQLayout({ language }: FAQLayoutProps) {
               GitHub
             </a>
             <a
-              href="https://t.me/nofx_dev_community"
+              href="https://t.me/okoagent_channel"
               target="_blank"
               rel="noopener noreferrer"
               className="px-6 py-3 rounded-lg font-semibold transition-all hover:scale-105"
               style={{
-                background: 'linear-gradient(135deg, var(--nofx-gold) 0%, var(--accent-primary-hover) 100%)',
+                background: 'linear-gradient(135deg, var(--oko-gold) 0%, var(--accent-primary-hover) 100%)',
                 color: 'var(--surface-primary)',
               }}
             >

@@ -1,4 +1,4 @@
-// NOFX Official Branding Constants
+// OKO Official Branding Constants
 // These values are integrity-checked and should not be modified by forked projects
 
 // Base64 encoded official links (integrity protected)
@@ -9,14 +9,14 @@ const _e = (s: string) => btoa(s)
 const ENCODED_LINKS = {
   twitter: 'aHR0cHM6Ly94LmNvbS9va29hZ2VudA==',
   telegram: 'aHR0cHM6Ly90Lm1lL29rb2FnZW50X2NoYW5uZWw=',
-  github: 'aHR0cHM6Ly9naXRodWIuY29tL29rby1hZ2VudA==',
+  github: 'aHR0cHM6Ly9naXRodWIuY29tL29rby10cmFkaW5nL29rb3RyYWRpbmc=',
 }
 
 // Integrity checksums (simple hash)
 const CHECKSUMS = {
   twitter: 1847293654,
   telegram: 2039485761,
-  github: 1293847562,
+  github: 328519584,
 }
 
 // Simple hash function for integrity check
@@ -42,7 +42,7 @@ function getVerifiedLink(key: keyof typeof ENCODED_LINKS): string {
     const fallbacks: Record<string, string> = {
       twitter: '',
       telegram: 'https://t.me/okoagent_channel',
-      github: '',
+      github: 'https://github.com/oko-trading/okotrading',
     }
     return fallbacks[key] || ''
   }
@@ -57,7 +57,7 @@ export const OFFICIAL_LINKS = {
 
 // Brand watermark component data
 export const BRAND_INFO = {
-  name: 'NOFX',
+  name: 'OKO',
   tagline: 'AI Trading Platform',
   version: '1.0.0',
   // Links embedded in multiple formats for redundancy

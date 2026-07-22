@@ -2,9 +2,9 @@ package market
 
 import (
 	"encoding/json"
+	"oko/logger"
 	"io"
 	"net/http"
-	"nofx/logger"
 	"sort"
 	"strings"
 	"sync"
@@ -67,19 +67,19 @@ var (
 // ─── Public accessors ─────────────────────────────────────────────────────────
 
 // GetGlobalData returns cached global market stats + fear & greed as JSON.
-func GetGlobalData() ([]byte, bool)   { return globalCache.get() }
+func GetGlobalData() ([]byte, bool) { return globalCache.get() }
 
 // GetTopCoins returns cached top-20 coins by market cap as JSON.
-func GetTopCoins() ([]byte, bool)     { return coinsCache.get() }
+func GetTopCoins() ([]byte, bool) { return coinsCache.get() }
 
 // GetTrending returns cached trending coins as JSON.
-func GetTrending() ([]byte, bool)     { return trendingCache.get() }
+func GetTrending() ([]byte, bool) { return trendingCache.get() }
 
 // GetTopGainers returns cached top gainers as JSON.
-func GetTopGainers() ([]byte, bool)   { return gainersCache.get() }
+func GetTopGainers() ([]byte, bool) { return gainersCache.get() }
 
 // GetChartData returns cached 7-day market cap + BTC price history as JSON.
-func GetChartData() ([]byte, bool)    { return chartCache.get() }
+func GetChartData() ([]byte, bool) { return chartCache.get() }
 
 // ─── Service entry point ──────────────────────────────────────────────────────
 
@@ -100,11 +100,11 @@ func StartMarketDataService() {
 	logger.Info("✅ Market data cache warmed up")
 
 	// Background refresh loops
-	go runLoop("global+fng",  2*time.Minute,  refreshGlobal)
-	go runLoop("top-coins",   60*time.Second, refreshCoins)
-	go runLoop("trending",    5*time.Minute,  refreshTrending)
-	go runLoop("gainers",     5*time.Minute,  refreshGainers)
-	go runLoop("chart",       10*time.Minute, refreshChart)
+	go runLoop("global+fng", 2*time.Minute, refreshGlobal)
+	go runLoop("top-coins", 60*time.Second, refreshCoins)
+	go runLoop("trending", 5*time.Minute, refreshTrending)
+	go runLoop("gainers", 5*time.Minute, refreshGainers)
+	go runLoop("chart", 10*time.Minute, refreshChart)
 }
 
 func runLoop(name string, interval time.Duration, fn func()) {

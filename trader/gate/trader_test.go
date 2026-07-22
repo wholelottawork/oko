@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"oko/trader/testutil"
+	"oko/trader/types"
 	"github.com/stretchr/testify/assert"
-	"nofx/trader/testutil"
-	"nofx/trader/types"
 )
 
 // ============================================================

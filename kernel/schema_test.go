@@ -5,9 +5,7 @@ import (
 	"testing"
 )
 
-// TestDataDictionary 测试数据字典定义
 func TestDataDictionary(t *testing.T) {
-	// 测试账户指标字典
 	t.Run("AccountMetrics", func(t *testing.T) {
 		equity := DataDictionary["AccountMetrics"]["Equity"]
 
@@ -32,7 +30,6 @@ func TestDataDictionary(t *testing.T) {
 		}
 	})
 
-	// 测试持仓指标字典
 	t.Run("PositionMetrics", func(t *testing.T) {
 		peakPnL := DataDictionary["PositionMetrics"]["PeakPnL%"]
 
@@ -44,13 +41,12 @@ func TestDataDictionary(t *testing.T) {
 			t.Error("PeakPnL% NameEN is empty")
 		}
 
-		if !strings.Contains(peakPnL.DescZH, "峰值") {
-			t.Error("PeakPnL% DescZH should contain '峰值'")
+		if !strings.Contains(peakPnL.DescZH, "最高未实现盈亏") {
+			t.Error("PeakPnL% DescZH should describe the historical maximum unrealized PnL")
 		}
 	})
 }
 
-// TestTradingRules 测试交易规则定义
 func TestTradingRules(t *testing.T) {
 	t.Run("RiskManagement", func(t *testing.T) {
 		maxMargin := TradingRules.RiskManagement["MaxMarginUsage"]
@@ -79,8 +75,8 @@ func TestTradingRules(t *testing.T) {
 			t.Errorf("Expected TrailingStop=0.30, got %v", trailing.Value)
 		}
 
-		if !strings.Contains(trailing.ReasonZH, "止盈") {
-			t.Error("TrailingStop ReasonZH should mention '止盈'")
+		if !strings.Contains(trailing.ReasonZH, "锁定") {
+			t.Error("TrailingStop ReasonZH should explain locking in profit")
 		}
 
 		if !strings.Contains(trailing.ReasonEN, "profit") {
@@ -89,7 +85,6 @@ func TestTradingRules(t *testing.T) {
 	})
 }
 
-// TestOIInterpretation 测试OI解读
 func TestOIInterpretation(t *testing.T) {
 	t.Run("OI_Up_Price_Up", func(t *testing.T) {
 		if OIInterpretation.OIUp_PriceUp.ZH == "" {
@@ -106,7 +101,6 @@ func TestOIInterpretation(t *testing.T) {
 	})
 }
 
-// TestCommonMistakes 测试常见错误定义
 func TestCommonMistakes(t *testing.T) {
 	if len(CommonMistakes) == 0 {
 		t.Error("CommonMistakes should not be empty")
@@ -131,7 +125,6 @@ func TestCommonMistakes(t *testing.T) {
 	}
 }
 
-// TestGetSchemaPrompt 测试Schema提示词生成
 func TestGetSchemaPrompt(t *testing.T) {
 	t.Run("Chinese", func(t *testing.T) {
 		prompt := GetSchemaPrompt(LangChinese)
@@ -140,7 +133,6 @@ func TestGetSchemaPrompt(t *testing.T) {
 			t.Fatal("Chinese schema prompt is empty")
 		}
 
-		// 验证包含关键内容
 		mustContain := []string{
 			"数据字典",
 			"账户指标",
@@ -164,7 +156,6 @@ func TestGetSchemaPrompt(t *testing.T) {
 			t.Fatal("English schema prompt is empty")
 		}
 
-		// 验证包含关键内容
 		mustContain := []string{
 			"Data Dictionary",
 			"Account Metrics",
@@ -185,13 +176,9 @@ func TestGetSchemaPrompt(t *testing.T) {
 		promptZH := GetSchemaPrompt(LangChinese)
 		promptEN := GetSchemaPrompt(LangEnglish)
 
-		// 两个版本都应该包含相同数量的字段定义
-		// 虽然内容不同，但结构应该相似
-
 		zhLines := strings.Split(promptZH, "\n")
 		enLines := strings.Split(promptEN, "\n")
 
-		// 行数应该大致相当（允许10%的差异）
 		ratio := float64(len(zhLines)) / float64(len(enLines))
 		if ratio < 0.9 || ratio > 1.1 {
 			t.Logf("Warning: Line count difference is significant (ZH: %d, EN: %d)",
@@ -200,7 +187,6 @@ func TestGetSchemaPrompt(t *testing.T) {
 	})
 }
 
-// BenchmarkGetSchemaPrompt 性能测试
 func BenchmarkGetSchemaPrompt(b *testing.B) {
 	b.Run("Chinese", func(b *testing.B) {
 		for i := 0; i < b.N; i++ {
@@ -215,7 +201,6 @@ func BenchmarkGetSchemaPrompt(b *testing.B) {
 	})
 }
 
-// TestFieldDefinitionMethods 测试字段定义方法
 func TestFieldDefinitionMethods(t *testing.T) {
 	field := BilingualFieldDef{
 		NameZH:    "测试字段",
@@ -227,7 +212,6 @@ func TestFieldDefinitionMethods(t *testing.T) {
 		DescEN:    "English description",
 	}
 
-	// 测试GetName
 	if field.GetName(LangChinese) != "测试字段" {
 		t.Error("GetName(Chinese) failed")
 	}
@@ -235,7 +219,6 @@ func TestFieldDefinitionMethods(t *testing.T) {
 		t.Error("GetName(English) failed")
 	}
 
-	// 测试GetFormula
 	if field.GetFormula(LangChinese) != "中文公式" {
 		t.Error("GetFormula(Chinese) failed")
 	}
@@ -243,7 +226,6 @@ func TestFieldDefinitionMethods(t *testing.T) {
 		t.Error("GetFormula(English) failed")
 	}
 
-	// 测试GetDesc
 	if field.GetDesc(LangChinese) != "中文描述" {
 		t.Error("GetDesc(Chinese) failed")
 	}
@@ -252,7 +234,6 @@ func TestFieldDefinitionMethods(t *testing.T) {
 	}
 }
 
-// TestRuleDefinitionMethods 测试规则定义方法
 func TestRuleDefinitionMethods(t *testing.T) {
 	rule := BilingualRuleDef{
 		Value:    0.30,

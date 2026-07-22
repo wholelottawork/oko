@@ -2,8 +2,8 @@ package trader
 
 import (
 	"fmt"
-	"nofx/logger"
-	"nofx/trader/types"
+	"oko/logger"
+	"oko/trader/types"
 )
 
 // Re-export types for backward compatibility

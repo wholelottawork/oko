@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"nofx/market"
-	"nofx/store"
+	"oko/market"
+	"oko/store"
 )
 
 // AIConfig defines the AI client configuration used in backtesting.
@@ -207,7 +207,6 @@ func (cfg *BacktestConfig) ToStrategyConfig() *store.StrategyConfig {
 	if cfg.loadedStrategy != nil {
 		result := *cfg.loadedStrategy // Make a copy
 
-		// Override coin source with backtest symbols (回测指定的币对优先)
 		if len(cfg.Symbols) > 0 {
 			result.CoinSource.SourceType = "static"
 			result.CoinSource.StaticCoins = cfg.Symbols
@@ -253,12 +252,12 @@ func (cfg *BacktestConfig) ToStrategyConfig() *store.StrategyConfig {
 
 	return &store.StrategyConfig{
 		CoinSource: store.CoinSourceConfig{
-			SourceType: "static",
+			SourceType:  "static",
 			StaticCoins: cfg.Symbols,
-			UseAI500:   false,
-			AI500Limit: len(cfg.Symbols),
-			UseOITop:   false,
-			OITopLimit: 0,
+			UseAI500:    false,
+			AI500Limit:  len(cfg.Symbols),
+			UseOITop:    false,
+			OITopLimit:  0,
 		},
 		Indicators: store.IndicatorConfig{
 			Klines: store.KlineConfig{

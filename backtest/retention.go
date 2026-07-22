@@ -1,7 +1,7 @@
 package backtest
 
 import (
-	"nofx/logger"
+	"oko/logger"
 	"os"
 	"sort"
 	"time"

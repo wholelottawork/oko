@@ -3,7 +3,7 @@ package wallet
 import (
 	"fmt"
 
-	"nofx/mcp"
+	"oko/mcp"
 )
 
 const maxAgentIterations = 8

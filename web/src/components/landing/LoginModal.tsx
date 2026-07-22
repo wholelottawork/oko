@@ -62,7 +62,7 @@ export default function LoginModal({ onClose, language, initialIntent }: LoginMo
         className="relative max-w-md w-full rounded-2xl p-8"
         style={{
           background: 'var(--brand-dark-gray)',
-          border: '1px solid var(--nofx-border)',
+          border: '1px solid var(--oko-border)',
         }}
         initial={{ scale: 0.9, y: 50 }}
         animate={{ scale: 1, y: 0 }}
@@ -100,7 +100,7 @@ export default function LoginModal({ onClose, language, initialIntent }: LoginMo
                 className="text-2xl font-bold mb-6"
                 style={{ color: 'var(--brand-light-gray)' }}
               >
-                {t('accessNofxPlatform', language)}
+                {t('accessOkoPlatform', language)}
               </h2>
               <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
                 {t('loginRegisterPrompt', language)}
@@ -128,7 +128,7 @@ export default function LoginModal({ onClose, language, initialIntent }: LoginMo
                     style={{
                       background: 'var(--brand-dark-gray)',
                       color: 'var(--brand-light-gray)',
-                      border: '1px solid var(--nofx-border)',
+                      border: '1px solid var(--oko-border)',
                     }}
                     whileHover={{ scale: 1.02, borderColor: 'var(--brand-yellow)' }}
                     whileTap={{ scale: 0.98 }}

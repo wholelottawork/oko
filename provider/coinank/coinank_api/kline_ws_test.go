@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"nofx/provider/coinank/coinank_enum"
+	"oko/provider/coinank/coinank_enum"
 	"testing"
 	"time"
 )

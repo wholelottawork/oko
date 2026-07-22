@@ -373,13 +373,13 @@ export function AdvancedChart({
           color: 'var(--accent-primary-border)',
           width: 1,
           style: 2,
-          labelBackgroundColor: getCssVar('--nofx-gold'),
+          labelBackgroundColor: getCssVar('--oko-gold'),
         },
         horzLine: {
           color: 'var(--accent-primary-border)',
           width: 1,
           style: 2,
-          labelBackgroundColor: getCssVar('--nofx-gold'),
+          labelBackgroundColor: getCssVar('--oko-gold'),
         },
       },
       rightPriceScale: {
@@ -1106,7 +1106,7 @@ export function AdvancedChart({
               boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
             }}
           >
-            <div style={{ marginBottom: '6px', color: 'var(--nofx-gold)', fontWeight: 'bold', fontSize: '11px' }}>
+            <div style={{ marginBottom: '6px', color: 'var(--oko-gold)', fontWeight: 'bold', fontSize: '11px' }}>
               {new Date((tooltipData.time as number) * 1000).toLocaleString('en-US', {
                 month: 'short',
                 day: 'numeric',
@@ -1153,7 +1153,7 @@ export function AdvancedChart({
           </div>
         )}
 
-        {/* NOFX  */}
+        {/* OKO  */}
         <div
           style={{
             position: 'absolute',
@@ -1174,7 +1174,7 @@ export function AdvancedChart({
               textShadow: '0 2px 30px var(--accent-primary-shadow)',
             }}
           >
-            NOFX
+            OKO
           </div>
         </div>
       </div>

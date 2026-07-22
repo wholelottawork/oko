@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"oko/trader/testutil"
+	"oko/trader/types"
 	"github.com/sonirico/go-hyperliquid"
 	"github.com/stretchr/testify/assert"
-	"nofx/trader/testutil"
-	"nofx/trader/types"
 )
 
 // ============================================================
@@ -23,8 +23,8 @@ import (
 // Inherits TraderTestSuite and adds Hyperliquid-specific mock logic
 type HyperliquidTestSuite struct {
 	*testutil.TraderTestSuite // Embeds base test suite
-	mockServer              *httptest.Server
-	privateKey              *ecdsa.PrivateKey
+	mockServer                *httptest.Server
+	privateKey                *ecdsa.PrivateKey
 }
 
 // NewHyperliquidTestSuite Create Hyperliquid test suite

@@ -123,7 +123,7 @@ export function GridConfigEditor({
       {/* Trading Setup */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <DollarSign className="w-5 h-5" style={{ color: 'var(--nofx-gold)' }} />
+          <DollarSign className="w-5 h-5" style={{ color: 'var(--oko-gold)' }} />
           <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>
             {t('tradingPair')}
           </h3>
@@ -199,7 +199,7 @@ export function GridConfigEditor({
       {/* Grid Parameters */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Grid className="w-5 h-5" style={{ color: 'var(--nofx-gold)' }} />
+          <Grid className="w-5 h-5" style={{ color: 'var(--oko-gold)' }} />
           <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>
             {t('gridParameters')}
           </h3>
@@ -252,7 +252,7 @@ export function GridConfigEditor({
       {/* Price Bounds */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-5 h-5" style={{ color: 'var(--nofx-gold)' }} />
+          <TrendingUp className="w-5 h-5" style={{ color: 'var(--oko-gold)' }} />
           <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>
             {t('priceBounds')}
           </h3>
@@ -347,7 +347,7 @@ export function GridConfigEditor({
       {/* Risk Control */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Shield className="w-5 h-5" style={{ color: 'var(--nofx-gold)' }} />
+          <Shield className="w-5 h-5" style={{ color: 'var(--oko-gold)' }} />
           <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>
             {t('riskControl')}
           </h3>
@@ -440,7 +440,7 @@ export function GridConfigEditor({
       {/* Direction Auto-Adjust */}
       <div>
         <div className="flex items-center gap-2 mb-4">
-          <Compass className="w-5 h-5" style={{ color: 'var(--nofx-gold)' }} />
+          <Compass className="w-5 h-5" style={{ color: 'var(--oko-gold)' }} />
           <h3 className="font-medium" style={{ color: 'var(--text-primary)' }}>
             {t('directionAdjust')}
           </h3>
@@ -474,7 +474,7 @@ export function GridConfigEditor({
           <>
             {/* Direction Modes Explanation */}
             <div className="p-4 rounded-lg mb-4" style={{ background: 'var(--surface-secondary)', border: '1px solid rgba(51, 153, 140, 0.2)' }}>
-              <p className="text-xs font-medium mb-2" style={{ color: 'var(--nofx-gold)' }}>
+              <p className="text-xs font-medium mb-2" style={{ color: 'var(--oko-gold)' }}>
                 📊 {t('directionModes')}
               </p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
@@ -497,7 +497,7 @@ export function GridConfigEditor({
               <p className="text-xs mb-1" style={{ color: 'var(--text-secondary)' }}>
                 {t('directionBiasRatioDesc')}
               </p>
-              <p className="text-xs mb-3" style={{ color: 'var(--nofx-gold)' }}>
+              <p className="text-xs mb-3" style={{ color: 'var(--oko-gold)' }}>
                 {t('directionBiasExplain')}
               </p>
               <div className="flex items-center gap-3">
@@ -512,7 +512,7 @@ export function GridConfigEditor({
                   className="flex-1 h-2 rounded-lg appearance-none cursor-pointer"
                   style={{ background: 'var(--surface-tertiary)' }}
                 />
-                <span className="text-sm font-mono w-20 text-right" style={{ color: 'var(--nofx-gold)' }}>
+                <span className="text-sm font-mono w-20 text-right" style={{ color: 'var(--oko-gold)' }}>
                   X = {Math.round((config.direction_bias_ratio ?? 0.7) * 100)}%
                 </span>
               </div>

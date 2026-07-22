@@ -1,13 +1,13 @@
 #!/bin/bash
 #
-# NOFX One-Click Installation Script
-# https://github.com/NoFxAiOS/nofx
+# OKO One-Click Installation Script
+# https://github.com/oko-trading/okotrading
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 #
 # Or with custom directory:
-#   curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash -s -- /opt/nofx
+#   curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash -s -- /opt/oko
 #
 
 set -e
@@ -20,13 +20,13 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default installation directory
-INSTALL_DIR="${1:-$HOME/nofx}"
+INSTALL_DIR="${1:-$HOME/oko}"
 COMPOSE_FILE="docker-compose.prod.yml"
-GITHUB_RAW="https://raw.githubusercontent.com/NoFxAiOS/nofx/main"
+GITHUB_RAW="https://raw.githubusercontent.com/oko-trading/okotrading/main"
 
 echo -e "${BLUE}"
 echo "╔════════════════════════════════════════════════════════════╗"
-echo "║                    NOFX AI Trading OS                      ║"
+echo "║                    OKO AI Trading OS                      ║"
 echo "║                   One-Click Installation                   ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
@@ -98,12 +98,12 @@ generate_env() {
 
     # Create .env file
     cat > .env << EOF
-# NOFX Configuration (Auto-generated)
+# OKO Configuration (Auto-generated)
 # Generated at: $(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Server ports
-NOFX_BACKEND_PORT=8080
-NOFX_FRONTEND_PORT=3000
+OKO_BACKEND_PORT=8080
+OKO_FRONTEND_PORT=3000
 
 # Timezone
 TZ=Europe/London
@@ -162,7 +162,7 @@ ask_clear_trading_data() {
 
 # Start services
 start_services() {
-    echo -e "${YELLOW}Starting NOFX services...${NC}"
+    echo -e "${YELLOW}Starting OKO services...${NC}"
     $COMPOSE_CMD up -d
     echo -e "${GREEN}✓ Services started${NC}"
 }
@@ -251,7 +251,7 @@ print_success() {
     echo -e "║  💡 Keep Updated: Run this command daily to stay current   ║"
     echo -e "╚════════════════════════════════════════════════════════════╝${NC}"
     echo ""
-    echo -e "  ${GREEN}curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash${NC}"
+    echo -e "  ${GREEN}curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash${NC}"
     echo ""
     echo -e "  Updates are frequent. This one-liner pulls the latest"
     echo -e "  official images and restarts services automatically."

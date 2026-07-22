@@ -4,12 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"oko/logger"
+	"oko/provider/coinank/coinank_api"
+	"oko/provider/coinank/coinank_enum"
+	"oko/provider/hyperliquid"
 	"io"
 	"math"
-	"nofx/logger"
-	"nofx/provider/coinank/coinank_api"
-	"nofx/provider/coinank/coinank_enum"
-	"nofx/provider/hyperliquid"
 	"strconv"
 	"strings"
 	"sync"
@@ -370,7 +370,7 @@ func GetWithTimeframes(symbol string, timeframes []string, primaryTimeframe stri
 	currentRSI7 := calculateRSI(primaryKlines, 7)
 
 	// Calculate price changes
-	priceChange1h := calculatePriceChangeByBars(primaryKlines, primaryTimeframe, 60) // 1 hour
+	priceChange1h := calculatePriceChangeByBars(primaryKlines, primaryTimeframe, 60)  // 1 hour
 	priceChange4h := calculatePriceChangeByBars(primaryKlines, primaryTimeframe, 240) // 4 hours
 
 	// Get OI data
@@ -1227,8 +1227,6 @@ func isStaleData(klines []Kline, symbol string) bool {
 	logger.Infof("⚠️  %s detected extreme price stability (no fluctuation for %d consecutive periods), but volume is normal", symbol, stalePriceThreshold)
 	return false
 }
-
-// ========== 导出的指标计算函数（供测试使用） ==========
 
 // ExportCalculateEMA exports calculateEMA for testing
 func ExportCalculateEMA(klines []Kline, period int) float64 {

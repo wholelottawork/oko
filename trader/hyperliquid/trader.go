@@ -6,17 +6,17 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
+	"oko/logger"
 	"io"
 	"net/http"
-	"nofx/logger"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/ethereum/go-ethereum/crypto"
+	"oko/trader/types"
 	"github.com/sonirico/go-hyperliquid"
-	"nofx/trader/types"
 )
 
 // HyperliquidTrader Hyperliquid trader
@@ -316,7 +316,7 @@ func (t *HyperliquidTrader) GetBalance() (map[string]interface{}, error) {
 	if t.isUnifiedAccount && spotUSDCBalance > 0 {
 		// Add Spot balance to available balance for trading
 		availableBalance = availableBalance + spotUSDCBalance
-		logger.Infof("✓ Unified Account: Spot %.2f USDC added to available balance (total: %.2f)", 
+		logger.Infof("✓ Unified Account: Spot %.2f USDC added to available balance (total: %.2f)",
 			spotUSDCBalance, availableBalance)
 	}
 

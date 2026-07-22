@@ -2,7 +2,7 @@
 
 ## Features
 
-NOFX now supports using any OpenAI-compatible API format, including:
+OKO now supports using any OpenAI-compatible API format, including:
 - OpenAI official API (gpt-4o, gpt-4-turbo, etc.)
 - OpenRouter (access to multiple models)
 - Locally deployed models (Ollama, LM Studio, etc.)
@@ -167,7 +167,7 @@ You can configure multiple traders with different AIs for comparison:
 
 ### Issue: Configuration Validation Failed
 
-**Error Message**: `使用自定义API时必须配置custom_api_url` (custom_api_url must be configured when using custom API)
+**Error Message**: `custom_api_url must be configured when using a custom API`
 
 **Solution**: After setting `ai_model: "custom"`, ensure you also configure:
 - `custom_api_url`

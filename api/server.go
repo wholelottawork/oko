@@ -4,33 +4,33 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"oko/auth"
+	"oko/backtest"
+	"oko/config"
+	"oko/crypto"
+	"oko/logger"
+	"oko/manager"
+	"oko/market"
+	"oko/mcp"
+	"oko/provider/alpaca"
+	"oko/provider/coinank/coinank_api"
+	"oko/provider/coinank/coinank_enum"
+	"oko/provider/hyperliquid"
+	"oko/provider/twelvedata"
+	"oko/store"
+	"oko/trader"
+	"oko/trader/aster"
+	"oko/trader/binance"
+	"oko/trader/bitget"
+	"oko/trader/bybit"
+	"oko/trader/gate"
+	hyperliquidtrader "oko/trader/hyperliquid"
+	"oko/trader/kucoin"
+	"oko/trader/lighter"
+	"oko/trader/okx"
+	"oko/wallet"
 	"net"
 	"net/http"
-	"nofx/auth"
-	"nofx/backtest"
-	"nofx/config"
-	"nofx/crypto"
-	"nofx/logger"
-	"nofx/manager"
-	"nofx/market"
-	"nofx/mcp"
-	"nofx/provider/alpaca"
-	"nofx/provider/coinank/coinank_api"
-	"nofx/provider/coinank/coinank_enum"
-	"nofx/provider/hyperliquid"
-	"nofx/provider/twelvedata"
-	"nofx/store"
-	"nofx/trader"
-	"nofx/trader/aster"
-	"nofx/trader/binance"
-	"nofx/trader/bitget"
-	"nofx/trader/bybit"
-	"nofx/trader/gate"
-	hyperliquidtrader "nofx/trader/hyperliquid"
-	"nofx/trader/kucoin"
-	"nofx/trader/lighter"
-	"nofx/trader/okx"
-	"nofx/wallet"
 	"strconv"
 	"strings"
 	"sync"
@@ -3033,7 +3033,7 @@ func (s *Server) getKlinesFromCoinank(symbol, interval, exchange string, limit i
 	}
 
 	// Convert coinank kline format to market.Kline format
-	// Coinank: Volume = BTC 数量, Quantity = USDT 成交额
+
 	klines := make([]market.Kline, len(coinankKlines))
 	for i, ck := range coinankKlines {
 		klines[i] = market.Kline{
@@ -3042,8 +3042,8 @@ func (s *Server) getKlinesFromCoinank(symbol, interval, exchange string, limit i
 			High:        ck.High,
 			Low:         ck.Low,
 			Close:       ck.Close,
-			Volume:      ck.Volume,   // BTC 数量
-			QuoteVolume: ck.Quantity, // USDT 成交额
+			Volume:      ck.Volume,
+			QuoteVolume: ck.Quantity,
 			CloseTime:   ck.EndTime,
 		}
 	}
@@ -3075,8 +3075,8 @@ func (s *Server) getKlinesFromAlpaca(symbol, interval string, limit int) ([]mark
 			High:        bar.High,
 			Low:         bar.Low,
 			Close:       bar.Close,
-			Volume:      float64(bar.Volume),             // 股数
-			QuoteVolume: float64(bar.Volume) * bar.Close, // 成交额 = 股数 * 收盘价 (USD)
+			Volume:      float64(bar.Volume),
+			QuoteVolume: float64(bar.Volume) * bar.Close,
 			CloseTime:   bar.Timestamp.UnixMilli(),
 		}
 	}
@@ -3157,8 +3157,8 @@ func (s *Server) getKlinesFromHyperliquid(symbol, interval string, limit int) ([
 			High:        high,
 			Low:         low,
 			Close:       close,
-			Volume:      volume,         // 合约数量
-			QuoteVolume: volume * close, // 成交额 (USD)
+			Volume:      volume,
+			QuoteVolume: volume * close,
 			CloseTime:   candle.CloseTime,
 		}
 	}

@@ -4,7 +4,7 @@ import { Copy, Check } from 'lucide-react'
 
 export default function DeploymentHub() {
   const [copied, setCopied] = useState(false)
-  const installCmd = 'curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash'
+  const installCmd = 'curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash'
 
   const handleCopy = () => {
     navigator.clipboard.writeText(installCmd)
@@ -62,7 +62,7 @@ export default function DeploymentHub() {
           <p className="text-xs mt-4 px-4" style={{ color: 'var(--text-tertiary)' }}>
             Requires Docker. See{' '}
             <a
-              href="https://github.com/NoFxAiOS/nofx/blob/main/README.md"
+              href="https://github.com/oko-trading/okotrading/blob/main/README.md"
               target="_blank"
               rel="noopener noreferrer"
               className="underline hover:no-underline"

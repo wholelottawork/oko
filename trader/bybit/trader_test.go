@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
+	"oko/trader/testutil"
+	"oko/trader/types"
 	"github.com/stretchr/testify/assert"
-	"nofx/trader/testutil"
-	"nofx/trader/types"
 )
 
 // ============================================================
@@ -21,7 +21,7 @@ import (
 // Inherits TraderTestSuite and adds Bybit-specific mock logic
 type BybitTraderTestSuite struct {
 	*testutil.TraderTestSuite // Embeds base test suite
-	mockServer              *httptest.Server
+	mockServer                *httptest.Server
 }
 
 // NewBybitTraderTestSuite Create Bybit test suite
@@ -146,9 +146,9 @@ func TestNewBybitTrader(t *testing.T) {
 func TestBybitTrader_SymbolFormat(t *testing.T) {
 	// Bybit uses uppercase symbol format (e.g. BTCUSDT)
 	tests := []struct {
-		name     string
-		symbol   string
-		isValid  bool
+		name    string
+		symbol  string
+		isValid bool
 	}{
 		{
 			name:    "Standard USDT contract",
@@ -370,9 +370,9 @@ func TestBybitTrader_MockServerGetBalance(t *testing.T) {
 							"totalEquity": "10100.50",
 							"coin": []map[string]interface{}{
 								{
-									"coin":             "USDT",
-									"walletBalance":    "10000.00",
-									"unrealisedPnl":    "100.50",
+									"coin":                "USDT",
+									"walletBalance":       "10000.00",
+									"unrealisedPnl":       "100.50",
 									"availableToWithdraw": "8000.00",
 								},
 							},

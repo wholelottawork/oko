@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"nofx/mcp"
-	"nofx/provider/binance"
+	"oko/mcp"
+	"oko/provider/binance"
 )
 
 // PriceTools are the function definitions for price/history lookups

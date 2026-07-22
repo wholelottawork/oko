@@ -113,7 +113,7 @@ function SymbolStatsRow({ stat }: { stat: SymbolStats }) {
   const winRate = stat.win_rate || 0
   const pnlColor = totalPnl >= 0 ? 'var(--binance-green)' : 'var(--binance-red)'
   const winRateColor =
-    winRate >= 60 ? 'var(--binance-green)' : winRate >= 40 ? 'var(--nofx-gold)' : 'var(--binance-red)'
+    winRate >= 60 ? 'var(--binance-green)' : winRate >= 40 ? 'var(--oko-gold)' : 'var(--binance-red)'
 
   return (
     <div
@@ -198,7 +198,7 @@ function DirectionStatsCard({ stat, language }: { stat: DirectionStats; language
                 winRate >= 60
                   ? 'var(--binance-green)'
                   : winRate >= 40
-                    ? 'var(--nofx-gold)'
+                    ? 'var(--oko-gold)'
                     : 'var(--binance-red)',
             }}
           >
@@ -532,7 +532,7 @@ export function PositionHistory({ traderId }: PositionHistoryProps) {
               (stats.win_rate || 0) >= 60
                 ? 'var(--binance-green)'
                 : (stats.win_rate || 0) >= 40
-                  ? 'var(--nofx-gold)'
+                  ? 'var(--oko-gold)'
                   : 'var(--binance-red)'
             }
             metricKey="win_rate"
@@ -551,7 +551,7 @@ export function PositionHistory({ traderId }: PositionHistoryProps) {
             icon="📈"
             title={t('positionHistory.profitFactor', language)}
             value={(stats.profit_factor || 0).toFixed(2)}
-            color={(stats.profit_factor || 0) >= 1.5 ? 'var(--binance-green)' : (stats.profit_factor || 0) >= 1 ? 'var(--nofx-gold)' : 'var(--binance-red)'}
+            color={(stats.profit_factor || 0) >= 1.5 ? 'var(--binance-green)' : (stats.profit_factor || 0) >= 1 ? 'var(--oko-gold)' : 'var(--binance-red)'}
             subtitle={t('positionHistory.profitFactorDesc', language)}
             metricKey="profit_factor"
             language={language}
@@ -560,7 +560,7 @@ export function PositionHistory({ traderId }: PositionHistoryProps) {
             icon="⚖️"
             title={t('positionHistory.plRatio', language)}
             value={profitLossRatio === Infinity ? '∞' : profitLossRatio.toFixed(2)}
-            color={profitLossRatio >= 1.5 ? 'var(--binance-green)' : profitLossRatio >= 1 ? 'var(--nofx-gold)' : 'var(--binance-red)'}
+            color={profitLossRatio >= 1.5 ? 'var(--binance-green)' : profitLossRatio >= 1 ? 'var(--oko-gold)' : 'var(--binance-red)'}
             subtitle={t('positionHistory.plRatioDesc', language)}
             metricKey="expectancy"
             language={language}
@@ -575,7 +575,7 @@ export function PositionHistory({ traderId }: PositionHistoryProps) {
             icon="📉"
             title={t('positionHistory.sharpeRatio', language)}
             value={(stats.sharpe_ratio || 0).toFixed(2)}
-            color={(stats.sharpe_ratio || 0) >= 1 ? 'var(--binance-green)' : (stats.sharpe_ratio || 0) >= 0 ? 'var(--nofx-gold)' : 'var(--binance-red)'}
+            color={(stats.sharpe_ratio || 0) >= 1 ? 'var(--binance-green)' : (stats.sharpe_ratio || 0) >= 0 ? 'var(--oko-gold)' : 'var(--binance-red)'}
             subtitle={t('positionHistory.sharpeRatioDesc', language)}
             metricKey="sharpe_ratio"
             language={language}
@@ -585,7 +585,7 @@ export function PositionHistory({ traderId }: PositionHistoryProps) {
             title={t('positionHistory.maxDrawdown', language)}
             value={(stats.max_drawdown_pct || 0).toFixed(1)}
             suffix="%"
-            color={(stats.max_drawdown_pct || 0) <= 10 ? 'var(--binance-green)' : (stats.max_drawdown_pct || 0) <= 20 ? 'var(--nofx-gold)' : 'var(--binance-red)'}
+            color={(stats.max_drawdown_pct || 0) <= 10 ? 'var(--binance-green)' : (stats.max_drawdown_pct || 0) <= 20 ? 'var(--oko-gold)' : 'var(--binance-red)'}
             metricKey="max_drawdown"
             language={language}
           />

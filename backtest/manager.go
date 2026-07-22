@@ -5,14 +5,14 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"nofx/logger"
+	"oko/logger"
 	"os"
 	"sort"
 	"strings"
 	"sync"
 
-	"nofx/mcp"
-	"nofx/store"
+	"oko/mcp"
+	"oko/store"
 )
 
 type Manager struct {

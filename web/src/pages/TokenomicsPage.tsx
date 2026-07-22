@@ -523,7 +523,7 @@ export function TokenomicsPage() {
                 <ExternalLink className="w-3.5 h-3.5" />
               </a>
               <a
-                href="https://github.com/oko-agent"
+                href="https://github.com/oko-trading/okotrading"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all hover:brightness-110 whitespace-nowrap"

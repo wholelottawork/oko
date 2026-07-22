@@ -1,14 +1,14 @@
-<h1 align="center">NOFX — Open Source AI Trading OS</h1>
+<h1 align="center">OKO — Open Source AI Trading OS</h1>
 
 <p align="center">
   <strong>The infrastructure layer for AI-powered financial trading.</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NoFxAiOS/nofx/stargazers"><img src="https://img.shields.io/github/stars/NoFxAiOS/nofx?style=for-the-badge" alt="Stars"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/releases"><img src="https://img.shields.io/github/v/release/NoFxAiOS/nofx?style=for-the-badge" alt="Release"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://t.me/nofx_dev_community"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
+  <a href="https://github.com/oko-trading/okotrading/stargazers"><img src="https://img.shields.io/github/stars/oko-trading/okotrading?style=for-the-badge" alt="Stars"></a>
+  <a href="https://github.com/oko-trading/okotrading/releases"><img src="https://img.shields.io/github/v/release/oko-trading/okotrading?style=for-the-badge" alt="Release"></a>
+  <a href="https://github.com/oko-trading/okotrading/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://t.me/okoagent_channel"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
 <p align="center">
@@ -48,11 +48,11 @@
 ### Core Team
 
 - **Tinkle** - [@Web3Tinkle](https://x.com/Web3Tinkle)
-- **Official Twitter** - [@nofx_official](https://x.com/nofx_official)
+- **Official Twitter** - [@okoagent](https://x.com/okoagent)
 
 ### Official Links
 
-- **Official Website**: [https://nofxai.com](https://nofxai.com)
+- **GitHub Repository**: [oko-trading/okotrading](https://github.com/oko-trading/okotrading)
 - **Data Dashboard**: [https://nofxos.ai/dashboard](https://nofxos.ai/dashboard)
 - **API Documentation**: [https://nofxos.ai/api-docs](https://nofxos.ai/api-docs)
 
@@ -60,13 +60,13 @@
 
 ## Developer Community
 
-Join our Telegram developer community: **[NOFX Developer Community](https://t.me/nofx_dev_community)**
+Join our Telegram developer community: **[OKO Developer Community](https://t.me/okoagent_channel)**
 
 ---
 
 ## Before You Begin
 
-To use NOFX, you'll need:
+To use OKO, you'll need:
 
 1. **Exchange Account** - Register on any supported exchange and create API credentials with trading permissions
 2. **AI Model API Key** - Get from any supported provider (DeepSeek recommended for cost-effectiveness)
@@ -153,24 +153,22 @@ To use NOFX, you'll need:
 
 **Linux / macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 That's it! Open **http://127.0.0.1:3000** in your browser.
 
-### One-Click Cloud Deploy (Railway)
+### Cloud Deploy (Railway)
 
-Deploy to Railway with one click - no server setup required:
+Import [oko-trading/okotrading](https://github.com/oko-trading/okotrading) into a new Railway project.
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/nofx?referralCode=nofx)
-
-After deployment, Railway will provide a public URL to access your NOFX instance.
+After deployment, Railway will provide a public URL to access your OKO instance.
 
 ### Docker Compose (Manual)
 
 ```bash
 # Download and start
-curl -O https://raw.githubusercontent.com/NoFxAiOS/nofx/main/docker-compose.prod.yml
+curl -O https://raw.githubusercontent.com/oko-trading/okotrading/main/docker-compose.prod.yml
 docker compose -f docker-compose.prod.yml up -d
 ```
 
@@ -189,7 +187,7 @@ docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compo
 > **💡 Updates are frequent.** Run this command daily to stay current with the latest features and fixes:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 This one-liner pulls the latest official images and restarts services automatically.
@@ -215,8 +213,8 @@ sudo apt-get install libta-lib0-dev
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 
 # 2. Install backend dependencies
 go mod download
@@ -227,8 +225,8 @@ npm install
 cd ..
 
 # 4. Build and start backend
-go build -o nofx
-./nofx
+go build -o oko
+./oko
 
 # 5. Start frontend (new terminal)
 cd web
@@ -248,10 +246,10 @@ Access Web Interface: **http://127.0.0.1:3000**
    - Run the installer and restart your computer
    - Start Docker Desktop and wait for it to be ready
 
-2. **Run NOFX**
+2. **Run OKO**
    ```powershell
    # Open PowerShell and run:
-   curl -o docker-compose.prod.yml https://raw.githubusercontent.com/NoFxAiOS/nofx/main/docker-compose.prod.yml
+   curl -o docker-compose.prod.yml https://raw.githubusercontent.com/oko-trading/okotrading/main/docker-compose.prod.yml
    docker compose -f docker-compose.prod.yml up -d
    ```
 
@@ -293,13 +291,13 @@ Access Web Interface: **http://127.0.0.1:3000**
    sudo apt-get install -y git
    ```
 
-4. **Clone and Run NOFX**
+4. **Clone and Run OKO**
    ```bash
-   git clone https://github.com/NoFxAiOS/nofx.git
-   cd nofx
+   git clone https://github.com/oko-trading/okotrading.git
+   cd okotrading
 
    # Build and run backend
-   go build -o nofx && ./nofx
+   go build -o oko && ./oko
 
    # In another terminal, run frontend
    cd web && npm install && npm run dev
@@ -315,7 +313,7 @@ Access Web Interface: **http://127.0.0.1:3000**
 
 2. **Run from WSL2 terminal**
    ```bash
-   curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+   curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
    ```
 
 ---
@@ -324,11 +322,11 @@ Access Web Interface: **http://127.0.0.1:3000**
 
 ### Quick Deploy (HTTP via IP)
 
-By default, transport encryption is **disabled**, allowing you to access NOFX via IP address without HTTPS:
+By default, transport encryption is **disabled**, allowing you to access OKO via IP address without HTTPS:
 
 ```bash
 # Deploy to your server
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 Access via `http://YOUR_SERVER_IP:3000` - works immediately.
@@ -353,7 +351,7 @@ When enabled, browser uses Web Crypto API to encrypt API keys before transmissio
 
 2. **Create DNS record**
    - Type: `A`
-   - Name: `nofx` (or your subdomain)
+   - Name: `oko` (or your subdomain)
    - Content: Your server IP
    - Proxy status: **Proxied** (orange cloud)
 
@@ -371,7 +369,7 @@ When enabled, browser uses Web Crypto API to encrypt API keys before transmissio
    TRANSPORT_ENCRYPTION=true
    ```
 
-5. **Done!** Access via `https://nofx.yourdomain.com`
+5. **Done!** Access via `https://oko.yourdomain.com`
 
 ---
 
@@ -476,9 +474,9 @@ We welcome contributions! See:
 
 ## Contributor Airdrop Program
 
-All contributions are tracked on GitHub. When NOFX generates revenue, contributors will receive airdrops based on their contributions.
+All contributions are tracked on GitHub. When OKO generates revenue, contributors will receive airdrops based on their contributions.
 
-**PRs that resolve [Pinned Issues](https://github.com/NoFxAiOS/nofx/issues) receive the HIGHEST rewards!**
+**PRs that resolve [Pinned Issues](https://github.com/oko-trading/okotrading/issues) receive the HIGHEST rewards!**
 
 | Contribution Type | Weight |
 |------------------|:------:|
@@ -493,8 +491,8 @@ All contributions are tracked on GitHub. When NOFX generates revenue, contributo
 
 ## Contact
 
-- **GitHub Issues**: [Submit an Issue](https://github.com/NoFxAiOS/nofx/issues)
-- **Developer Community**: [Telegram Group](https://t.me/nofx_dev_community)
+- **GitHub Issues**: [Submit an Issue](https://github.com/oko-trading/okotrading/issues)
+- **Developer Community**: [Telegram Group](https://t.me/okoagent_channel)
 
 ---
 
@@ -514,10 +512,10 @@ Thanks to all our sponsors!
 <a href="https://github.com/leiwuhen1715"><img src="https://github.com/leiwuhen1715.png" width="60" height="60" style="border-radius:50%" alt="leiwuhen1715" /></a>
 <a href="https://github.com/SHAOXIA1991"><img src="https://github.com/SHAOXIA1991.png" width="60" height="60" style="border-radius:50%" alt="SHAOXIA1991" /></a>
 
-[Become a sponsor](https://github.com/sponsors/NoFxAiOS)
+[Become a sponsor](https://github.com/sponsors/oko-trading)
 
 ---
 
 ## Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=NoFxAiOS/nofx&type=Date)](https://star-history.com/#NoFxAiOS/nofx&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=oko-trading/okotrading&type=Date)](https://star-history.com/#oko-trading/okotrading&Date)

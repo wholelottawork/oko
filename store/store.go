@@ -5,7 +5,7 @@ package store
 import (
 	"database/sql"
 	"fmt"
-	"nofx/logger"
+	"oko/logger"
 	"sync"
 
 	"gorm.io/gorm"

@@ -1,4 +1,4 @@
-# 🤖 NOFX - Agentic Trading OS
+# 🤖 OKO - Agentic Trading OS
 
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?style=flat&logo=go)](https://golang.org/)
 [![React](https://img.shields.io/badge/React-18+-61DAFB?style=flat&logo=react)](https://reactjs.org/)
@@ -7,13 +7,13 @@
 
 **言語:** [English](README.md) | [中文](README.zh-CN.md) | [Українська](README.uk.md) | [Русский](README.ru.md) | [日本語](README.ja.md)
 
-**公式Twitter:** [@nofx_official](https://x.com/nofx_official)
+**公式Twitter:** [@okoagent](https://x.com/okoagent)
 
 ---
 
 ## 🚀 ユニバーサルAIトレーディングOS
 
-**NOFX**は、統合アーキテクチャに基づいて構築された**ユニバーサルAgenticトレーディングOS**です。暗号通貨市場において **「マルチエージェント判断 → 統一リスク管理 → 低レイテンシ実行 → ライブ/ペーパーアカウントバックテスト」** のループを成功裏に完成させ、現在この技術スタックを **株式、先物、オプション、外国為替、およびすべての金融市場** に拡大しています。
+**OKO**は、統合アーキテクチャに基づいて構築された**ユニバーサルAgenticトレーディングOS**です。暗号通貨市場において **「マルチエージェント判断 → 統一リスク管理 → 低レイテンシ実行 → ライブ/ペーパーアカウントバックテスト」** のループを成功裏に完成させ、現在この技術スタックを **株式、先物、オプション、外国為替、およびすべての金融市場** に拡大しています。
 
 ### 🎯 コア機能
 
@@ -32,7 +32,7 @@
 
 **投資に関するお問い合わせ**は、TwitterでTinkleまたはZackにDMをお送りください。
 
-**パートナーシップおよび協業**については、公式Twitter [@nofx_official](https://x.com/nofx_official)にDMをお送りください。
+**パートナーシップおよび協業**については、公式Twitter [@okoagent](https://x.com/okoagent)にDMをお送りください。
 
 ---
 
@@ -42,7 +42,7 @@
 
 Telegram開発者コミュニティに参加して、議論、アイデアの共有、サポートを受けましょう：
 
-**💬 [NOFX開発者コミュニティ](https://t.me/nofx_dev_community)**
+**💬 [OKO開発者コミュニティ](https://t.me/okoagent_channel)**
 
 ---
 
@@ -50,7 +50,7 @@ Telegram開発者コミュニティに参加して、議論、アイデアの共
 
 ### 🚀 マルチ取引所対応！
 
-NOFXは現在、**3つの主要取引所**をサポートしています：Binance、Hyperliquid、Aster DEX！
+OKOは現在、**3つの主要取引所**をサポートしています：Binance、Hyperliquid、Aster DEX！
 
 #### **Hyperliquid取引所**
 
@@ -154,7 +154,7 @@ Binance互換の分散型無期限先物取引所！
 
 ## ✨ 現在の実装 - 暗号通貨市場
 
-NOFXは現在、以下の実証済み機能で**暗号通貨市場において完全に稼働**しています：
+OKOは現在、以下の実証済み機能で**暗号通貨市場において完全に稼働**しています：
 
 ### 🏆 マルチエージェント競争フレームワーク
 - **ライブエージェントバトル**: QwenとDeepSeekモデルがリアルタイム取引で競争
@@ -216,7 +216,7 @@ NOFXは現在、以下の実証済み機能で**暗号通貨市場において�
 ## 🏗️ 技術アーキテクチャ
 
 ```
-nofx/
+oko/
 ├── main.go                          # プログラムエントリ（マルチトレーダーマネージャー）
 ├── config.json                      # 設定ファイル（APIキー、マルチトレーダー設定）
 │
@@ -357,7 +357,7 @@ docker compose up -d --build
 
 **📖 詳細なDockerデプロイガイド、トラブルシューティング、高度な設定について：**
 - **English**: See [DOCKER_DEPLOY.en.md](DOCKER_DEPLOY.en.md)
-- **中文**: 查看 [DOCKER_DEPLOY.md](DOCKER_DEPLOY.md)
+- **Chinese**: 查看 [DOCKER_DEPLOY.md](DOCKER_DEPLOY.md)
 - **日本語**: [DOCKER_DEPLOY.ja.md](DOCKER_DEPLOY.ja.md)を参照
 
 ---
@@ -389,8 +389,8 @@ sudo apt-get install libta-lib0-dev
 ### 2. プロジェクトをクローン
 
 ```bash
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 ```
 
 ### 3. 依存関係をインストール
@@ -521,7 +521,7 @@ cp config.json.example config.json
 
 #### 🔷 代替：Hyperliquid取引所の使用
 
-**NOFXはHyperliquidもサポート** - 分散型無期限先物取引所。Binanceの代わりにHyperliquidを使用するには：
+**OKOはHyperliquidもサポート** - 分散型無期限先物取引所。Binanceの代わりにHyperliquidを使用するには：
 
 **ステップ1**: Ethereum秘密鍵を取得（Hyperliquid認証用）
 
@@ -565,7 +565,7 @@ cp config.json.example config.json
 
 #### 🔶 代替：Aster DEX取引所の使用
 
-**NOFXはAster DEXもサポート** - Binance互換の分散型無期限先物取引所！
+**OKOはAster DEXもサポート** - Binance互換の分散型無期限先物取引所！
 
 **なぜAsterを選ぶ？**
 - 🎯 Binance互換API（簡単な移行）
@@ -815,10 +815,10 @@ cp config.json.example config.json
 
 ```bash
 # プログラムをビルド（初回のみ、またはコード変更後）
-go build -o nofx
+go build -o oko
 
 # バックエンドを起動
-./nofx
+./oko
 ```
 
 **表示されるべきもの：**
@@ -1351,8 +1351,8 @@ IssueとPull Requestを歓迎します！
 
 
 ### 🐛 技術サポート
-- **GitHub Issues**: [Issueを提出](https://github.com/NoFxAiOS/nofx/issues)
-- **開発者コミュニティ**: [Telegramグループ](https://t.me/nofx_dev_community)
+- **GitHub Issues**: [Issueを提出](https://github.com/oko-trading/okotrading/issues)
+- **開発者コミュニティ**: [Telegramグループ](https://t.me/okoagent_channel)
 
 ---
 
@@ -1374,4 +1374,4 @@ IssueとPull Requestを歓迎します！
 
 ## ⭐ Star履歴
 
-[![Star履歴チャート](https://api.star-history.com/svg?repos=NoFxAiOS/nofx&type=Date)](https://star-history.com/#NoFxAiOS/nofx&Date)
+[![Star履歴チャート](https://api.star-history.com/svg?repos=oko-trading/okotrading&type=Date)](https://star-history.com/#oko-trading/okotrading&Date)

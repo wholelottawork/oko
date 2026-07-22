@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"nofx/logger"
+	"oko/logger"
 )
 
 // SafeError returns a safe error message without exposing internal details

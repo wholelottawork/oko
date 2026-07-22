@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"nofx/logger"
+	"oko/logger"
 	"os"
 	"path/filepath"
 	"sort"
@@ -13,10 +13,10 @@ import (
 	"sync"
 	"time"
 
-	"nofx/kernel"
-	"nofx/market"
-	"nofx/mcp"
-	"nofx/store"
+	"oko/kernel"
+	"oko/market"
+	"oko/mcp"
+	"oko/store"
 )
 
 var (

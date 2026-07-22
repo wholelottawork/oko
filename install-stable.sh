@@ -1,9 +1,9 @@
 #!/bin/bash
 #
-# NOFX Stable Release Installation Script
+# OKO Stable Release Installation Script
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/release/stable/install-stable.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/release/stable/install-stable.sh | bash
 #
 
 set -e
@@ -14,13 +14,13 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m'
 
-INSTALL_DIR="${1:-$HOME/nofx}"
+INSTALL_DIR="${1:-$HOME/oko}"
 COMPOSE_FILE="docker-compose.stable.yml"
-GITHUB_RAW="https://raw.githubusercontent.com/NoFxAiOS/nofx/release/stable"
+GITHUB_RAW="https://raw.githubusercontent.com/oko-trading/okotrading/release/stable"
 
 echo -e "${BLUE}"
 echo "╔════════════════════════════════════════════════════════════╗"
-echo "║                 NOFX Stable Release                        ║"
+echo "║                 OKO Stable Release                        ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${NC}"
 
@@ -64,8 +64,8 @@ generate_env() {
     DATA_ENCRYPTION_KEY=$(openssl rand -base64 32)
     RSA_PRIVATE_KEY=$(openssl genrsa 2048 2>/dev/null | tr '\n' '\\' | sed 's/\\/\\n/g' | sed 's/\\n$//')
     cat > .env << EOF
-NOFX_BACKEND_PORT=8080
-NOFX_FRONTEND_PORT=3000
+OKO_BACKEND_PORT=8080
+OKO_FRONTEND_PORT=3000
 TZ=Europe/London
 JWT_SECRET=${JWT_SECRET}
 DATA_ENCRYPTION_KEY=${DATA_ENCRYPTION_KEY}

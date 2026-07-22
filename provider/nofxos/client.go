@@ -4,9 +4,9 @@
 package nofxos
 
 import (
+	"oko/security"
 	"io/ioutil"
 	"net/http"
-	"nofx/security"
 	"strings"
 	"sync"
 	"time"

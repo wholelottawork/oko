@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"nofx/backtest"
-	"nofx/config"
-	"nofx/logger"
-	"nofx/market"
-	"nofx/provider/nofxos"
-	"nofx/store"
+	"oko/backtest"
+	"oko/config"
+	"oko/logger"
+	"oko/market"
+	"oko/provider/nofxos"
+	"oko/store"
 
 	"github.com/gin-gonic/gin"
 )
@@ -947,7 +947,7 @@ func (s *Server) fallbackModelFromID(modelID string) *store.AIModel {
 		Name:            name,
 		Provider:        modelID,
 		Enabled:         true,
-		APIKey:          "", // Use system key
+		APIKey:          "",                              // Use system key
 		CustomModelName: cfg.GetSystemModelName(modelID), // From .env
 	}
 }

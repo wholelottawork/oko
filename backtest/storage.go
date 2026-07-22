@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"nofx/store"
+	"oko/store"
 )
 
 const (

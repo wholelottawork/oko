@@ -4,11 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"oko/provider/coinank"
+	"oko/provider/coinank/coinank_enum"
 	"io"
 	"net/http"
 	"net/url"
-	"nofx/provider/coinank"
-	"nofx/provider/coinank/coinank_enum"
 	"strconv"
 	"time"
 )

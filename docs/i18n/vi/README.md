@@ -1,14 +1,14 @@
-<h1 align="center">NOFX — Hệ Điều Hành Giao Dịch AI Mã Nguồn Mở</h1>
+<h1 align="center">OKO — Hệ Điều Hành Giao Dịch AI Mã Nguồn Mở</h1>
 
 <p align="center">
   <strong>Lớp cơ sở hạ tầng cho giao dịch tài chính AI-powered</strong>
 </p>
 
 <p align="center">
-  <a href="https://github.com/NoFxAiOS/nofx/stargazers"><img src="https://img.shields.io/github/stars/NoFxAiOS/nofx?style=for-the-badge" alt="Stars"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/releases"><img src="https://img.shields.io/github/v/release/NoFxAiOS/nofx?style=for-the-badge" alt="Release"></a>
-  <a href="https://github.com/NoFxAiOS/nofx/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
-  <a href="https://t.me/nofx_dev_community"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
+  <a href="https://github.com/oko-trading/okotrading/stargazers"><img src="https://img.shields.io/github/stars/oko-trading/okotrading?style=for-the-badge" alt="Stars"></a>
+  <a href="https://github.com/oko-trading/okotrading/releases"><img src="https://img.shields.io/github/v/release/oko-trading/okotrading?style=for-the-badge" alt="Release"></a>
+  <a href="https://github.com/oko-trading/okotrading/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-AGPL--3.0-blue.svg?style=for-the-badge" alt="License"></a>
+  <a href="https://t.me/okoagent_channel"><img src="https://img.shields.io/badge/Telegram-Community-blue?style=for-the-badge&logo=telegram" alt="Telegram"></a>
 </p>
 
 <p align="center">
@@ -32,7 +32,7 @@
 
 ### Liên Kết Chính Thức
 
-- **Website Chính Thức**: [https://nofxai.com](https://nofxai.com)
+- **Website Chính Thức**: [https://github.com/oko-trading/okotrading](https://github.com/oko-trading/okotrading)
 - **Bảng Điều Khiển Dữ Liệu**: [https://nofxos.ai/dashboard](https://nofxos.ai/dashboard)
 - **Tài Liệu API**: [https://nofxos.ai/api-docs](https://nofxos.ai/api-docs)
 
@@ -40,13 +40,13 @@
 
 ## Cộng Đồng Nhà Phát Triển
 
-Tham gia cộng đồng Telegram: **[NOFX Developer Community](https://t.me/nofx_dev_community)**
+Tham gia cộng đồng Telegram: **[OKO Developer Community](https://t.me/okoagent_channel)**
 
 ---
 
 ## Trước Khi Bắt Đầu
 
-Để sử dụng NOFX, bạn cần:
+Để sử dụng OKO, bạn cần:
 
 1. **Tài khoản sàn giao dịch** - Đăng ký trên sàn được hỗ trợ và tạo API key với quyền giao dịch
 2. **API Key mô hình AI** - Lấy từ nhà cung cấp được hỗ trợ (khuyến nghị DeepSeek để tiết kiệm chi phí)
@@ -95,8 +95,8 @@ Tham gia cộng đồng Telegram: **[NOFX Developer Community](https://t.me/nofx
 ### Tùy chọn 1: Triển khai Docker (Khuyến nghị)
 
 ```bash
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 chmod +x ./start.sh
 ./start.sh start --build
 ```
@@ -108,7 +108,7 @@ Truy cập giao diện Web: **http://localhost:3000**
 > **💡 Cập nhật thường xuyên.** Chạy lệnh này hàng ngày để nhận các tính năng và bản sửa lỗi mới nhất:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
 ```
 
 Lệnh này tải về image chính thức mới nhất và tự động khởi động lại dịch vụ.
@@ -122,13 +122,13 @@ Lệnh này tải về image chính thức mới nhất và tự động khởi 
 brew install ta-lib
 
 # Clone và thiết lập
-git clone https://github.com/NoFxAiOS/nofx.git
-cd nofx
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
 go mod download
 cd web && npm install && cd ..
 
 # Khởi động backend
-go build -o nofx && ./nofx
+go build -o oko && ./oko
 
 # Khởi động frontend (terminal mới)
 cd web && npm run dev
@@ -162,5 +162,5 @@ cd web && npm run dev
 
 ## Liên Hệ
 
-- **GitHub Issues**: [Gửi Issue](https://github.com/NoFxAiOS/nofx/issues)
-- **Cộng đồng Nhà phát triển**: [Nhóm Telegram](https://t.me/nofx_dev_community)
+- **GitHub Issues**: [Gửi Issue](https://github.com/oko-trading/okotrading/issues)
+- **Cộng đồng Nhà phát triển**: [Nhóm Telegram](https://t.me/okoagent_channel)

@@ -8,7 +8,7 @@ This guide helps you diagnose and fix common issues before submitting a bug repo
 
 Before reporting a bug, please check:
 
-1. ✅ **Backend is running**: `docker compose ps` or `ps aux | grep nofx`
+1. ✅ **Backend is running**: `docker compose ps` or `ps aux | grep oko`
 2. ✅ **Frontend is accessible**: Open http://localhost:3000 in browser
 3. ✅ **API is responding**: `curl http://localhost:8080/api/health`
 4. ✅ **Check logs for errors**: See [How to Capture Logs](#how-to-capture-logs) below
@@ -29,7 +29,7 @@ Before reporting a bug, please check:
 1. Login to [Binance Futures](https://www.binance.com/futures/BTCUSDT)
 2. Click **⚙️ Preferences** (top right)
 3. Select **Position Mode**
-4. Switch to **Hedge Mode** (双向持仓)
+4. Switch to **Hedge Mode** (dual-side positions)
 5. ⚠️ **Important:** Close all positions before switching
 
 **Why this happens:**
@@ -226,7 +226,7 @@ docker info | grep -A 10 "Registry Mirrors"
 # Should show your configured mirrors
 ```
 
-**Related Issue:** [#168](https://github.com/NoFxAiOS/nofx/issues/168)
+**Related Issue:** [#168](https://github.com/oko-trading/okotrading/issues/168)
 
 ---
 
@@ -242,7 +242,7 @@ lsof -i :8080
 netstat -tulpn | grep 8080
 
 # Kill the process or change port in .env
-NOFX_BACKEND_PORT=8081
+OKO_BACKEND_PORT=8081
 ```
 
 ---
@@ -307,7 +307,7 @@ If using Docker, container time may be out of sync with host:
 
 ```bash
 # Check container time
-docker exec nofx-backend date
+docker exec oko-backend date
 
 # If time is wrong, restart Docker service
 sudo systemctl restart docker
@@ -330,7 +330,7 @@ If errors persist after time sync:
    - Login to Binance → API Management
    - Delete old key
    - Create new key
-   - Update NOFX configuration
+   - Update OKO configuration
 
 **Solution 3: Check Rate Limits**
 
@@ -340,7 +340,7 @@ Binance has strict API rate limits:
 - Reduce number of traders
 - Increase decision interval (e.g., from 1min to 3-5min)
 
-**Related Issue:** [#60](https://github.com/NoFxAiOS/nofx/issues/60)
+**Related Issue:** [#60](https://github.com/oko-trading/okotrading/issues/60)
 
 ---
 
@@ -387,15 +387,15 @@ Binance has strict API rate limits:
 
 **Solution:**
 ```bash
-# Stop all NOFX processes
+# Stop all OKO processes
 docker compose down
 # OR
-pkill nofx
+pkill oko
 
 # Restart
 docker compose up -d
 # OR
-./nofx
+./oko
 ```
 
 ---
@@ -406,14 +406,14 @@ docker compose up -d
 1. **PostgreSQL container health**
    ```bash
    docker compose ps postgres
-   docker compose exec postgres pg_isready -U nofx -d nofx
+   docker compose exec postgres pg_isready -U oko -d oko
    ```
 
 2. **Inspect data directly**
    ```bash
    ./scripts/view_pg_data.sh                        # quick overview
    docker compose exec postgres \
-     psql -U nofx -d nofx -c "SELECT COUNT(*) FROM traders;"
+     psql -U oko -d oko -c "SELECT COUNT(*) FROM traders;"
    ```
 
 3. **Disk space**
@@ -441,7 +441,7 @@ docker compose logs backend --tail=500 > backend_logs.txt
 
 **Manual binary:**
 ```bash
-# If running without Docker, the terminal running ./nofx prints logs
+# If running without Docker, the terminal running ./oko prints logs
 ```
 
 ---
@@ -529,15 +529,15 @@ docker compose restart frontend
 ```bash
 # Check traders in database
 docker compose exec postgres \
-  psql -U nofx -d nofx -c "SELECT id, name, ai_model_id, exchange_id, is_running FROM traders;"
+  psql -U oko -d oko -c "SELECT id, name, ai_model_id, exchange_id, is_running FROM traders;"
 
 # Check AI models
 docker compose exec postgres \
-  psql -U nofx -d nofx -c "SELECT id, name, provider, enabled FROM ai_models;"
+  psql -U oko -d oko -c "SELECT id, name, provider, enabled FROM ai_models;"
 
 # Check system config
 docker compose exec postgres \
-  psql -U nofx -d nofx -c "SELECT key, value FROM system_config;"
+  psql -U oko -d oko -c "SELECT key, value FROM system_config;"
 ```
 
 ---
@@ -558,8 +558,8 @@ If you've tried all the above and still have problems:
    - Describe what you've already tried
 
 3. **Join Community:**
-   - [Telegram Developer Community](https://t.me/nofx_dev_community)
-   - [GitHub Discussions](https://github.com/NoFxAiOS/nofx/discussions)
+   - [Telegram Developer Community](https://t.me/okoagent_channel)
+   - [GitHub Discussions](https://github.com/oko-trading/okotrading/discussions)
 
 ---
 
@@ -573,7 +573,7 @@ docker compose down
 
 # Optional: back up PostgreSQL data
 docker compose exec postgres \
-  pg_dump -U nofx -d nofx > backup_nofx.sql
+  pg_dump -U oko -d oko > backup_oko.sql
 
 # Remove all persisted volumes (fresh start)
 docker compose down -v

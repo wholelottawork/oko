@@ -747,19 +747,19 @@ export const translations = {
     heroTitle1: 'Read the Market.',
     heroTitle2: 'Write the Trade.',
     heroDescription:
-      'NOFX is the future standard for AI trading — an open, community-driven agentic trading OS. Supporting Binance, Aster DEX and other exchanges, self-hosted, multi-agent competition, let AI automatically make decisions, execute and optimize trades for you.',
+      'OKO is the future standard for AI trading — an open, community-driven agentic trading OS. Supporting Binance, Aster DEX and other exchanges, self-hosted, multi-agent competition, let AI automatically make decisions, execute and optimize trades for you.',
     poweredBy: 'Powered by Aster DEX and Binance.',
 
     // Landing Page CTA
     readyToDefine: 'Ready to define the future of AI trading?',
     startWithCrypto:
-      'Starting with crypto markets, expanding to TradFi. NOFX is the infrastructure of AgentFi.',
+      'Starting with crypto markets, expanding to TradFi. OKO is the infrastructure of AgentFi.',
     getStartedNow: 'Get Started Now',
     viewSourceCode: 'View Source Code',
 
     // Features Section
     coreFeatures: 'Core Features',
-    whyChooseNofx: 'Why Choose NOFX?',
+    whyChooseOko: 'Why Choose OKO?',
     openCommunityDriven:
       'Open source, transparent, community-driven AI trading OS',
     openSourceSelfHosted: '100% Open Source & Self-Hosted',
@@ -785,19 +785,19 @@ export const translations = {
     secureFeatures4: 'Trading log auditing',
 
     // About Section
-    aboutNofx: 'About NOFX',
-    whatIsNofx: 'What is NOFX?',
-    nofxNotAnotherBot:
-      "NOFX is not another trading bot, but the 'Linux' of AI trading —",
-    nofxDescription1:
+    aboutOko: 'About OKO',
+    whatIsOko: 'What is OKO?',
+    okoNotAnotherBot:
+      "OKO is not another trading bot, but the 'Linux' of AI trading —",
+    okoDescription1:
       'a transparent, trustworthy open source OS that provides a unified',
-    nofxDescription2:
+    okoDescription2:
       "'decision-risk-execution' layer, supporting all asset classes.",
-    nofxDescription3:
+    okoDescription3:
       'Starting with crypto markets (24/7, high volatility perfect testing ground), future expansion to stocks, futures, forex. Core: open architecture, AI',
-    nofxDescription4:
+    okoDescription4:
       'Darwinism (multi-agent self-competition, strategy evolution), CodeFi',
-    nofxDescription5:
+    okoDescription5:
       'flywheel (developers get point rewards for PR contributions).',
     youFullControl: 'You 100% Control',
     fullControlDesc: 'Complete control over AI prompts and funds',
@@ -806,12 +806,12 @@ export const translations = {
     startupMessages3: 'Web console http://127.0.0.1:3000',
 
     // How It Works Section
-    howToStart: 'How to Get Started with NOFX',
+    howToStart: 'How to Get Started with OKO',
     fourSimpleSteps:
       'Four simple steps to start your AI automated trading journey',
     step1Title: 'Clone GitHub Repository',
     step1Desc:
-      'git clone https://github.com/NoFxAiOS/nofx and switch to dev branch to test new features.',
+      'git clone https://github.com/oko-trading/okotrading and switch to dev branch to test new features.',
     step2Title: 'Configure Environment',
     step2Desc:
       'Frontend setup for exchange APIs (like Binance, Hyperliquid), AI models and custom prompts.',
@@ -823,7 +823,7 @@ export const translations = {
       'Monitor trading, submit PRs to improve framework. Join Telegram to share strategies.',
     importantRiskWarning: 'Important Risk Warning',
     riskWarningText:
-      'Dev branch is unstable, do not use funds you cannot afford to lose. NOFX is non-custodial, no official strategies. Trading involves risks, invest carefully.',
+      'Dev branch is unstable, do not use funds you cannot afford to lose. OKO is non-custodial, no official strategies. Trading involves risks, invest carefully.',
 
     // Community Section (testimonials are kept as-is since they are quotes)
 
@@ -836,7 +836,7 @@ export const translations = {
     strategicInvestment: '(Strategic Investment)',
 
     // Login Modal
-    accessNofxPlatform: 'Access OKO Platform',
+    accessOkoPlatform: 'Access OKO Platform',
     loginRegisterPrompt:
       'Please login or register to access the full AI trading platform',
     registerNewAccount: 'Register New Account',
@@ -905,7 +905,7 @@ export const translations = {
     // ===== INSTALLATION =====
     faqHowToInstall: 'How do I install OKO?',
     faqHowToInstallAnswer:
-      'Easiest method (Linux/macOS): Run "curl -fsSL https://raw.githubusercontent.com/NoFxAiOS/nofx/main/install.sh | bash" - this installs Docker containers automatically. Then open http://127.0.0.1:3000 in your browser. For manual installation or development, clone the repository and follow the README instructions.',
+      'Easiest method (Linux/macOS): Run "curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash" - this installs Docker containers automatically. Then open http://127.0.0.1:3000 in your browser. For manual installation or development, clone the repository and follow the README instructions.',
 
     faqWindowsInstallation: 'How do I install on Windows?',
     faqWindowsInstallationAnswer:
@@ -917,7 +917,7 @@ export const translations = {
 
     faqManualInstallation: 'How do I install manually for development?',
     faqManualInstallationAnswer:
-      'Prerequisites: Go 1.21+, Node.js 18+, TA-Lib. Steps: 1) Clone repo: "git clone https://github.com/OKO-AI/oko"; 2) Install backend deps: "go mod download"; 3) Install frontend deps: "cd web && npm install"; 4) Build backend: "go build -o nofx"; 5) Run backend: "./nofx"; 6) Run frontend (new terminal): "cd web && npm run dev". Access at http://127.0.0.1:3000',
+      'Prerequisites: Go 1.21+, Node.js 18+, TA-Lib. Steps: 1) Clone repo: "git clone https://github.com/oko-trading/okotrading"; 2) Install backend deps: "go mod download"; 3) Install frontend deps: "cd web && npm install"; 4) Build backend: "go build -o oko"; 5) Run backend: "./oko"; 6) Run frontend (new terminal): "cd web && npm run dev". Access at http://127.0.0.1:3000',
 
     faqServerDeployment: 'How do I deploy to a remote server?',
     faqServerDeploymentAnswer:
@@ -925,7 +925,7 @@ export const translations = {
 
     faqUpdateOKO: 'How do I update OKO?',
     faqUpdateOKOAnswer:
-      'For Docker: Run "docker compose pull && docker compose up -d" to pull latest images and restart. For manual installation: "git pull && go build -o nofx" for backend, "cd web && npm install && npm run build" for frontend. Your configurations in data.db are preserved during updates.',
+      'For Docker: Run "docker compose pull && docker compose up -d" to pull latest images and restart. For manual installation: "git pull && go build -o oko" for backend, "cd web && npm install && npm run build" for frontend. Your configurations in data.db are preserved during updates.',
 
     // ===== CONFIGURATION =====
     faqConfigureAIModels: 'How do I configure AI models?',
@@ -988,19 +988,19 @@ export const translations = {
     // ===== TECHNICAL ISSUES =====
     faqPortInUse: 'Port 8080 or 3000 already in use',
     faqPortInUseAnswer:
-      'Check what\'s using the port: "lsof -i :8080" (macOS/Linux) or "netstat -ano | findstr 8080" (Windows). Kill the process or change ports in .env: NOFX_BACKEND_PORT=8081, NOFX_FRONTEND_PORT=3001. Restart with "docker compose down && docker compose up -d".',
+      'Check what\'s using the port: "lsof -i :8080" (macOS/Linux) or "netstat -ano | findstr 8080" (Windows). Kill the process or change ports in .env: OKO_BACKEND_PORT=8081, OKO_FRONTEND_PORT=3001. Restart with "docker compose down && docker compose up -d".',
 
     faqFrontendNotLoading: 'Frontend shows "Loading..." forever',
     faqFrontendNotLoadingAnswer:
-      'Backend may not be running or reachable. Check: 1) "curl http://127.0.0.1:8080/api/health" should return {"status":"ok"}; 2) "docker compose ps" to verify containers are running; 3) Check backend logs: "docker compose logs nofx-backend"; 4) Ensure firewall allows port 8080.',
+      'Backend may not be running or reachable. Check: 1) "curl http://127.0.0.1:8080/api/health" should return {"status":"ok"}; 2) "docker compose ps" to verify containers are running; 3) Check backend logs: "docker compose logs oko-backend"; 4) Ensure firewall allows port 8080.',
 
     faqDatabaseLocked: 'Database locked error',
     faqDatabaseLockedAnswer:
-      'Multiple processes accessing SQLite simultaneously. Solution: 1) Stop all processes: "docker compose down" or "pkill nofx"; 2) Remove lock files if present: "rm -f data/data.db-wal data/data.db-shm"; 3) Restart: "docker compose up -d". Only one backend instance should access the database.',
+      'Multiple processes accessing SQLite simultaneously. Solution: 1) Stop all processes: "docker compose down" or "pkill oko"; 2) Remove lock files if present: "rm -f data/data.db-wal data/data.db-shm"; 3) Restart: "docker compose up -d". Only one backend instance should access the database.',
 
     faqTALibNotFound: 'TA-Lib not found during build',
     faqTALibNotFoundAnswer:
-      'TA-Lib is required for technical indicators. Install: macOS: "brew install ta-lib"; Ubuntu/Debian: "sudo apt-get install libta-lib0-dev"; CentOS: "yum install ta-lib-devel". After installing, rebuild: "go build -o nofx". Docker images include TA-Lib pre-installed.',
+      'TA-Lib is required for technical indicators. Install: macOS: "brew install ta-lib"; Ubuntu/Debian: "sudo apt-get install libta-lib0-dev"; CentOS: "yum install ta-lib-devel". After installing, rebuild: "go build -o oko". Docker images include TA-Lib pre-installed.',
 
     faqAIAPITimeout: 'AI API timeout or connection refused',
     faqAIAPITimeoutAnswer:
@@ -1080,7 +1080,7 @@ export const translations = {
 
     faqPRGuidelines: 'What are the PR guidelines?',
     faqPRGuidelinesAnswer:
-      'PR Process: 1) Fork repo to your account; 2) Create feature branch from dev: "git checkout -b feat/your-feature"; 3) Make changes, run lint: "npm --prefix web run lint"; 4) Commit with Conventional Commits format; 5) Push and create PR to OKO-AI/oko:dev; 6) Reference related issue (Closes #123); 7) Wait for review. Keep PRs small and focused.',
+      'PR Process: 1) Fork repo to your account; 2) Create feature branch from dev: "git checkout -b feat/your-feature"; 3) Make changes, run lint: "npm --prefix web run lint"; 4) Commit with Conventional Commits format; 5) Push and create PR to oko-trading/okotrading:dev; 6) Reference related issue (Closes #123); 7) Wait for review. Keep PRs small and focused.',
 
     faqBountyProgram: 'Is there a bounty program?',
     faqBountyProgramAnswer:

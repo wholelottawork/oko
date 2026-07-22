@@ -1,4 +1,4 @@
-# NOFX Web Dashboard
+# OKO Web Dashboard
 
 An AI-powered trading monitoring dashboard built with Vite, React, and TypeScript.
 

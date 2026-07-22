@@ -6,13 +6,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"nofx/logger"
-	"nofx/market"
-	"nofx/mcp"
-	"nofx/provider/hyperliquid"
-	"nofx/provider/nofxos"
-	"nofx/security"
-	"nofx/store"
+	"oko/logger"
+	"oko/market"
+	"oko/mcp"
+	"oko/provider/hyperliquid"
+	"oko/provider/nofxos"
+	"oko/security"
+	"oko/store"
 	"regexp"
 	"strings"
 	"time"
@@ -108,25 +108,25 @@ type RecentOrder struct {
 
 // Context trading context (complete information passed to AI)
 type Context struct {
-	CurrentTime     string                             `json:"current_time"`
-	RuntimeMinutes  int                                `json:"runtime_minutes"`
-	CallCount       int                                `json:"call_count"`
-	Account         AccountInfo                        `json:"account"`
-	Positions       []PositionInfo                     `json:"positions"`
-	CandidateCoins  []CandidateCoin                    `json:"candidate_coins"`
-	PromptVariant   string                             `json:"prompt_variant,omitempty"`
-	TradingStats    *TradingStats                      `json:"trading_stats,omitempty"`
-	RecentOrders    []RecentOrder                      `json:"recent_orders,omitempty"`
-	MarketDataMap   map[string]*market.Data            `json:"-"`
-	MultiTFMarket   map[string]map[string]*market.Data `json:"-"`
-	OITopDataMap    map[string]*OITopData              `json:"-"`
-	QuantDataMap    map[string]*QuantData              `json:"-"`
-	OIRankingData      *nofxos.OIRankingData      `json:"-"` // Market-wide OI ranking data
-	NetFlowRankingData *nofxos.NetFlowRankingData `json:"-"` // Market-wide fund flow ranking data
-	PriceRankingData   *nofxos.PriceRankingData   `json:"-"` // Market-wide price gainers/losers
-	BTCETHLeverage     int                          `json:"-"`
-	AltcoinLeverage int                                `json:"-"`
-	Timeframes      []string                           `json:"-"`
+	CurrentTime        string                             `json:"current_time"`
+	RuntimeMinutes     int                                `json:"runtime_minutes"`
+	CallCount          int                                `json:"call_count"`
+	Account            AccountInfo                        `json:"account"`
+	Positions          []PositionInfo                     `json:"positions"`
+	CandidateCoins     []CandidateCoin                    `json:"candidate_coins"`
+	PromptVariant      string                             `json:"prompt_variant,omitempty"`
+	TradingStats       *TradingStats                      `json:"trading_stats,omitempty"`
+	RecentOrders       []RecentOrder                      `json:"recent_orders,omitempty"`
+	MarketDataMap      map[string]*market.Data            `json:"-"`
+	MultiTFMarket      map[string]map[string]*market.Data `json:"-"`
+	OITopDataMap       map[string]*OITopData              `json:"-"`
+	QuantDataMap       map[string]*QuantData              `json:"-"`
+	OIRankingData      *nofxos.OIRankingData              `json:"-"` // Market-wide OI ranking data
+	NetFlowRankingData *nofxos.NetFlowRankingData         `json:"-"` // Market-wide fund flow ranking data
+	PriceRankingData   *nofxos.PriceRankingData           `json:"-"` // Market-wide price gainers/losers
+	BTCETHLeverage     int                                `json:"-"`
+	AltcoinLeverage    int                                `json:"-"`
+	Timeframes         []string                           `json:"-"`
 }
 
 // Decision AI trading decision
@@ -433,7 +433,6 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		return e.filterExcludedCoins(candidates), nil
 
 	case "ai500":
-		// 检查 use_ai500 标志，如果为 false 则回退到静态币种
 		if !coinSource.UseAI500 {
 			logger.Infof("⚠️  source_type is 'ai500' but use_ai500 is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
@@ -449,11 +448,9 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		if err != nil {
 			return nil, err
 		}
-		// 空列表是正常情况，直接返回
 		return e.filterExcludedCoins(coins), nil
 
 	case "oi_top":
-		// 检查 use_oi_top 标志，如果为 false 则回退到静态币种
 		if !coinSource.UseOITop {
 			logger.Infof("⚠️  source_type is 'oi_top' but use_oi_top is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
@@ -469,11 +466,9 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		if err != nil {
 			return nil, err
 		}
-		// 空列表是正常情况，直接返回
 		return e.filterExcludedCoins(coins), nil
 
 	case "oi_low":
-		// 持仓减少榜，适合做空
 		if !coinSource.UseOILow {
 			logger.Infof("⚠️  source_type is 'oi_low' but use_oi_low is false, falling back to static coins")
 			for _, symbol := range coinSource.StaticCoins {
@@ -489,7 +484,6 @@ func (e *StrategyEngine) GetCandidateCoins() ([]CandidateCoin, error) {
 		if err != nil {
 			return nil, err
 		}
-		// 空列表是正常情况，直接返回
 		return e.filterExcludedCoins(coins), nil
 
 	case "hyper_all":
@@ -1454,7 +1448,6 @@ func (e *StrategyEngine) formatPositionInfo(index int, pos PositionInfo, ctx *Co
 
 func (e *StrategyEngine) formatCoinSourceTag(sources []string) string {
 	if len(sources) > 1 {
-		// 多信号源组合
 		hasAI500 := false
 		hasOITop := false
 		hasOILow := false
@@ -1495,9 +1488,9 @@ func (e *StrategyEngine) formatCoinSourceTag(sources []string) string {
 		case "ai500":
 			return " (AI500)"
 		case "oi_top":
-			return " (OI_Top 持仓增加)"
+			return " (OI_Top open-interest increase)"
 		case "oi_low":
-			return " (OI_Low 持仓减少)"
+			return " (OI_Low open-interest decrease)"
 		case "static":
 			return " (Manual selection)"
 		case "hyper_all":
@@ -1517,7 +1510,6 @@ func (e *StrategyEngine) formatMarketData(data *market.Data) string {
 	var sb strings.Builder
 	indicators := e.config.Indicators
 
-	// 明确标注币种
 	sb.WriteString(fmt.Sprintf("=== %s Market Data ===\n\n", data.Symbol))
 	sb.WriteString(fmt.Sprintf("current_price = %.4f", data.CurrentPrice))
 

@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"nofx/store"
+	"oko/store"
 )
 
 func saveCheckpointDB(runID string, ckpt *Checkpoint) error {
