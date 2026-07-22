@@ -158,28 +158,22 @@ curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install
 
 That's it! Open **http://127.0.0.1:3000** in your browser.
 
-### Cloud Deploy (Railway)
-
-Import [oko-trading/okotrading](https://github.com/oko-trading/okotrading) into a new Railway project.
-
-After deployment, Railway will provide a public URL to access your OKO instance.
-
 ### Docker Compose (Manual)
 
 ```bash
-# Download and start
-curl -O https://raw.githubusercontent.com/oko-trading/okotrading/main/docker-compose.prod.yml
-docker compose -f docker-compose.prod.yml up -d
+# From the repository root
+cp .env.example .env
+./start.sh start --build
 ```
 
 Access Web Interface: **http://127.0.0.1:3000**
 
 ```bash
 # Management commands
-docker compose -f docker-compose.prod.yml logs -f    # View logs
-docker compose -f docker-compose.prod.yml restart    # Restart
-docker compose -f docker-compose.prod.yml down       # Stop
-docker compose -f docker-compose.prod.yml pull && docker compose -f docker-compose.prod.yml up -d  # Update
+./start.sh logs
+./start.sh restart
+./start.sh stop
+./start.sh update
 ```
 
 ### Keeping Updated
@@ -320,16 +314,16 @@ Access Web Interface: **http://127.0.0.1:3000**
 
 ## Server Deployment
 
-### Quick Deploy (HTTP via IP)
-
-By default, transport encryption is **disabled**, allowing you to access OKO via IP address without HTTPS:
+### Docker on a VPS
 
 ```bash
-# Deploy to your server
-curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash
+git clone https://github.com/oko-trading/okotrading.git
+cd okotrading
+cp .env.example .env
+./start.sh start --build
 ```
 
-Access via `http://YOUR_SERVER_IP:3000` - works immediately.
+Compose binds the web origin to `127.0.0.1:3000`; the backend is only reachable on the private Docker network. Configure secrets in `.env` and back up `data/` regularly.
 
 ### Enhanced Security (HTTPS)
 
@@ -343,33 +337,12 @@ When enabled, browser uses Web Crypto API to encrypt API keys before transmissio
 - `https://` - Any domain with SSL
 - `http://localhost` - Local development
 
-### Quick HTTPS Setup with Cloudflare
+### Cloudflare Tunnel
 
-1. **Add your domain to Cloudflare** (free plan works)
-   - Go to [dash.cloudflare.com](https://dash.cloudflare.com)
-   - Add your domain and update nameservers
-
-2. **Create DNS record**
-   - Type: `A`
-   - Name: `oko` (or your subdomain)
-   - Content: Your server IP
-   - Proxy status: **Proxied** (orange cloud)
-
-3. **Configure SSL/TLS**
-   - Go to SSL/TLS settings
-   - Set encryption mode to **Flexible**
-
-   ```
-   User ──[HTTPS]──→ Cloudflare ──[HTTP]──→ Your Server:3000
-   ```
-
-4. **Enable transport encryption**
-   ```bash
-   # Edit .env and set
-   TRANSPORT_ENCRYPTION=true
-   ```
-
-5. **Done!** Access via `https://oko.yourdomain.com`
+1. Create a tunnel in Cloudflare Zero Trust and install `cloudflared` on the VPS.
+2. Set the tunnel's HTTP service URL to `http://127.0.0.1:3000` (or the value of `OKO_FRONTEND_PORT`).
+3. Map the desired public hostname to the tunnel. No inbound application port needs to be opened in the VPS firewall.
+4. Set `TRANSPORT_ENCRYPTION=true` in `.env`, then run `./start.sh restart`.
 
 ---
 

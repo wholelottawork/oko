@@ -16,10 +16,10 @@ ARG TA_LIB_VERSION=0.4.0
 FROM alpine:${ALPINE_VERSION} AS ta-lib-builder
 ARG TA_LIB_VERSION
 
-RUN apk update && apk add --no-cache \
+RUN apk add --no-cache \
     wget tar make gcc g++ musl-dev autoconf automake
 
-RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-${TA_LIB_VERSION}-src.tar.gz && \
+RUN wget https://prdownloads.sourceforge.net/ta-lib/ta-lib-${TA_LIB_VERSION}-src.tar.gz && \
     tar -xzf ta-lib-${TA_LIB_VERSION}-src.tar.gz && \
     cd ta-lib && \
     if [ "$(uname -m)" = "aarch64" ]; then \
@@ -38,7 +38,7 @@ RUN wget http://prdownloads.sourceforge.net/ta-lib/ta-lib-${TA_LIB_VERSION}-src.
 # ──────────────────────────────────────────────────────────────
 FROM golang:${GO_VERSION} AS backend-builder
 
-RUN apk update && apk add --no-cache git make gcc g++ musl-dev
+RUN apk add --no-cache git make gcc g++ musl-dev
 
 COPY --from=ta-lib-builder /usr/local /usr/local
 
@@ -56,7 +56,7 @@ RUN CGO_ENABLED=1 GOOS=linux \
 # ──────────────────────────────────────────────────────────────
 FROM alpine:${ALPINE_VERSION}
 
-RUN apk update && apk add --no-cache ca-certificates tzdata sqlite
+RUN apk add --no-cache ca-certificates tzdata sqlite
 
 COPY --from=ta-lib-builder /usr/local /usr/local
 WORKDIR /app

@@ -1,23 +1,31 @@
+x-default-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
-  # Backend service (API and core logic)
   oko:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.backend
     container_name: oko-trading
     restart: unless-stopped
-    stop_grace_period: 30s  # Allow up to 30 seconds for graceful shutdown
-    ports:
-      - "${OKO_BACKEND_PORT:-8080}:8080"
-      - "6060:6060"  # pprof profiling
+    init: true
+    stop_grace_period: 30s
+    expose:
+      - "8080"
     volumes:
       - ./data:/app/data
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
     environment:
-      - TZ=${TZ:-Asia/Shanghai}
-      - AI_MAX_TOKENS=8000
+      TZ: ${OKO_TIMEZONE:-Etc/UTC}
+      API_SERVER_PORT: 8080
+      AI_MAX_TOKENS: 8000
+    security_opt:
+      - no-new-privileges:true
     networks:
       - oko-network
     healthcheck:
@@ -26,26 +34,31 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    logging: *default-logging
 
-  # Frontend service (static serving and proxy)
   oko-frontend:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.frontend
     container_name: oko-frontend
     restart: unless-stopped
+    init: true
     ports:
-      - "${OKO_FRONTEND_PORT:-3000}:80"
+      - "127.0.0.1:${OKO_FRONTEND_PORT:-3000}:80"
+    security_opt:
+      - no-new-privileges:true
     networks:
       - oko-network
     depends_on:
-      - oko
+      oko:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 5s
+    logging: *default-logging
 
 networks:
   oko-network:

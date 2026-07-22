@@ -37,11 +37,21 @@ decision_logs/
 *.log
 
 # Config files (should be mounted)
+.env
+.env.*
+!.env.example
 config.json
 
 # Web build artifacts (but include source for multi-stage build)
 web/node_modules/
 web/dist/
+
+# Local persistent data must never enter the build context
+data/
+*.db
+
+# Local binaries
+oko-server
 
 # Temporary files
 tmp/

@@ -129,14 +129,6 @@ curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install
 
 完成！打开浏览器访问 **http://127.0.0.1:3000**
 
-### 一键云部署 (Railway)
-
-一键部署到 Railway - 无需自己搭建服务器：
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/oko?referralCode=oko)
-
-部署后，Railway 会提供一个公网 URL 访问你的 OKO 实例。
-
 ### Docker Compose (手动)
 
 ```bash

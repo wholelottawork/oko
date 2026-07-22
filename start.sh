@@ -180,16 +180,10 @@ check_encryption() {
 read_env_vars() {
     if [ -f ".env" ]; then
         OKO_FRONTEND_PORT=$(grep "^OKO_FRONTEND_PORT=" .env 2>/dev/null | cut -d'=' -f2 || echo "3000")
-        OKO_BACKEND_PORT=$(grep "^OKO_BACKEND_PORT=" .env 2>/dev/null | cut -d'=' -f2 || echo "8080")
-
-        OKO_FRONTEND_PORT=$(echo "$OKO_FRONTEND_PORT" | tr -d '"'"'" | tr -d ' ')
-        OKO_BACKEND_PORT=$(echo "$OKO_BACKEND_PORT" | tr -d '"'"'" | tr -d ' ')
-
+        OKO_FRONTEND_PORT=$(echo "$OKO_FRONTEND_PORT" | tr -d "\"'" | tr -d ' ')
         OKO_FRONTEND_PORT=${OKO_FRONTEND_PORT:-3000}
-        OKO_BACKEND_PORT=${OKO_BACKEND_PORT:-8080}
     else
         OKO_FRONTEND_PORT=3000
-        OKO_BACKEND_PORT=8080
     fi
 }
 
@@ -230,7 +224,6 @@ start() {
 
     print_success "Services started"
     print_info "Web interface: http://localhost:${OKO_FRONTEND_PORT}"
-    print_info "API endpoint: http://localhost:${OKO_BACKEND_PORT}"
     print_info ""
     print_info "View logs: ./start.sh logs"
     print_info "Stop services: ./start.sh stop"
@@ -275,7 +268,7 @@ status() {
     $COMPOSE_CMD ps
     echo ""
     print_info "Health check:"
-    curl -s "http://localhost:${OKO_BACKEND_PORT}/api/health" | jq '.' || echo "Backend did not respond"
+    curl -fsS "http://127.0.0.1:${OKO_FRONTEND_PORT}/api/health" | jq '.' || echo "Application did not respond"
 }
 
 # ------------------------------------------------------------------------
