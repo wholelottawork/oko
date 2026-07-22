@@ -1,6 +1,13 @@
 export interface SystemConfig {
   beta_mode: boolean
   registration_enabled?: boolean
+  upgrade_gate?: {
+    configured: boolean
+    token_address: string
+    chain_id: number
+    chain_name: string
+    threshold: number
+  }
 }
 
 /** Prepend the backend base URL for raw fetch() calls (not handled by httpClient) */

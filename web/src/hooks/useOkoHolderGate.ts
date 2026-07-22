@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAppKitAccount } from '@reown/appkit/react'
 import { api } from '../lib/api'
+import { useSystemConfig } from './useSystemConfig'
 import {
-  UPGRADE_MIN_OKO_BALANCE,
-  OKO_SOLANA_MINT,
-  isSolanaMintConfigured,
+  UPGRADE_CHAIN_ID,
+  UPGRADE_CHAIN_NAME,
+  UPGRADE_MIN_TOKEN_BALANCE_FALLBACK,
 } from '../lib/upgradeConfig'
 
 type GateStatus =
@@ -18,6 +19,9 @@ type GateStatus =
 export interface OkoHolderGateState {
   status: GateStatus
   address?: string
+  tokenAddress: string
+  chainId: number
+  chainName: string
   threshold: number
   totalBalance: number
   missingBalance: number
@@ -29,45 +33,75 @@ export interface OkoHolderGateState {
 
 export function useOkoHolderGate(): OkoHolderGateState {
   const { address, isConnected } = useAppKitAccount()
-  const previewMode = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('upgradePreview')
-    : null
-  const [state, setState] = useState<Omit<OkoHolderGateState, 'address' | 'isConnected' | 'isEligible'>>({
+  const { config, loading: configLoading } = useSystemConfig()
+  const upgradeConfig = config?.upgrade_gate
+  const previewMode =
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('upgradePreview')
+      : null
+  const [state, setState] = useState<
+    Omit<OkoHolderGateState, 'address' | 'isConnected' | 'isEligible'>
+  >({
     status: isConnected ? 'checking' : 'disconnected',
-    threshold: UPGRADE_MIN_OKO_BALANCE,
+    tokenAddress: '',
+    chainId: UPGRADE_CHAIN_ID,
+    chainName: UPGRADE_CHAIN_NAME,
+    threshold: UPGRADE_MIN_TOKEN_BALANCE_FALLBACK,
     totalBalance: 0,
-    missingBalance: UPGRADE_MIN_OKO_BALANCE,
+    missingBalance: UPGRADE_MIN_TOKEN_BALANCE_FALLBACK,
     deploymentsChecked: 0,
   })
 
   useEffect(() => {
+    const threshold =
+      upgradeConfig?.threshold ?? UPGRADE_MIN_TOKEN_BALANCE_FALLBACK
+    const chainId = upgradeConfig?.chain_id ?? UPGRADE_CHAIN_ID
+    const chainName = upgradeConfig?.chain_name ?? UPGRADE_CHAIN_NAME
+    const tokenAddress = upgradeConfig?.token_address ?? ''
+
     if (!isConnected || !address) {
       setState({
         status: 'disconnected',
-        threshold: UPGRADE_MIN_OKO_BALANCE,
+        tokenAddress,
+        chainId,
+        chainName,
+        threshold,
         totalBalance: 0,
-        missingBalance: UPGRADE_MIN_OKO_BALANCE,
-        deploymentsChecked: isSolanaMintConfigured() ? 1 : 0,
+        missingBalance: threshold,
+        deploymentsChecked: upgradeConfig?.configured ? 1 : 0,
       })
       return
     }
-    if (!isSolanaMintConfigured()) {
+
+    if (configLoading) {
+      setState((prev) => ({ ...prev, status: 'checking' }))
+      return
+    }
+
+    if (!upgradeConfig?.configured) {
       if (previewMode === 'eligible' || previewMode === 'ineligible') {
-        const totalBalance = previewMode === 'eligible' ? UPGRADE_MIN_OKO_BALANCE : UPGRADE_MIN_OKO_BALANCE / 3
+        const totalBalance =
+          previewMode === 'eligible' ? threshold : threshold / 3
         setState({
           status: previewMode === 'eligible' ? 'eligible' : 'ineligible',
-          threshold: UPGRADE_MIN_OKO_BALANCE,
+          tokenAddress,
+          chainId,
+          chainName,
+          threshold,
           totalBalance,
-          missingBalance: Math.max(0, UPGRADE_MIN_OKO_BALANCE - totalBalance),
+          missingBalance: Math.max(0, threshold - totalBalance),
           deploymentsChecked: 0,
         })
         return
       }
       setState({
         status: 'unconfigured',
-        threshold: UPGRADE_MIN_OKO_BALANCE,
+        tokenAddress,
+        chainId,
+        chainName,
+        threshold,
         totalBalance: 0,
-        missingBalance: UPGRADE_MIN_OKO_BALANCE,
+        missingBalance: threshold,
         deploymentsChecked: 0,
       })
       return
@@ -77,36 +111,63 @@ export function useOkoHolderGate(): OkoHolderGateState {
     setState((prev) => ({
       ...prev,
       status: 'checking',
-      threshold: UPGRADE_MIN_OKO_BALANCE,
+      tokenAddress,
+      chainId,
+      chainName,
+      threshold,
       deploymentsChecked: 1,
       error: undefined,
     }))
-
     ;(async () => {
       try {
-        const response = await api.getSolanaTokenBalance(address, OKO_SOLANA_MINT)
-        const totalBalance = response.totalBalance || 0
-
+        const response = await api.getUpgradeEligibility(address)
         if (cancelled) return
-        const isEligible = totalBalance >= UPGRADE_MIN_OKO_BALANCE
+
+        if (!response.configured) {
+          setState({
+            status: 'unconfigured',
+            tokenAddress: '',
+            chainId: response.chainId,
+            chainName: response.chainName,
+            threshold: response.threshold,
+            totalBalance: 0,
+            missingBalance: response.threshold,
+            deploymentsChecked: 0,
+          })
+          return
+        }
+
         setState({
-          status: isEligible ? 'eligible' : 'ineligible',
-          threshold: UPGRADE_MIN_OKO_BALANCE,
-          totalBalance,
-          missingBalance: Math.max(0, UPGRADE_MIN_OKO_BALANCE - totalBalance),
+          status: response.eligible ? 'eligible' : 'ineligible',
+          tokenAddress: response.tokenAddress,
+          chainId: response.chainId,
+          chainName: response.chainName,
+          threshold: response.threshold,
+          totalBalance: response.totalBalance,
+          missingBalance:
+            response.missingBalance ??
+            Math.max(0, response.threshold - response.totalBalance),
           deploymentsChecked: 1,
         })
       } catch (error) {
         if (cancelled) return
-        const message = error instanceof Error ? error.message : 'Failed to read OKO Solana balances'
-        const friendlyMessage = message.includes('Non-base58 character') || message.includes('Invalid public key')
-          ? 'Connected wallet is not a valid Solana address. Connect the Solana wallet that holds your OKO.'
+        const message =
+          error instanceof Error
+            ? error.message
+            : 'Failed to read the Robinhood Chain token balance'
+        const friendlyMessage = message
+          .toLowerCase()
+          .includes('valid evm address')
+          ? 'Connected wallet is not a valid EVM address. Connect the wallet that holds your OKO on Robinhood Chain.'
           : message
         setState({
           status: 'error',
-          threshold: UPGRADE_MIN_OKO_BALANCE,
+          tokenAddress,
+          chainId,
+          chainName,
+          threshold,
           totalBalance: 0,
-          missingBalance: UPGRADE_MIN_OKO_BALANCE,
+          missingBalance: threshold,
           deploymentsChecked: 1,
           error: friendlyMessage,
         })
@@ -116,7 +177,7 @@ export function useOkoHolderGate(): OkoHolderGateState {
     return () => {
       cancelled = true
     }
-  }, [address, isConnected, previewMode])
+  }, [address, configLoading, isConnected, previewMode, upgradeConfig])
 
   return useMemo(
     () => ({

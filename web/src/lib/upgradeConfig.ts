@@ -1,9 +1,6 @@
-export const UPGRADE_MIN_OKO_BALANCE = 150_000
-
-/**
- * Fill this in once the OKO SPL mint is live on Solana mainnet.
- */
-export const OKO_SOLANA_MINT: string = '9HeebAYf3c8PPGXCE4hACkjKe355Q2Du1tJNyNbEpump'
+export const UPGRADE_MIN_TOKEN_BALANCE_FALLBACK = 150_000
+export const UPGRADE_CHAIN_ID = 4663
+export const UPGRADE_CHAIN_NAME = 'Robinhood Chain'
 
 export const UPGRADE_SUPPORTED_CHAINS = [
   { id: '1', label: 'Ethereum' },
@@ -14,8 +11,3 @@ export const UPGRADE_SUPPORTED_CHAINS = [
   { id: '8453', label: 'Base' },
   { id: '43114', label: 'Avalanche' },
 ] as const
-
-export function isSolanaMintConfigured(): boolean {
-  return OKO_SOLANA_MINT !== 'TBA'
-}
- 

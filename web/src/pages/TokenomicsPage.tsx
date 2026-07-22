@@ -5,14 +5,14 @@ import HeaderBar from '../components/HeaderBar'
 import { useTheme } from '../contexts/ThemeContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useAuth } from '../contexts/AuthContext'
-import { OKO_SOLANA_MINT } from '../lib/upgradeConfig'
+import { useSystemConfig } from '../hooks/useSystemConfig'
 
 // ── Tokenomics data ────────────────────────────────────────────────────────────
 
 const TOTAL_SUPPLY = 1_000_000_000
 
 const ALLOCATIONS = [
-  { label: 'Public Sale',           pct: 55, color: '#0EA5E9', desc: 'Solana launch — fair and transparent distribution' },
+  { label: 'Public Sale',           pct: 55, color: '#0EA5E9', desc: 'Robinhood Chain launch — fair and transparent distribution' },
   { label: 'Treasury',              pct: 20, color: '#33998C', desc: 'Protocol operations and long-term development' },
   { label: 'Liquidity',             pct: 15, color: '#6366F1', desc: 'DEX and CEX liquidity provisioning' },
   { label: 'Ecosystem',             pct: 10, color: '#2DD4BF', desc: 'Integrations, partnerships, and incentive programs' },
@@ -113,6 +113,8 @@ export function TokenomicsPage() {
   const { theme } = useTheme()
   const { language } = useLanguage()
   const { user, token, logout } = useAuth()
+  const { config: systemConfig } = useSystemConfig()
+  const tokenAddress = systemConfig?.upgrade_gate?.token_address ?? ''
   const [copied, setCopied] = useState(false)
   const [chartVisible, setChartVisible] = useState(false)
   const [activeAlloc, setActiveAlloc] = useState<number | null>(null)
@@ -137,8 +139,8 @@ export function TokenomicsPage() {
   }, [])
 
   const handleCopy = () => {
-    if (OKO_SOLANA_MINT === 'TBA') return
-    navigator.clipboard.writeText(OKO_SOLANA_MINT)
+    if (!tokenAddress) return
+    navigator.clipboard.writeText(tokenAddress)
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
@@ -203,26 +205,26 @@ export function TokenomicsPage() {
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-mono"
               style={{ ...cardStyle }}
             >
-              <span style={{ color: 'var(--text-tertiary)' }}>Mint:</span>
+              <span style={{ color: 'var(--text-tertiary)' }}>Contract:</span>
               <span style={{ color: 'var(--text-primary)' }}>
-                {OKO_SOLANA_MINT === 'TBA'
+                {!tokenAddress
                   ? 'TBA'
-                  : `${OKO_SOLANA_MINT.slice(0, 10)}…${OKO_SOLANA_MINT.slice(-8)}`}
+                  : `${tokenAddress.slice(0, 10)}…${tokenAddress.slice(-8)}`}
               </span>
               <span
                 className="text-[10px] px-1.5 py-0.5 rounded"
                 style={
-                  OKO_SOLANA_MINT === 'TBA'
+                  !tokenAddress
                     ? { background: 'rgba(239,68,68,0.12)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)' }
                     : { background: 'rgba(14,203,129,0.12)', color: '#0ECB81', border: '1px solid rgba(14,203,129,0.24)' }
                 }
               >
-                {OKO_SOLANA_MINT === 'TBA' ? 'TBA' : 'Live'}
+                {!tokenAddress ? 'TBA' : 'Live'}
               </span>
               <button
                 onClick={handleCopy}
                 className="ml-1 transition-opacity hover:opacity-70"
-                disabled={OKO_SOLANA_MINT === 'TBA'}
+                disabled={!tokenAddress}
               >
                 {copied ? <Check className="w-3.5 h-3.5" style={{ color: '#0ECB81' }} /> : <Copy className="w-3.5 h-3.5" style={{ color: 'var(--text-tertiary)' }} />}
               </button>
@@ -240,8 +242,8 @@ export function TokenomicsPage() {
           >
             {[
               { label: 'Total Supply',     value: `${fmt(TOTAL_SUPPLY)}`,  sub: 'tokens' },
-              { label: 'Launch Platform',  value: 'Pump.fun',              sub: 'Solana ecosystem' },
-              { label: 'Launch Network',   value: 'Solana',                sub: 'Layer 1' },
+              { label: 'Token Standard',   value: 'ERC-20',                sub: 'EVM ecosystem' },
+              { label: 'Launch Network',   value: 'Robinhood Chain',       sub: 'Ethereum Layer 2' },
               { label: 'TGE',              value: 'Q2 2026',               sub: 'Estimated' },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl p-5 flex flex-col gap-1" style={cardStyle}>

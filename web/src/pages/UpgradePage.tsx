@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Wallet } from 'lucide-react'
 import { useAppKit } from '@reown/appkit/react'
@@ -8,7 +8,6 @@ import { UpgradeWhitelistPanel } from '../components/UpgradeWhitelistPanel'
 import { useAuth } from '../contexts/AuthContext'
 import { useLanguage } from '../contexts/LanguageContext'
 import { useOkoHolderGate } from '../hooks/useOkoHolderGate'
-import { OKO_SOLANA_MINT, isSolanaMintConfigured } from '../lib/upgradeConfig'
 import { getWhitelistEntries, type WhitelistEntry } from '../lib/upgradeWhitelist'
 
 export function UpgradePage() {
@@ -18,7 +17,6 @@ export function UpgradePage() {
   const gate = useOkoHolderGate()
   const [whitelistOpen, setWhitelistOpen] = useState(false)
   const [whitelistEntries, setWhitelistEntries] = useState<WhitelistEntry[]>([])
-  const mintConfigured = useMemo(() => isSolanaMintConfigured(), [])
 
   useEffect(() => {
     getWhitelistEntries().then(setWhitelistEntries).catch(() => setWhitelistEntries([]))
@@ -43,9 +41,9 @@ export function UpgradePage() {
           : 'Need more OKO to unlock'
 
   const gateSubcopy = gate.status === 'unconfigured'
-    ? 'The holder gate is ready, but the OKO Solana mint has not been configured yet. Once the mint is live, this page will verify balances on Solana without using Squid.'
+    ? 'The holder gate is ready, but the OKO token contract has not been configured yet. Set UPGRADE_TOKEN_ADDRESS in the backend environment to enable Robinhood Chain balance checks.'
     : gate.status === 'error'
-      ? gate.error || 'The app could not read your Solana OKO balance. Make sure the connected wallet is your Solana wallet, then try again.'
+      ? gate.error || 'The app could not read your Robinhood Chain OKO balance. Make sure the connected wallet holds OKO on Robinhood Chain, then try again.'
     : gate.status === 'eligible'
       ? 'Your connected wallet qualifies for the Upgrade feature set.'
       : 'Holders of 150,000 OKO gain advanced bridge, assistant, and whitelist capabilities.'
@@ -169,9 +167,9 @@ export function UpgradePage() {
                     </button>
                   ) : null}
                   <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                    {mintConfigured
-                      ? `Configured Solana mint: ${OKO_SOLANA_MINT.slice(0, 6)}…${OKO_SOLANA_MINT.slice(-4)}`
-                      : 'Solana mint not configured yet.'}
+                    {gate.tokenAddress
+                      ? `Robinhood Chain contract: ${gate.tokenAddress.slice(0, 6)}…${gate.tokenAddress.slice(-4)}`
+                      : 'Robinhood Chain token contract not configured yet.'}
                   </span>
                 </div>
               </div>

@@ -68,10 +68,17 @@ export interface WalletChatRequest {
   assistantMode?: AssistantMode
 }
 
-export interface SolanaTokenBalanceResponse {
+export interface UpgradeEligibilityResponse {
+  configured: boolean
   address: string
-  mint: string
+  tokenAddress: string
+  chainId: number
+  chainName: string
+  decimals?: number
+  threshold: number
   totalBalance: number
+  missingBalance?: number
+  eligible: boolean
 }
 
 // Helper function to get auth headers
@@ -133,17 +140,24 @@ export const api = {
     return result.data ?? { assets: [], totalBalanceUsd: '0' }
   },
 
-  async getSolanaTokenBalance(
-    address: string,
-    mint: string
-  ): Promise<SolanaTokenBalanceResponse> {
-    const result = await httpClient.get<SolanaTokenBalanceResponse>(
-      `${API_BASE}/wallet/${encodeURIComponent(address)}/solana-token-balance`,
-      { mint }
+  async getUpgradeEligibility(
+    address: string
+  ): Promise<UpgradeEligibilityResponse> {
+    const result = await httpClient.get<UpgradeEligibilityResponse>(
+      `${API_BASE}/wallet/${encodeURIComponent(address)}/upgrade-eligibility`
     )
     if (!result.success)
-      throw new Error(result.message || 'Failed to fetch Solana token balance')
-    return result.data ?? { address, mint, totalBalance: 0 }
+      throw new Error(result.message || 'Failed to check upgrade eligibility')
+    return result.data ?? {
+      configured: false,
+      address,
+      tokenAddress: '',
+      chainId: 4663,
+      chainName: 'Robinhood Chain',
+      threshold: 150_000,
+      totalBalance: 0,
+      eligible: false,
+    }
   },
 
   // General chat (no wallet context) - for crypto Q&A, prices, etc.

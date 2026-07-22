@@ -1,9 +1,9 @@
 package config
 
 import (
+	"net/url"
 	"oko/experience"
 	"oko/mcp"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -47,6 +47,12 @@ type Config struct {
 	SolanaRPCURL    string // Solana RPC URL for server-side token balance lookups
 	CoinGeckoAPIKey string // CoinGecko API for price stats (24h/7d/30d change, market cap)
 
+	// Upgrade holder gate (Robinhood Chain mainnet by default)
+	UpgradeTokenAddress    string
+	UpgradeRPCURL          string
+	UpgradeChainID         int64
+	UpgradeMinTokenBalance float64
+
 	// Market data provider API keys
 	AlpacaAPIKey    string // Alpaca API key for US stocks
 	AlpacaSecretKey string // Alpaca secret key
@@ -87,6 +93,10 @@ func Init() {
 		DBUser:    "postgres",
 		DBName:    "oko",
 		DBSSLMode: "disable",
+		// Robinhood Chain mainnet defaults
+		UpgradeRPCURL:          "https://rpc.mainnet.chain.robinhood.com",
+		UpgradeChainID:         4663,
+		UpgradeMinTokenBalance: 150000,
 	}
 
 	// Load from environment variables
@@ -130,6 +140,23 @@ func Init() {
 	cfg.HeliusAPIKey = strings.TrimSpace(os.Getenv("HELIUS_API_KEY"))
 	cfg.SolanaRPCURL = strings.TrimSpace(os.Getenv("SOLANA_RPC_URL"))
 	cfg.CoinGeckoAPIKey = strings.TrimSpace(os.Getenv("COINGECKO_API_KEY"))
+
+	// Upgrade holder gate. The token address intentionally has no default so a
+	// deployment cannot accidentally grant access for the wrong contract.
+	cfg.UpgradeTokenAddress = strings.TrimSpace(os.Getenv("UPGRADE_TOKEN_ADDRESS"))
+	if v := strings.TrimSpace(os.Getenv("UPGRADE_RPC_URL")); v != "" {
+		cfg.UpgradeRPCURL = v
+	}
+	if v := strings.TrimSpace(os.Getenv("UPGRADE_CHAIN_ID")); v != "" {
+		if chainID, err := strconv.ParseInt(v, 10, 64); err == nil && chainID > 0 {
+			cfg.UpgradeChainID = chainID
+		}
+	}
+	if v := strings.TrimSpace(os.Getenv("UPGRADE_MIN_TOKEN_BALANCE")); v != "" {
+		if minimum, err := strconv.ParseFloat(v, 64); err == nil && minimum > 0 {
+			cfg.UpgradeMinTokenBalance = minimum
+		}
+	}
 
 	// Market data provider API keys
 	cfg.AlpacaAPIKey = os.Getenv("ALPACA_API_KEY")

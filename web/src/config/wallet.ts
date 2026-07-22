@@ -13,9 +13,11 @@ import {
 } from '@reown/appkit/networks'
 import { QueryClient } from '@tanstack/react-query'
 import type { AppKitNetwork } from '@reown/appkit-common'
+import { robinhood } from 'viem/chains'
 
 // Get projectId from https://dashboard.reown.com (formerly WalletConnect Cloud)
-const projectId = import.meta.env.VITE_REOWN_PROJECT_ID || 'b56e18d47c72ab683b10814fe9495694'
+const projectId =
+  import.meta.env.VITE_REOWN_PROJECT_ID || 'b56e18d47c72ab683b10814fe9495694'
 
 if (!projectId) {
   throw new Error('VITE_REOWN_PROJECT_ID is required for wallet connection')
@@ -24,11 +26,22 @@ if (!projectId) {
 const metadata = {
   name: 'OKO',
   description: 'AI Wallet Analyzer & Trading',
-  url: typeof window !== 'undefined' ? window.location.origin : 'https://oko.com',
+  url:
+    typeof window !== 'undefined' ? window.location.origin : 'https://oko.com',
   icons: ['/logo.png'],
 }
 
-const networks = [mainnet, bsc, polygon, arbitrum, optimism, base, avalanche, solana] as [AppKitNetwork, ...AppKitNetwork[]]
+const networks = [
+  mainnet,
+  bsc,
+  polygon,
+  arbitrum,
+  optimism,
+  base,
+  avalanche,
+  robinhood,
+  solana,
+] as [AppKitNetwork, ...AppKitNetwork[]]
 
 const wagmiAdapter = new WagmiAdapter({
   networks,

@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"net"
+	"net/http"
 	"oko/auth"
 	"oko/backtest"
 	"oko/config"
@@ -29,13 +31,12 @@ import (
 	"oko/trader/lighter"
 	"oko/trader/okx"
 	"oko/wallet"
-	"net"
-	"net/http"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -149,7 +150,7 @@ func (s *Server) setupRoutes() {
 
 		// Wallet balances (no authentication required, for AI Wallet Analyzer)
 		api.GET("/wallet/:address/balances", s.handleWalletBalances)
-		api.GET("/wallet/:address/solana-token-balance", s.handleSolanaTokenBalance)
+		api.GET("/wallet/:address/upgrade-eligibility", s.handleUpgradeEligibility)
 		api.GET("/wallet/:address/analyze", s.handleWalletAnalyze)
 		api.POST("/wallet/:address/chat", s.handleWalletChat)
 		api.POST("/chat", s.handleGeneralChat)
@@ -264,11 +265,19 @@ func (s *Server) handleHealth(c *gin.Context) {
 // handleGetSystemConfig Get system configuration (configuration that client needs to know)
 func (s *Server) handleGetSystemConfig(c *gin.Context) {
 	cfg := config.Get()
+	upgradeTokenConfigured := common.IsHexAddress(cfg.UpgradeTokenAddress)
 
 	c.JSON(http.StatusOK, gin.H{
 		"registration_enabled": cfg.RegistrationEnabled,
 		"btc_eth_leverage":     10, // Default value
 		"altcoin_leverage":     5,  // Default value
+		"upgrade_gate": gin.H{
+			"configured":    upgradeTokenConfigured,
+			"token_address": cfg.UpgradeTokenAddress,
+			"chain_id":      cfg.UpgradeChainID,
+			"chain_name":    "Robinhood Chain",
+			"threshold":     cfg.UpgradeMinTokenBalance,
+		},
 	})
 }
 
