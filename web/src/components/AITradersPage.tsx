@@ -31,6 +31,7 @@ import {
   ExternalLink,
   Copy,
   Check,
+  Lock,
 } from 'lucide-react'
 import { confirmToast } from '../lib/notify'
 import { buildModelConfigUpdateRequest } from '../lib/modelConfigs'
@@ -483,6 +484,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
   }
 
   const handleModelClick = (modelId: string) => {
+    const model = configuredModels.find((item) => item.id === modelId)
+    if (model?.hasSystemKey) return
+
     if (!isModelInUse(modelId)) {
       setEditingModel(modelId)
       setShowModelModal(true)
@@ -497,6 +501,9 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
   }
 
   const handleDeleteModelConfig = async (modelId: string) => {
+    const model = allModels?.find((item) => item.id === modelId)
+    if (model?.hasSystemKey) return
+
     if (isModelUsedByAnyTrader(modelId)) {
       const usingTraders = getTradersUsingModel(modelId)
       const traderNames = usingTraders.map((t) => t.trader_name).join(', ')
@@ -549,6 +556,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         toast.error(t('modelNotExist', language))
         return
       }
+      if (modelToUpdate.hasSystemKey) return
 
       const request = buildModelConfigUpdateRequest(modelId, {
         enabled: true,
@@ -776,11 +784,13 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
             <div className="p-3 space-y-2">
               {configuredModels.length > 0 ? configuredModels.map((model) => {
                 const usageInfo = getModelUsageInfo(model.id)
+                const isSystemManaged = !!model.hasSystemKey
                 return (
                   <div
                     key={model.id}
-                    className="flex items-center justify-between p-2.5 rounded-md transition-colors hover:bg-white/5 cursor-pointer"
-                    onClick={() => handleModelClick(model.id)}
+                    className={`flex items-center justify-between p-2.5 rounded-md transition-colors ${isSystemManaged ? 'cursor-default' : 'hover:bg-white/5 cursor-pointer'}`}
+                    onClick={isSystemManaged ? undefined : () => handleModelClick(model.id)}
+                    title={isSystemManaged ? 'System-managed model (read-only)' : undefined}
                   >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-md flex items-center justify-center" style={{ background: 'var(--surface-tertiary)' }}>
@@ -795,7 +805,8 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
                         <div className="text-[11px] flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
                           {model.customModelName || AI_PROVIDER_CONFIG[model.provider]?.defaultModel || ''}
                           {model.hasSystemKey && (
-                            <span className="text-[9px] px-1 py-0.5 rounded" style={{ background: 'var(--binance-green-bg)', color: 'var(--binance-green)' }}>
+                            <span className="text-[9px] px-1 py-0.5 rounded inline-flex items-center gap-0.5" style={{ background: 'var(--binance-green-bg)', color: 'var(--binance-green)' }}>
+                              <Lock className="w-2.5 h-2.5" />
                               {'System'}
                             </span>
                           )}
@@ -1336,12 +1347,15 @@ function ModelConfigModal({
               >
                 {availableModels.map((model, i) => {
                   const isConfigured = configuredIds.has(model.id)
+                  const isSystemManaged = !!model.hasSystemKey
                   return (
                     <button
                       key={model.id}
                       type="button"
-                      onClick={() => handleSelectModel(model.id)}
-                      className="w-full flex items-center gap-3 px-3.5 py-3 text-left transition-colors hover:bg-white/5"
+                      onClick={isSystemManaged ? undefined : () => handleSelectModel(model.id)}
+                      disabled={isSystemManaged}
+                      title={isSystemManaged ? 'System-managed model (read-only)' : undefined}
+                      className="w-full flex items-center gap-3 px-3.5 py-3 text-left transition-colors enabled:hover:bg-white/5 disabled:cursor-default"
                       style={{
                         background: 'var(--surface-primary)',
                         borderTop: i > 0 ? '1px solid var(--surface-tertiary)' : undefined,
@@ -1358,7 +1372,8 @@ function ModelConfigModal({
                             {getShortName(model.name)}
                           </span>
                           {model.hasSystemKey && (
-                            <span className="text-[9px] px-1.5 py-0.5 rounded uppercase font-medium" style={{ background: 'var(--binance-green-bg)', color: 'var(--binance-green)' }}>
+                            <span className="text-[9px] px-1.5 py-0.5 rounded uppercase font-medium inline-flex items-center gap-0.5" style={{ background: 'var(--binance-green-bg)', color: 'var(--binance-green)' }}>
+                              <Lock className="w-2.5 h-2.5" />
                               System
                             </span>
                           )}
@@ -1370,9 +1385,13 @@ function ModelConfigModal({
                           {AI_PROVIDER_CONFIG[model.provider]?.defaultModel || model.id}
                         </div>
                       </div>
-                      <svg className="w-4 h-4 shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.5 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
+                      {isSystemManaged ? (
+                        <Lock className="w-3.5 h-3.5 shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.5 }} />
+                      ) : (
+                        <svg className="w-4 h-4 shrink-0" style={{ color: 'var(--text-secondary)', opacity: 0.5 }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      )}
                     </button>
                   )
                 })}

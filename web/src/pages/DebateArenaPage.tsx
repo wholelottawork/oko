@@ -33,6 +33,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { DeepVoidBackground } from '../components/DeepVoidBackground'
+import { getAccessibleDebateModels } from '../lib/debateModels'
 
 // Translations
 const T: Record<string, string> = {
@@ -623,6 +624,7 @@ export function DebateArenaPage() {
 
   const { data: debates, mutate: mutateList } = useSWR<DebateSession[]>('debates', api.getDebates, { refreshInterval: 5000 })
   const { data: aiModels } = useSWR<AIModel[]>('ai-models', api.getModelConfigs)
+  const { data: supportedModels } = useSWR<AIModel[]>('supported-ai-models', api.getSupportedModels)
   const { data: strategies } = useSWR<Strategy[]>('strategies', api.getStrategies)
   const { data: traders } = useSWR<TraderInfo[]>('traders', api.getTraders)
   const { data: detail, mutate: mutateDetail } = useSWR<DebateSessionWithDetails>(
@@ -672,6 +674,7 @@ export function DebateArenaPage() {
   const participants = detail?.participants || []
   const votes = detail?.votes || []
   const decision = detail?.final_decision
+  const accessibleAIModels = getAccessibleDebateModels(aiModels, supportedModels)
 
   // Get strategy name
   const strategyName = strategies?.find(s => s.id === detail?.strategy_id)?.name || ''
@@ -914,7 +917,7 @@ export function DebateArenaPage() {
 
       {/* Create Modal */}
       <CreateModal isOpen={showCreate} onClose={() => setShowCreate(false)} onCreate={onCreate}
-        aiModels={aiModels || []} strategies={strategies || []} language={language} />
+        aiModels={accessibleAIModels} strategies={strategies || []} language={language} />
 
       {/* Execute Modal */}
       {execId && (
