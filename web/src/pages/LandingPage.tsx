@@ -634,12 +634,13 @@ export function LandingPage() {
   const handleCommand = (cmd: typeof COMMANDS[0]) => {
     setPanelOpen(false)
 
-    // "Analyze my wallet" — if wallet already connected use it, else let user type address
+    // "Analyze my wallet" — submit only the address so processInput routes it
+    // through the wallet balances/analyze endpoints instead of general chat.
     if (cmd.prompt.endsWith(': ')) {
       if (isConnected && connectedAddress) {
-        processInput(`${cmd.prompt}${connectedAddress}`)
+        processInput(connectedAddress)
       } else {
-        setInput(cmd.prompt)
+        setInput('')
         inputRef.current?.focus()
       }
       return

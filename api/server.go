@@ -163,6 +163,7 @@ func (s *Server) setupRoutes() {
 		api.GET("/market/trending", s.handleMarketTrending)
 		api.GET("/market/gainers", s.handleMarketGainers)
 		api.GET("/market/chart", s.handleMarketChart)
+		api.GET("/market/futures", s.handleMarketFutures)
 
 		// Public strategy market (no authentication required)
 		api.GET("/strategies/public", s.handlePublicStrategies)
@@ -3360,6 +3361,18 @@ func (s *Server) handleMarketChart(c *gin.Context) {
 	c.Header("Content-Type", "application/json")
 	c.Header("Cache-Control", "no-cache")
 	c.Writer.Write(data)
+}
+
+// handleMarketFutures serves public Binance futures statistics plus an
+// estimated liquidation map derived from aggregate open interest.
+func (s *Server) handleMarketFutures(c *gin.Context) {
+	data, err := market.GetFuturesData(c.Request.Context(), c.Query("symbol"))
+	if err != nil {
+		SafeError(c, http.StatusBadGateway, "Futures market data is temporarily unavailable", err)
+		return
+	}
+	c.Header("Cache-Control", "public, max-age=15")
+	c.JSON(http.StatusOK, data)
 }
 
 // handleLatestDecisions Latest decision logs (newest first, supports limit parameter)

@@ -74,6 +74,7 @@ interface FuturesData {
   takerRatio?: { buyVol: string; sellVol: string }[]
   oiHist?: { sumOpenInterest: string; timestamp: number }[]
   levels: LiqLevel[]
+  estimated?: boolean
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -473,15 +474,25 @@ function LiquidationMapPanel() {
   const [activeTab, setActiveTab] = useState<'liqmap' | 'inflow'>('liqmap')
   const [futData, setFutData] = useState<FuturesData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchFutData = useCallback(async (sym: string) => {
     try {
       setLoading(true)
       const res = await fetch(apiUrl(`/api/market/futures?symbol=${sym}`))
+      if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: string } | null
+        throw new Error(body?.error || `Futures API returned ${res.status}`)
+      }
       const data: FuturesData = await res.json()
+      if (!Array.isArray(data.levels)) throw new Error('Invalid futures API response')
       setFutData(data)
-    } catch { /* fail silently */ }
-    setLoading(false)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to load futures data')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   useEffect(() => { fetchFutData(activeSym) }, [activeSym, fetchFutData])
@@ -546,7 +557,7 @@ function LiquidationMapPanel() {
           style={{ borderColor: 'var(--panel-border)' }}
         >
           <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'var(--text-tertiary)' }}>
-            {'Liquidation Map'}
+            {'Estimated Liquidation Map'}
           </span>
           {/* Symbol pills */}
           <div className="flex gap-1 ml-auto">
@@ -598,10 +609,27 @@ function LiquidationMapPanel() {
             <div className="flex items-center justify-center h-full" style={{ color: 'var(--text-tertiary)' }}>
               <span className="text-xs">Loading…</span>
             </div>
+          ) : error && !futData ? (
+            <div className="flex flex-col items-center justify-center h-full gap-2 text-center px-6">
+              <span className="text-xs font-semibold" style={{ color: '#ef4444' }}>Unable to load futures data</span>
+              <span className="text-[10px]" style={{ color: 'var(--text-tertiary)' }}>{error}</span>
+              <button
+                onClick={() => fetchFutData(activeSym)}
+                className="mt-1 px-2.5 py-1 rounded text-[10px] font-semibold"
+                style={{ background: 'var(--surface-tertiary)', color: 'var(--text-secondary)', border: '1px solid var(--panel-border)' }}
+              >
+                Retry
+              </button>
+            </div>
           ) : activeTab === 'liqmap' ? (
             /* Liquidation Map bars */
             <div className="flex flex-col gap-[3px]">
-              {futData && (() => {
+              {futData && futData.levels.length === 0 && (
+                <div className="flex items-center justify-center h-full text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                  No liquidation estimate available
+                </div>
+              )}
+              {futData && futData.levels.length > 0 && (() => {
                 const levels = [...futData.levels].reverse()
                 const markIdx = levels.findIndex(l => l.price <= markPrice)
                 return levels.map((l, i) => (
@@ -644,6 +672,11 @@ function LiquidationMapPanel() {
                   </div>
                 ))
               })()}
+              {futData?.estimated && (
+                <div className="pt-2 text-[9px] leading-relaxed" style={{ color: 'var(--text-tertiary)' }}>
+                  Estimated from aggregate Binance open interest and common leverage bands; not reported liquidation orders.
+                </div>
+              )}
             </div>
           ) : (
             /* OI Flow */
