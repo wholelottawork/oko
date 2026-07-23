@@ -78,7 +78,7 @@ export function UpgradePage() {
               transition={{ duration: 0.45 }}
               className="max-w-3xl"
             >
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight" style={{ letterSpacing: '-0.04em' }}>
+              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight whitespace-nowrap" style={{ letterSpacing: '-0.04em' }}>
                 {'Upgrade unlocks the next layer of OKO.'}
               </h1>
               <p className="text-lg mt-5 leading-relaxed max-w-2xl" style={{ color: 'var(--text-secondary)' }}>

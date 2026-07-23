@@ -802,12 +802,7 @@ export function LandingPage() {
               </div>
             )}
 
-            {/* Footnote — hidden when commands panel is open on mobile */}
-            {!(isMobile && panelOpen) && (
-              <p className="text-xs text-center mt-6 sm:mt-10" style={{ color: 'var(--text-secondary)', borderTop: '1px dashed var(--accent-primary-border)', paddingTop: '0.75rem', width: '90%' }}>
-                ai-powered analysis and trading
-              </p>
-            )}
+
 
           </div>
 

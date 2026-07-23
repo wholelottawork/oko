@@ -243,7 +243,7 @@ export function TokenomicsPage() {
             {[
               { label: 'Total Supply',     value: `${fmt(TOTAL_SUPPLY)}`,  sub: 'tokens' },
               { label: 'Token Standard',   value: 'ERC-20',                sub: 'EVM ecosystem' },
-              { label: 'Launch Network',   value: 'Robinhood Chain',       sub: 'Ethereum Layer 2' },
+              { label: 'Launch Network',   value: 'Robinhood',             sub: 'Ethereum Layer 2' },
               { label: 'TGE',              value: 'Q2 2026',               sub: 'Estimated' },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl p-5 flex flex-col gap-1" style={cardStyle}>

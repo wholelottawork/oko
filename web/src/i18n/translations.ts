@@ -890,11 +890,11 @@ export const translations = {
     faqIsProfitableAnswer:
       'AI trading is experimental and NOT guaranteed to be profitable. Cryptocurrency futures are highly volatile and risky. OKO is designed for educational and research purposes. We strongly recommend: starting with small amounts (10-50 USDT), never investing more than you can afford to lose, thoroughly testing with backtests before live trading, and understanding that past performance does not guarantee future results.',
 
-    faqSupportedExchanges: 'Which exchanges are supported?',
+    faqSupportedExchanges: 'Supported exchanges',
     faqSupportedExchangesAnswer:
       'CEX (Centralized): Binance Futures, Bybit, OKX, Bitget. DEX (Decentralized): Hyperliquid, Aster DEX, Lighter. Each exchange has different features - Binance has the most liquidity, Hyperliquid is fully on-chain with no KYC required. Check the documentation for setup guides for each exchange.',
 
-    faqSupportedAIModels: 'Which AI models are supported?',
+    faqSupportedAIModels: 'Supported AI models',
     faqSupportedAIModelsAnswer:
       'OKO supports 7+ AI models: DeepSeek (recommended for cost/performance), Alibaba Qwen, OpenAI (GPT-5.2), Anthropic Claude, Google Gemini, xAI Grok, and Kimi (Moonshot). You can also use any OpenAI-compatible API endpoint. Each model has different strengths - DeepSeek is cost-effective, OpenAI models are powerful but expensive, Claude excels at reasoning.',
 
