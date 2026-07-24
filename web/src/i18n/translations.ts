@@ -898,7 +898,7 @@ export const translations = {
     faqSupportedAIModelsAnswer:
       'OKO supports 7+ AI models: DeepSeek (recommended for cost/performance), Alibaba Qwen, OpenAI (GPT-5.2), Anthropic Claude, Google Gemini, xAI Grok, and Kimi (Moonshot). You can also use any OpenAI-compatible API endpoint. Each model has different strengths - DeepSeek is cost-effective, OpenAI models are powerful but expensive, Claude excels at reasoning.',
 
-    faqSystemRequirements: 'What are the system requirements?',
+    faqSystemRequirements: 'System requirements',
     faqSystemRequirementsAnswer:
       'Minimum: 2 CPU cores, 2GB RAM, 1GB disk space, stable internet. Recommended: 4GB RAM for running multiple traders. Supported OS: Linux, macOS, or Windows (via Docker or WSL2). Docker is the easiest installation method. For manual installation, you need Go 1.21+, Node.js 18+, and TA-Lib library.',
 
@@ -907,19 +907,19 @@ export const translations = {
     faqHowToInstallAnswer:
       'Easiest method (Linux/macOS): Run "curl -fsSL https://raw.githubusercontent.com/oko-trading/okotrading/main/install.sh | bash" - this installs Docker containers automatically. Then open http://127.0.0.1:3000 in your browser. For manual installation or development, clone the repository and follow the README instructions.',
 
-    faqWindowsInstallation: 'How do I install on Windows?',
+    faqWindowsInstallation: 'Windows installation',
     faqWindowsInstallationAnswer:
       'Three options: 1) Docker Desktop (Recommended) - Install Docker Desktop, then run "docker compose -f docker-compose.prod.yml up -d" in PowerShell; 2) WSL2 - Install Windows Subsystem for Linux, then follow Linux installation; 3) Docker in WSL2 - Best of both worlds, run the install script in WSL2 terminal. Access via http://127.0.0.1:3000',
 
-    faqDockerDeployment: 'Docker deployment keeps failing',
+    faqDockerDeployment: 'Docker deploy failing',
     faqDockerDeploymentAnswer:
       'Common solutions: 1) Check Docker is running: "docker info"; 2) Ensure sufficient memory (2GB minimum); 3) If stuck on "go build", try: "docker compose down && docker compose build --no-cache && docker compose up -d"; 4) Check logs: "docker compose logs -f"; 5) For slow pulls, configure a Docker mirror in daemon.json.',
 
-    faqManualInstallation: 'How do I install manually for development?',
+    faqManualInstallation: 'Manual dev install',
     faqManualInstallationAnswer:
       'Prerequisites: Go 1.21+, Node.js 18+, TA-Lib. Steps: 1) Clone repo: "git clone https://github.com/oko-trading/okotrading"; 2) Install backend deps: "go mod download"; 3) Install frontend deps: "cd web && npm install"; 4) Build backend: "go build -o oko"; 5) Run backend: "./oko"; 6) Run frontend (new terminal): "cd web && npm run dev". Access at http://127.0.0.1:3000',
 
-    faqServerDeployment: 'How do I deploy to a remote server?',
+    faqServerDeployment: 'Remote server deploy',
     faqServerDeploymentAnswer:
       'Run the install script on your server - it auto-detects the server IP. Access via http://YOUR_SERVER_IP:3000. For HTTPS: 1) Use Cloudflare (free) - add domain, create A record pointing to server IP, set SSL to "Flexible"; 2) Enable TRANSPORT_ENCRYPTION=true in .env for browser-side encryption; 3) Access via https://your-domain.com',
 
@@ -928,69 +928,69 @@ export const translations = {
       'For Docker: Run "docker compose pull && docker compose up -d" to pull latest images and restart. For manual installation: "git pull && go build -o oko" for backend, "cd web && npm install && npm run build" for frontend. Your configurations in data.db are preserved during updates.',
 
     // ===== CONFIGURATION =====
-    faqConfigureAIModels: 'How do I configure AI models?',
+    faqConfigureAIModels: 'Configure AI models',
     faqConfigureAIModelsAnswer:
       'Go to Config page → AI Models section. For each model: 1) Get API key from the provider (links provided in UI); 2) Enter API key; 3) Optionally customize base URL and model name; 4) Save. API keys are encrypted before storage. Test the connection after saving to verify it works.',
 
-    faqConfigureExchanges: 'How do I configure exchange connections?',
+    faqConfigureExchanges: 'Configure exchanges',
     faqConfigureExchangesAnswer:
       'Go to Config page → Exchanges section. Click "Add Exchange", select exchange type, and enter credentials. For CEX (Binance/Bybit/OKX): Need API Key + Secret Key (+ Passphrase for OKX). For DEX (Hyperliquid/Aster/Lighter): Need wallet address and private key. Always enable only necessary permissions (Futures Trading) and consider IP whitelisting.',
 
-    faqBinanceAPISetup: 'How do I set up Binance API correctly?',
+    faqBinanceAPISetup: 'Binance API setup',
     faqBinanceAPISetupAnswer:
       'Important steps: 1) Create API key in Binance → API Management; 2) Enable ONLY "Enable Futures" permission; 3) Consider adding IP whitelist for security; 4) CRITICAL: Switch to Hedge Mode in Futures settings → Preferences → Position Mode; 5) Ensure funds are in Futures wallet (not Spot). Common error -4061 means you need Hedge Mode.',
 
-    faqHyperliquidSetup: 'How do I set up Hyperliquid?',
+    faqHyperliquidSetup: 'Hyperliquid setup',
     faqHyperliquidSetupAnswer:
       'Hyperliquid is a decentralized exchange requiring wallet authentication. Steps: 1) Go to app.hyperliquid.xyz; 2) Connect your wallet; 3) Generate an API wallet (recommended) or use your main wallet; 4) Copy the wallet address and private key; 5) In OKO, add Hyperliquid exchange with these credentials. No KYC required, fully on-chain.',
 
-    faqCreateStrategy: 'How do I create a trading strategy?',
+    faqCreateStrategy: 'Create a strategy',
     faqCreateStrategyAnswer:
       'Go to Strategy Studio: 1) Coin Source - select which coins to trade (static list, AI500 pool, or OI Top ranking); 2) Indicators - enable technical indicators (EMA, MACD, RSI, ATR, Volume, OI, Funding Rate); 3) Risk Controls - set leverage limits, max positions, margin usage cap, position size limits; 4) Custom Prompt (optional) - add specific instructions for the AI. Save and assign to a trader.',
 
-    faqCreateTrader: 'How do I create and start a trader?',
+    faqCreateTrader: 'Create and start a trader',
     faqCreateTraderAnswer:
       'Go to Traders page: 1) Click "Create Trader"; 2) Select AI Model (must be configured first); 3) Select Exchange (must be configured first); 4) Select Strategy (or use default); 5) Set decision interval (e.g., 5 minutes); 6) Save, then click "Start" to begin trading. Monitor performance on Dashboard page.',
 
     // ===== TRADING =====
-    faqHowAIDecides: 'How does the AI make trading decisions?',
+    faqHowAIDecides: 'AI trading decisions',
     faqHowAIDecidesAnswer:
       'The AI uses Chain of Thought (CoT) reasoning in 4 steps: 1) Position Analysis - reviews current holdings and P/L; 2) Risk Assessment - checks account margin, available balance; 3) Opportunity Evaluation - analyzes market data, indicators, candidate coins; 4) Final Decision - outputs specific action (buy/sell/hold) with reasoning. You can view the full reasoning in decision logs.',
 
-    faqDecisionFrequency: 'How often does the AI make decisions?',
+    faqDecisionFrequency: 'AI decision frequency',
     faqDecisionFrequencyAnswer:
       'Configurable per trader, default is 3-5 minutes. Considerations: Too frequent (1-2 min) = overtrading, high fees; Too slow (30+ min) = missed opportunities. Recommended: 5 minutes for active trading, 15-30 minutes for swing trading. The AI may decide to "hold" (no action) in many cycles.',
 
-    faqNoTradesExecuting: "Why isn't my trader executing any trades?",
+    faqNoTradesExecuting: 'Trader not executing',
     faqNoTradesExecutingAnswer:
       'Common causes: 1) AI decided to wait (check decision logs for reasoning); 2) Insufficient balance in futures account; 3) Max positions limit reached (default: 3); 4) Exchange API issues (check error messages); 5) Strategy constraints too restrictive. Check Dashboard → Decision Logs for detailed AI reasoning each cycle.',
 
-    faqOnlyShortPositions: 'Why is the AI only opening short positions?',
+    faqOnlyShortPositions: 'Only short positions?',
     faqOnlyShortPositionsAnswer:
       'This is usually due to Binance Position Mode. Solution: Switch to Hedge Mode () in Binance Futures → Preferences → Position Mode. You must close all positions first. After switching, the AI can open both long and short positions independently.',
 
-    faqLeverageSettings: 'How do leverage settings work?',
+    faqLeverageSettings: 'Leverage settings',
     faqLeverageSettingsAnswer:
       'Leverage is set in Strategy → Risk Controls: BTC/ETH leverage (typically 5-20x) and Altcoin leverage (typically 3-10x). Higher leverage = higher risk and potential returns. Subaccounts may have restrictions (e.g., Binance subaccounts limited to 5x). The AI respects these limits when placing orders.',
 
-    faqStopLossTakeProfit: 'Does OKO support stop-loss and take-profit?',
+    faqStopLossTakeProfit: 'Stop-loss & take-profit',
     faqStopLossTakeProfitAnswer:
       'The AI can suggest stop-loss/take-profit levels in its decisions, but these are guidance-based rather than hard-coded exchange orders. The AI monitors positions each cycle and may decide to close based on P/L. For guaranteed stop-loss, you can set exchange-level orders manually or adjust the strategy prompt to be more conservative.',
 
-    faqMultipleTraders: 'Can I run multiple traders?',
+    faqMultipleTraders: 'Multiple traders',
     faqMultipleTradersAnswer:
       'Yes! OKO supports running 20+ concurrent traders. Each trader can have different: AI model, exchange account, strategy, decision interval. Use this to A/B test strategies, compare AI models, or diversify across exchanges. Monitor all traders on the Competition page.',
 
-    faqAICosts: 'How much do AI API calls cost?',
+    faqAICosts: 'AI API costs',
     faqAICostsAnswer:
       'Approximate daily costs per trader (5-min intervals): DeepSeek: $0.10-0.50; Qwen: $0.20-0.80; OpenAI: $2-5; Claude: $1-3. Costs depend on prompt length and response tokens. DeepSeek offers the best cost/performance ratio. Longer decision intervals reduce costs.',
 
     // ===== TECHNICAL ISSUES =====
-    faqPortInUse: 'Port 8080 or 3000 already in use',
+    faqPortInUse: 'Port already in use',
     faqPortInUseAnswer:
       'Check what\'s using the port: "lsof -i :8080" (macOS/Linux) or "netstat -ano | findstr 8080" (Windows). Kill the process or change ports in .env: OKO_BACKEND_PORT=8081, OKO_FRONTEND_PORT=3001. Restart with "docker compose down && docker compose up -d".',
 
-    faqFrontendNotLoading: 'Frontend shows "Loading..." forever',
+    faqFrontendNotLoading: 'Frontend stuck loading',
     faqFrontendNotLoadingAnswer:
       'Backend may not be running or reachable. Check: 1) "curl http://127.0.0.1:8080/api/health" should return {"status":"ok"}; 2) "docker compose ps" to verify containers are running; 3) Check backend logs: "docker compose logs oko-backend"; 4) Ensure firewall allows port 8080.',
 
@@ -998,95 +998,95 @@ export const translations = {
     faqDatabaseLockedAnswer:
       'Multiple processes accessing SQLite simultaneously. Solution: 1) Stop all processes: "docker compose down" or "pkill oko"; 2) Remove lock files if present: "rm -f data/data.db-wal data/data.db-shm"; 3) Restart: "docker compose up -d". Only one backend instance should access the database.',
 
-    faqTALibNotFound: 'TA-Lib not found during build',
+    faqTALibNotFound: 'TA-Lib not found',
     faqTALibNotFoundAnswer:
       'TA-Lib is required for technical indicators. Install: macOS: "brew install ta-lib"; Ubuntu/Debian: "sudo apt-get install libta-lib0-dev"; CentOS: "yum install ta-lib-devel". After installing, rebuild: "go build -o oko". Docker images include TA-Lib pre-installed.',
 
-    faqAIAPITimeout: 'AI API timeout or connection refused',
+    faqAIAPITimeout: 'AI API timeout',
     faqAIAPITimeoutAnswer:
       'Check: 1) API key is valid (test with curl); 2) Network can reach API endpoint (ping/curl); 3) API provider is not down (check status page); 4) VPN/firewall not blocking; 5) Rate limits not exceeded. Default timeout is 120 seconds.',
 
-    faqBinancePositionMode: 'Binance error code -4061 (Position Mode)',
+    faqBinancePositionMode: 'Binance error -4061',
     faqBinancePositionModeAnswer:
       'Error: "Order\'s position side does not match user\'s setting". You\'re in One-way Mode but OKO requires Hedge Mode. Fix: 1) Close ALL positions first; 2) Binance Futures → Settings (gear icon) → Preferences → Position Mode → Switch to "Hedge Mode"; 3) Restart your trader.',
 
-    faqBalanceShowsZero: 'Account balance shows 0',
+    faqBalanceShowsZero: 'Balance shows zero',
     faqBalanceShowsZeroAnswer:
       'Funds are likely in Spot wallet, not Futures wallet. Solution: 1) In Binance, go to Wallet → Futures → Transfer; 2) Transfer USDT from Spot to Futures; 3) Refresh OKO dashboard. Also check: funds not locked in savings/staking products.',
 
-    faqDockerPullFailed: 'Docker image pull failed or slow',
+    faqDockerPullFailed: 'Docker pull failed',
     faqDockerPullFailedAnswer:
       'Docker Hub can be slow in some regions. Solutions: 1) Configure a Docker mirror in /etc/docker/daemon.json: {"registry-mirrors": ["https://mirror.gcr.io"]}; 2) Restart Docker; 3) Retry pull. Alternatively, use GitHub Container Registry (ghcr.io) which may have better connectivity in your region.',
 
     // ===== SECURITY =====
-    faqAPIKeyStorage: 'How are API keys stored?',
+    faqAPIKeyStorage: 'API key storage',
     faqAPIKeyStorageAnswer:
       'API keys are encrypted using AES-256-GCM before storage. Keys are decrypted only in memory when needed for API calls.',
 
-    faqEncryptionDetails: 'What encryption does OKO use?',
+    faqEncryptionDetails: 'Encryption details',
     faqEncryptionDetailsAnswer:
       'OKO uses multiple encryption layers: 1) AES-256-GCM for database storage (API keys, secrets); 2) RSA-2048 for optional transport encryption (browser to server); 3) JWT for authentication tokens. Keys are generated during installation. Enable TRANSPORT_ENCRYPTION=true for HTTPS environments.',
 
-    faqSecurityBestPractices: 'What are security best practices?',
+    faqSecurityBestPractices: 'Security best practices',
     faqSecurityBestPracticesAnswer:
       'Recommended: 1) Use exchange API keys with IP whitelist and minimal permissions (Futures Trading only); 2) Use dedicated subaccount for OKO; 3) Enable TRANSPORT_ENCRYPTION for remote deployments; 4) Never share .env or data.db files; 5) Use HTTPS with valid certificates; 6) Regularly rotate API keys; 7) Monitor account activity.',
 
-    faqCanOKOStealFunds: 'Can OKO steal my funds?',
+    faqCanOKOStealFunds: 'Can OKO steal funds?',
     faqCanOKOStealFundsAnswer:
       'OKO is open-source (AGPL-3.0 license) - you can audit all code on GitHub. API keys are stored locally on YOUR machine, never sent to external servers. OKO only has the permissions you grant via API keys. For maximum safety: use API keys with trading-only permissions (no withdrawal), enable IP whitelist, use a dedicated subaccount.',
 
     // ===== FEATURES =====
-    faqStrategyStudio: 'What is Strategy Studio?',
+    faqStrategyStudio: 'Strategy Studio',
     faqStrategyStudioAnswer:
       'Strategy Studio is a visual strategy builder where you configure: 1) Coin Sources - which cryptocurrencies to trade (static list, AI500 top coins, OI ranking); 2) Technical Indicators - EMA, MACD, RSI, ATR, Volume, Open Interest, Funding Rate; 3) Risk Controls - leverage limits, position sizing, margin caps; 4) Custom Prompts - specific instructions for AI. No coding required.',
 
-    faqBacktestLab: 'What is Backtest Lab?',
+    faqBacktestLab: 'Backtest Lab',
     faqBacktestLabAnswer:
       'Backtest Lab tests your strategy against historical data without risking real funds. Features: 1) Configure AI model, date range, initial balance; 2) Watch real-time progress with equity curve; 3) View metrics: Return %, Max Drawdown, Sharpe Ratio, Win Rate; 4) Analyze individual trades and AI reasoning. Essential for validating strategies before live trading.',
 
-    faqDebateArena: 'What is Debate Arena?',
+    faqDebateArena: 'Debate Arena',
     faqDebateArenaAnswer:
       'Debate Arena lets multiple AI models debate trading decisions before execution. Setup: 1) Choose 2-5 AI models; 2) Assign personalities (Bull, Bear, Analyst, Contrarian, Risk Manager); 3) Watch them debate in rounds; 4) Final decision based on consensus voting. Useful for high-conviction trades where you want multiple perspectives.',
 
-    faqCompetitionMode: 'What is Competition Mode?',
+    faqCompetitionMode: 'Competition Mode',
     faqCompetitionModeAnswer:
       'Competition page shows a real-time leaderboard of all your traders. Compare: ROI, P&L, Sharpe ratio, win rate, number of trades. Use this to A/B test different AI models, strategies, or configurations. Traders can be marked as "Show in Competition" to appear on the leaderboard.',
 
-    faqChainOfThought: 'What is Chain of Thought (CoT)?',
+    faqChainOfThought: 'Chain of Thought (CoT)',
     faqChainOfThoughtAnswer:
       "Chain of Thought is the AI's reasoning process, visible in decision logs. The AI explains its thinking in 4 steps: 1) Current position analysis; 2) Account risk assessment; 3) Market opportunity evaluation; 4) Final decision rationale. This transparency helps you understand WHY the AI made each decision, useful for improving strategies.",
 
     // ===== AI MODELS =====
-    faqWhichAIModelBest: 'Which AI model should I use?',
+    faqWhichAIModelBest: 'Best AI model to use',
     faqWhichAIModelBestAnswer:
       'Recommended: DeepSeek for best cost/performance ratio ($0.10-0.50/day). Alternatives: OpenAI for best reasoning but expensive ($2-5/day); Claude for nuanced analysis; Qwen for competitive pricing. You can run multiple traders with different models to compare. Check the Competition page to see which performs best for your strategy.',
 
-    faqCustomAIAPI: 'Can I use a custom AI API?',
+    faqCustomAIAPI: 'Custom AI API support',
     faqCustomAIAPIAnswer:
       'Yes! OKO supports any OpenAI-compatible API. In Config → AI Models → Custom API: 1) Enter your API endpoint URL (e.g., https://your-api.com/v1); 2) Enter API key; 3) Specify model name. This works with self-hosted models, alternative providers, or Claude via third-party proxies.',
 
-    faqAIHallucinations: 'What about AI hallucinations?',
+    faqAIHallucinations: 'AI hallucinations',
     faqAIHallucinationsAnswer:
       'AI models can sometimes produce incorrect or fabricated information ("hallucinations"). OKO mitigates this by: 1) Providing structured prompts with real market data; 2) Enforcing JSON output format for decisions; 3) Validating orders before execution. However, AI trading is experimental - always monitor decisions and don\'t rely solely on AI judgment.',
 
-    faqCompareAIModels: 'How do I compare different AI models?',
+    faqCompareAIModels: 'Comparing AI models',
     faqCompareAIModelsAnswer:
       'Create multiple traders with different AI models but same strategy/exchange. Run them simultaneously and compare on Competition page. Metrics to watch: ROI, win rate, Sharpe ratio, max drawdown. Alternatively, use Backtest Lab to test models against same historical data. The Debate Arena also shows how different models reason about the same situation.',
 
     // ===== CONTRIBUTING =====
-    faqHowToContribute: 'How can I contribute to OKO?',
+    faqHowToContribute: 'How to contribute',
     faqHowToContributeAnswer:
       'OKO is open-source and welcomes contributions! Ways to contribute: 1) Code - fix bugs, add features (check GitHub Issues); 2) Documentation - improve guides, translate; 3) Bug Reports - report issues with details; 4) Feature Ideas - suggest improvements. Start with issues labeled "good first issue". All contributors may receive airdrop rewards.',
 
-    faqPRGuidelines: 'What are the PR guidelines?',
+    faqPRGuidelines: 'PR guidelines',
     faqPRGuidelinesAnswer:
       'PR Process: 1) Fork repo to your account; 2) Create feature branch from dev: "git checkout -b feat/your-feature"; 3) Make changes, run lint: "npm --prefix web run lint"; 4) Commit with Conventional Commits format; 5) Push and create PR to oko-trading/okotrading:dev; 6) Reference related issue (Closes #123); 7) Wait for review. Keep PRs small and focused.',
 
-    faqBountyProgram: 'Is there a bounty program?',
+    faqBountyProgram: 'Bounty program',
     faqBountyProgramAnswer:
       'Yes! Contributors receive airdrop rewards based on contributions: Code commits (highest weight), bug fixes, feature suggestions, documentation. Issues with "bounty" label have cash rewards. After completing work, submit a Bounty Claim. Check CONTRIBUTING.md for details on the reward structure.',
 
-    faqReportBugs: 'How do I report bugs?',
+    faqReportBugs: 'Reporting bugs',
     faqReportBugsAnswer:
       'For bugs: Open a GitHub Issue with: 1) Clear description of the problem; 2) Steps to reproduce; 3) Expected vs actual behavior; 4) System info (OS, Docker version, browser); 5) Relevant logs. For SECURITY vulnerabilities: Do NOT open public issues - DM @Web3Tinkle on Twitter instead.',
 
