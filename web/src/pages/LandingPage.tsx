@@ -583,20 +583,24 @@ export function LandingPage() {
   const sortedAssets = useMemo(() => {
     if (!balances?.assets?.length) return []
     return [...balances.assets]
-      .filter((a) => parseFloat(a.balanceUsd || '0') >= 5)
-      .sort((a, b) => parseFloat(b.balanceUsd || '0') - parseFloat(a.balanceUsd || '0'))
+      .sort((a, b) => {
+        const valueDifference = parseFloat(b.balanceUsd || '0') - parseFloat(a.balanceUsd || '0')
+        if (valueDifference !== 0) return valueDifference
+        return (a.tokenName || a.tokenSymbol).localeCompare(b.tokenName || b.tokenSymbol)
+      })
   }, [balances])
 
   const groupedAssets = useMemo(() => {
-    return sortedAssets.reduce<{ chain: string; items: WalletTokenBalance[] }[]>((acc, item) => {
-      const last = acc[acc.length - 1]
-      if (last && last.chain === item.blockchain) {
-        last.items.push(item)
+    const groups = new Map<string, WalletTokenBalance[]>()
+    for (const item of sortedAssets) {
+      const items = groups.get(item.blockchain)
+      if (items) {
+        items.push(item)
       } else {
-        acc.push({ chain: item.blockchain, items: [item] })
+        groups.set(item.blockchain, [item])
       }
-      return acc
-    }, [])
+    }
+    return Array.from(groups, ([chain, items]) => ({ chain, items }))
   }, [sortedAssets])
 
   const copyMessage = useCallback(async (id: string, content: string) => {
@@ -946,12 +950,14 @@ export function LandingPage() {
                               <div className="flex-1 min-w-0">
                                 <div className="text-xs font-medium truncate" style={{ color: 'var(--text-primary)' }}>{asset.tokenName || asset.tokenSymbol}</div>
                                 <div className="text-[10px]" style={{ color: 'var(--text-secondary)' }}>
-                                  {asset.balance} {asset.tokenSymbol}
+                                  {parseFloat(asset.balance || '0').toLocaleString(undefined, { maximumFractionDigits: 4 })} {asset.tokenSymbol}
                                 </div>
                               </div>
                               <div className="text-right shrink-0">
                                 <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                  ${parseFloat(asset.balanceUsd || '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  {parseFloat(asset.tokenPrice || '0') > 0
+                                    ? `$${parseFloat(asset.balanceUsd || '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                                    : '-'}
                                 </div>
                               </div>
                             </div>

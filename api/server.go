@@ -65,6 +65,43 @@ type walletBalanceCacheEntry struct {
 	expires time.Time
 }
 
+func getWalletBalances(address string, isSolana bool) (*wallet.AccountBalanceResult, error) {
+	walletBalanceCacheMu.RLock()
+	if entry, ok := walletBalanceCache[address]; ok && time.Now().Before(entry.expires) {
+		walletBalanceCacheMu.RUnlock()
+		return entry.data, nil
+	}
+	walletBalanceCacheMu.RUnlock()
+
+	cfg := config.Get()
+	var result *wallet.AccountBalanceResult
+	var err error
+
+	if isSolana {
+		if cfg.HeliusAPIKey == "" {
+			return nil, fmt.Errorf("HELIUS_API_KEY not configured")
+		}
+		result, err = wallet.NewHeliusClient(cfg.HeliusAPIKey).GetAccountBalance(address)
+	} else {
+		if cfg.AlchemyAPIKeys == "" {
+			return nil, fmt.Errorf("ALCHEMY_API_KEY not configured")
+		}
+		result, err = wallet.NewAlchemyClient(cfg.AlchemyAPIKeys).GetAccountBalance(address)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	walletBalanceCacheMu.Lock()
+	walletBalanceCache[address] = walletBalanceCacheEntry{
+		data:    result,
+		expires: time.Now().Add(walletBalanceTTL),
+	}
+	walletBalanceCacheMu.Unlock()
+
+	return result, nil
+}
+
 // NewServer Creates API server
 func NewServer(traderManager *manager.TraderManager, st *store.Store, cryptoService *crypto.CryptoService, backtestManager *backtest.Manager, port int) *Server {
 	// Set to Release mode (reduce log output)
@@ -281,7 +318,7 @@ func (s *Server) handleGetSystemConfig(c *gin.Context) {
 	})
 }
 
-// handleWalletBalances returns token balances for a wallet address (proxied via Ankr)
+// handleWalletBalances returns token balances for a wallet address.
 func (s *Server) handleWalletBalances(c *gin.Context) {
 	address := strings.TrimSpace(c.Param("address"))
 	if address == "" {
@@ -297,50 +334,11 @@ func (s *Server) handleWalletBalances(c *gin.Context) {
 		return
 	}
 
-	// Check cache
-	walletBalanceCacheMu.RLock()
-	if entry, ok := walletBalanceCache[address]; ok && time.Now().Before(entry.expires) {
-		walletBalanceCacheMu.RUnlock()
-		c.JSON(http.StatusOK, gin.H{
-			"assets":          entry.data.Assets,
-			"totalBalanceUsd": entry.data.TotalBalanceUsd,
-		})
-		return
-	}
-	walletBalanceCacheMu.RUnlock()
-
-	cfg := config.Get()
-	var result *wallet.AccountBalanceResult
-	var err error
-
-	if isSolana {
-		if cfg.HeliusAPIKey == "" {
-			SafeInternalError(c, "solana balance service", fmt.Errorf("HELIUS_API_KEY not configured"))
-			return
-		}
-		hClient := wallet.NewHeliusClient(cfg.HeliusAPIKey)
-		result, err = hClient.GetAccountBalance(address)
-	} else {
-		if cfg.AnkrAPIToken == "" {
-			SafeInternalError(c, "wallet balance service", fmt.Errorf("ANKR_API_TOKEN not configured"))
-			return
-		}
-		aClient := wallet.NewAnkrClient(cfg.AnkrAPIToken)
-		result, err = aClient.GetAccountBalance(address, wallet.EVMChains())
-	}
-
+	result, err := getWalletBalances(address, isSolana)
 	if err != nil {
 		SafeInternalError(c, "fetch wallet balances", err)
 		return
 	}
-
-	// Cache result
-	walletBalanceCacheMu.Lock()
-	walletBalanceCache[address] = walletBalanceCacheEntry{
-		data:    result,
-		expires: time.Now().Add(walletBalanceTTL),
-	}
-	walletBalanceCacheMu.Unlock()
 
 	c.JSON(http.StatusOK, gin.H{
 		"assets":          result.Assets,
@@ -364,43 +362,10 @@ func (s *Server) handleWalletAnalyze(c *gin.Context) {
 		return
 	}
 
-	// Fetch balances (cache first, then provider)
-	var result *wallet.AccountBalanceResult
-	walletBalanceCacheMu.RLock()
-	if entry, ok := walletBalanceCache[address]; ok && time.Now().Before(entry.expires) {
-		result = entry.data
-		walletBalanceCacheMu.RUnlock()
-	} else {
-		walletBalanceCacheMu.RUnlock()
-		cfg := config.Get()
-		var err error
-
-		if isSolana {
-			if cfg.HeliusAPIKey == "" {
-				SafeInternalError(c, "solana balance service", fmt.Errorf("HELIUS_API_KEY not configured"))
-				return
-			}
-			hClient := wallet.NewHeliusClient(cfg.HeliusAPIKey)
-			result, err = hClient.GetAccountBalance(address)
-		} else {
-			if cfg.AnkrAPIToken == "" {
-				SafeInternalError(c, "wallet balance service", fmt.Errorf("ANKR_API_TOKEN not configured"))
-				return
-			}
-			aClient := wallet.NewAnkrClient(cfg.AnkrAPIToken)
-			result, err = aClient.GetAccountBalance(address, wallet.EVMChains())
-		}
-
-		if err != nil {
-			SafeInternalError(c, "fetch wallet balances", err)
-			return
-		}
-		walletBalanceCacheMu.Lock()
-		walletBalanceCache[address] = walletBalanceCacheEntry{
-			data:    result,
-			expires: time.Now().Add(walletBalanceTTL),
-		}
-		walletBalanceCacheMu.Unlock()
+	result, err := getWalletBalances(address, isSolana)
+	if err != nil {
+		SafeInternalError(c, "fetch wallet balances", err)
+		return
 	}
 
 	// CoinGecko enrichment (24h/7d/30d change, market cap)
@@ -498,41 +463,10 @@ func (s *Server) handleWalletChat(c *gin.Context) {
 
 	cfg := config.Get()
 
-	// Fetch balances (cache first)
-	var result *wallet.AccountBalanceResult
-	walletBalanceCacheMu.RLock()
-	if entry, ok := walletBalanceCache[address]; ok && time.Now().Before(entry.expires) {
-		result = entry.data
-		walletBalanceCacheMu.RUnlock()
-	} else {
-		walletBalanceCacheMu.RUnlock()
-		cfg := config.Get()
-		var err error
-		if isSolana {
-			if cfg.HeliusAPIKey == "" {
-				SafeInternalError(c, "solana balance service", fmt.Errorf("HELIUS_API_KEY not configured"))
-				return
-			}
-			hClient := wallet.NewHeliusClient(cfg.HeliusAPIKey)
-			result, err = hClient.GetAccountBalance(address)
-		} else {
-			if cfg.AnkrAPIToken == "" {
-				SafeInternalError(c, "wallet balance service", fmt.Errorf("ANKR_API_TOKEN not configured"))
-				return
-			}
-			aClient := wallet.NewAnkrClient(cfg.AnkrAPIToken)
-			result, err = aClient.GetAccountBalance(address, wallet.EVMChains())
-		}
-		if err != nil {
-			SafeInternalError(c, "fetch wallet balances", err)
-			return
-		}
-		walletBalanceCacheMu.Lock()
-		walletBalanceCache[address] = walletBalanceCacheEntry{
-			data:    result,
-			expires: time.Now().Add(walletBalanceTTL),
-		}
-		walletBalanceCacheMu.Unlock()
+	result, err := getWalletBalances(address, isSolana)
+	if err != nil {
+		SafeInternalError(c, "fetch wallet balances", err)
+		return
 	}
 
 	// CoinGecko enrichment (cache may have raw data)

@@ -42,7 +42,7 @@ type Config struct {
 	ExperienceImprovement bool
 
 	// Wallet balance APIs (for AI Wallet Analyzer)
-	AnkrAPIToken    string // Ankr Advanced API for EVM chains
+	AlchemyAPIKeys  string // Comma-separated Alchemy Portfolio API keys for EVM chains
 	HeliusAPIKey    string // Helius API for Solana
 	SolanaRPCURL    string // Solana RPC URL for server-side token balance lookups
 	CoinGeckoAPIKey string // CoinGecko API for price stats (24h/7d/30d change, market cap)
@@ -136,7 +136,7 @@ func Init() {
 	}
 
 	// Wallet balance APIs
-	cfg.AnkrAPIToken = strings.TrimSpace(os.Getenv("ANKR_API_TOKEN"))
+	cfg.AlchemyAPIKeys = strings.TrimSpace(os.Getenv("ALCHEMY_API_KEY"))
 	cfg.HeliusAPIKey = strings.TrimSpace(os.Getenv("HELIUS_API_KEY"))
 	cfg.SolanaRPCURL = strings.TrimSpace(os.Getenv("SOLANA_RPC_URL"))
 	cfg.CoinGeckoAPIKey = strings.TrimSpace(os.Getenv("COINGECKO_API_KEY"))

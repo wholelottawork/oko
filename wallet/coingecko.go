@@ -239,6 +239,11 @@ func EnrichWithCoinGecko(result *AccountBalanceResult, apiKey string) {
 	byChain := make(map[string][]*TokenBalance)
 	for _, a := range assets {
 		chain := strings.ToLower(a.Blockchain)
+		// Robinhood Chain prices come from Alchemy Portfolio. CoinGecko does
+		// not currently expose a matching platform identifier for this chain.
+		if chain == "robinhood" {
+			continue
+		}
 		byChain[chain] = append(byChain[chain], a)
 	}
 

@@ -828,7 +828,7 @@ export interface GridRiskInfo {
   breakout_direction: string
 }
 
-// Wallet Analyzer (Ankr API)
+// Wallet Analyzer
 export interface WalletTokenBalance {
   tokenName: string
   tokenSymbol: string

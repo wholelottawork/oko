@@ -20,7 +20,7 @@ Structure your response with these sections (use clear headers like "## Portfoli
 
 2. **Concentration & Allocation**: Which tokens dominate? What % of the portfolio is in top 3 holdings? Is there excessive concentration in a single asset?
 
-3. **Chain Diversification**: How spread across chains (Ethereum, BSC, Polygon, Arbitrum, Base, Optimism)? Is exposure balanced or concentrated on one chain?
+3. **Chain Diversification**: How spread across chains (Ethereum, Base, Robinhood Chain, Solana)? Is exposure balanced or concentrated on one chain?
 
 4. **Notable Holdings**: Highlight significant positions (large value or unusual tokens). Flag dust/small positions that may not be worth holding.
 
@@ -85,44 +85,66 @@ func buildUserPrompt(balances *AccountBalanceResult, address string) string {
 	totalUsd, _ := strconv.ParseFloat(balances.TotalBalanceUsd, 64)
 
 	assets := make([]TokenBalance, 0, len(balances.Assets))
+	valuedCount := 0
+	unpricedCount := 0
+	dustCount := 0
 	for _, a := range balances.Assets {
 		v, _ := strconv.ParseFloat(a.BalanceUsd, 64)
-		if v >= minTokenValueUsd {
+		price, _ := strconv.ParseFloat(a.TokenPrice, 64)
+		if price <= 0 {
 			assets = append(assets, a)
+			unpricedCount++
+		} else if v >= minTokenValueUsd {
+			assets = append(assets, a)
+			valuedCount++
+		} else {
+			dustCount++
 		}
 	}
 
-	sort.Slice(assets, func(i, j int) bool {
+	sort.SliceStable(assets, func(i, j int) bool {
 		vi, _ := strconv.ParseFloat(assets[i].BalanceUsd, 64)
 		vj, _ := strconv.ParseFloat(assets[j].BalanceUsd, 64)
 		return vi > vj
 	})
 
-	dustCount := len(balances.Assets) - len(assets)
-
 	b.WriteString(fmt.Sprintf("Wallet: %s\n", address))
 	b.WriteString(fmt.Sprintf("Total Value: $%s\n", balances.TotalBalanceUsd))
-	b.WriteString(fmt.Sprintf("Tokens above $%.0f: %d\n", minTokenValueUsd, len(assets)))
+	b.WriteString(fmt.Sprintf("Tokens included: %d (%d valued above $%.0f, %d without price data)\n",
+		len(assets), valuedCount, minTokenValueUsd, unpricedCount))
 	if dustCount > 0 {
 		b.WriteString(fmt.Sprintf("Dust positions (<$%.0f): %d tokens excluded\n", minTokenValueUsd, dustCount))
 	}
-	b.WriteString("\nTokens (sorted by USD value):\n")
+	b.WriteString("\nTokens (priced holdings first, then unpriced holdings):\n")
 
 	for i, a := range assets {
 		balUsd, _ := strconv.ParseFloat(a.BalanceUsd, 64)
+		price, _ := strconv.ParseFloat(a.TokenPrice, 64)
 		pct := 0.0
 		if totalUsd > 0 {
 			pct = (balUsd / totalUsd) * 100
 		}
-		line := fmt.Sprintf("%d. %s (%s) - $%s (%.1f%%) - %s - Price: $%s",
-			i+1,
-			a.TokenName,
-			a.TokenSymbol,
-			a.BalanceUsd,
-			pct,
-			a.Blockchain,
-			a.TokenPrice,
-		)
+		var line string
+		if price > 0 {
+			line = fmt.Sprintf("%d. %s (%s) - $%s (%.1f%%) - %s - Balance: %s - Price: $%s",
+				i+1,
+				a.TokenName,
+				a.TokenSymbol,
+				a.BalanceUsd,
+				pct,
+				a.Blockchain,
+				a.Balance,
+				a.TokenPrice,
+			)
+		} else {
+			line = fmt.Sprintf("%d. %s (%s) - %s - Balance: %s - Price/value unavailable",
+				i+1,
+				a.TokenName,
+				a.TokenSymbol,
+				a.Blockchain,
+				a.Balance,
+			)
+		}
 		if a.Change24h != nil || a.Change7d != nil || a.Change30d != nil || a.MarketCap != nil {
 			stats := []string{}
 			if a.Change24h != nil {
