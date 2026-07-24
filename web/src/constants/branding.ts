@@ -7,8 +7,8 @@ const _e = (s: string) => btoa(s)
 
 // Encoded official links - tampering will break functionality
 const ENCODED_LINKS = {
-  twitter: 'aHR0cHM6Ly94LmNvbS9va29hZ2VudA==',
-  telegram: 'aHR0cHM6Ly90Lm1lL29rb2FnZW50X2NoYW5uZWw=',
+  twitter: 'aHR0cHM6Ly94LmNvbS9Pa29Qcm90b2NvbA==',
+  telegram: 'aHR0cHM6Ly90Lm1lL29rb3Byb3RvY29sb25jaGFpbg==',
   github: 'aHR0cHM6Ly9naXRodWIuY29tL29rby10cmFkaW5nL29rb3RyYWRpbmc=',
 }
 
@@ -40,8 +40,8 @@ function getVerifiedLink(key: keyof typeof ENCODED_LINKS): string {
   } catch {
     // Fallback to hardcoded values if decoding fails
     const fallbacks: Record<string, string> = {
-      twitter: '',
-      telegram: 'https://t.me/okoagent_channel',
+      twitter: 'https://x.com/OkoProtocol',
+      telegram: 'https://t.me/okoprotocolonchain',
       github: 'https://github.com/oko-trading/okotrading',
     }
     return fallbacks[key] || ''
