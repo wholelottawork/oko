@@ -24,11 +24,12 @@ var alchemyNetworks = []string{"robinhood-mainnet", "eth-mainnet", "base-mainnet
 var globalAlchemyKeySequence atomic.Uint64
 
 type AlchemyClient struct {
-	client        *http.Client
-	apiKeys       []string
-	baseURL       string
-	pricesBaseURL string
-	nextKey       *atomic.Uint64
+	client               *http.Client
+	apiKeys              []string
+	baseURL              string
+	pricesBaseURL        string
+	geckoTerminalBaseURL string
+	nextKey              *atomic.Uint64
 }
 
 func NewAlchemyClient(apiKeys string) *AlchemyClient {
@@ -47,11 +48,12 @@ func newAlchemyClient(apiKeys, baseURL string, client *http.Client) *AlchemyClie
 	}
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &AlchemyClient{
-		client:        client,
-		apiKeys:       parseAlchemyAPIKeys(apiKeys),
-		baseURL:       baseURL,
-		pricesBaseURL: alchemyPricesBaseURL(baseURL),
-		nextKey:       &atomic.Uint64{},
+		client:               client,
+		apiKeys:              parseAlchemyAPIKeys(apiKeys),
+		baseURL:              baseURL,
+		pricesBaseURL:        alchemyPricesBaseURL(baseURL),
+		geckoTerminalBaseURL: geckoTerminalAPIBaseURL,
+		nextKey:              &atomic.Uint64{},
 	}
 }
 
@@ -188,6 +190,14 @@ func (c *AlchemyClient) GetAccountBalance(address string) (*AccountBalanceResult
 	}
 
 	totalBalanceUSD += c.backfillMissingNativePrices(assets)
+	geckoResult := backfillRobinhoodTokenPrices(c.client, c.geckoTerminalBaseURL, assets)
+	totalBalanceUSD += geckoResult.AddedTotalUSD
+	var removedTotalUSD float64
+	assets, removedTotalUSD = removeWalletDust(assets, geckoResult.CheckedAddresses)
+	totalBalanceUSD -= removedTotalUSD
+	if totalBalanceUSD < 0 {
+		totalBalanceUSD = 0
+	}
 
 	return &AccountBalanceResult{
 		Assets:          assets,

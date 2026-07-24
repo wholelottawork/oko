@@ -953,13 +953,13 @@ export function LandingPage() {
                                   {parseFloat(asset.balance || '0').toLocaleString(undefined, { maximumFractionDigits: 4 })} {asset.tokenSymbol}
                                 </div>
                               </div>
-                              <div className="text-right shrink-0">
-                                <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                                  {parseFloat(asset.tokenPrice || '0') > 0
-                                    ? `$${parseFloat(asset.balanceUsd || '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-                                    : '-'}
+                              {parseFloat(asset.tokenPrice || '0') > 0 && (
+                                <div className="text-right shrink-0">
+                                  <div className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
+                                    ${parseFloat(asset.balanceUsd || '0').toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </div>
                                 </div>
-                              </div>
+                              )}
                             </div>
                           ))}
                         </div>

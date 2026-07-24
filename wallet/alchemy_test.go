@@ -129,8 +129,8 @@ func TestAlchemyGetAccountBalanceFiltersNormalizesAndStopsAfterTwoPages(t *testi
 	if result.TotalBalanceUsd != "2016.00" {
 		t.Fatalf("total USD = %q, want 2016.00", result.TotalBalanceUsd)
 	}
-	if len(result.Assets) != 5 {
-		t.Fatalf("asset count = %d, want 5: %#v", len(result.Assets), result.Assets)
+	if len(result.Assets) != 4 {
+		t.Fatalf("asset count = %d, want 4: %#v", len(result.Assets), result.Assets)
 	}
 
 	native := result.Assets[0]
@@ -145,17 +145,12 @@ func TestAlchemyGetAccountBalanceFiltersNormalizesAndStopsAfterTwoPages(t *testi
 		t.Errorf("unexpected Robinhood asset: %#v", robinhood)
 	}
 
-	dust := result.Assets[2]
-	if dust.TokenSymbol != "DUST" || dust.Balance != "0.000001" || dust.BalanceUsd != "0.00" {
-		t.Errorf("unexpected dust asset: %#v", dust)
-	}
-
-	unpriced := result.Assets[3]
+	unpriced := result.Assets[2]
 	if unpriced.TokenSymbol != "ZERO" || unpriced.TokenPrice != "0" || unpriced.BalanceUsd != "0.00" {
 		t.Errorf("unexpected unpriced asset: %#v", unpriced)
 	}
 
-	base := result.Assets[4]
+	base := result.Assets[3]
 	if base.Balance != "3" || base.BalanceUsd != "6.00" || base.Blockchain != "base" {
 		t.Errorf("unexpected Base asset: %#v", base)
 	}
