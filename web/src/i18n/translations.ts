@@ -298,6 +298,10 @@ export const translations = {
     dashboardEmptyDescription:
       'Create your first AI trader to automate your trading strategy. Connect an exchange, choose an AI model, and start trading in minutes!',
     goToTradersPage: 'Create Your First Trader',
+    traderIdleTitle: 'This trader is not running',
+    traderIdleDescription:
+      'Live account, positions and decisions are only available while the trader is running. Start it from the AI Traders page - if it refuses to start, the message there explains what to fix.',
+    manageTraders: 'Manage Traders',
     configureModelsFirst: 'Please configure AI models first',
     configureExchangesFirst: 'Please configure exchanges first',
     configureModelsAndExchangesFirst:

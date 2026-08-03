@@ -103,8 +103,15 @@ export function TraderConfigModal({
 
   useEffect(() => {
     if (traderData) {
+      // Traders created from the default provider list store the bare provider
+      // ("grok") while model rows are keyed "<userId>_grok". Resolve it so the
+      // select shows the current model instead of an empty value.
+      const matchedModel =
+        availableModels.find((m) => m.id === traderData.ai_model) ||
+        availableModels.find((m) => m.provider === traderData.ai_model)
       setFormData({
         ...traderData,
+        ai_model: matchedModel?.id || traderData.ai_model,
         strategy_id: traderData.strategy_id || '',
       })
     } else if (!isEditMode) {
@@ -136,14 +143,16 @@ export function TraderConfigModal({
     setBalanceFetchError('')
 
     try {
-      const result = await httpClient.get<{
-        total_equity?: number
-        balance?: number
-      }>(`/api/account?trader_id=${traderData.trader_id}`)
+      // Use sync-balance, not /api/account: it queries the exchange from the
+      // stored config, so it works for traders that are not loaded in memory
+      // (a trader with initial_balance 0 never loads, which is when this
+      // button matters most).
+      const result = await httpClient.post<{
+        new_balance?: number
+      }>(`/api/traders/${traderData.trader_id}/sync-balance`)
 
       if (result.success && result.data) {
-        const currentBalance =
-          result.data.total_equity || result.data.balance || 0
+        const currentBalance = result.data.new_balance || 0
         setFormData((prev) => ({ ...prev, initial_balance: currentBalance }))
         toast.success(t('balanceFetched', language))
       } else {
@@ -151,7 +160,9 @@ export function TraderConfigModal({
       }
     } catch (error) {
       console.error(t('balanceFetchFailed', language) + ':', error)
-       setBalanceFetchError(t('balanceFetchNetworkError', language))
+      setBalanceFetchError(
+        (error as Error)?.message || t('balanceFetchNetworkError', language)
+      )
     } finally {
       setIsFetchingBalance(false)
     }
@@ -177,12 +188,10 @@ export function TraderConfigModal({
         saveData.initial_balance = formData.initial_balance
       }
 
-      await toast.promise(onSave(saveData), {
-        loading: t('saving', language),
-        success: t('saveSuccess', language),
-        error: t('saveFailed', language),
-      })
-      onClose()
+      // No toast here - the caller owns the create/update toast and closes the
+      // modal once the refreshed trader list is in cache. Toasting in both
+      // places produced a duplicate "saved successfully" / "trader created".
+      await onSave(saveData)
     } catch (error) {
        console.error(t('saveFailed', language) + ':', error)
     } finally {

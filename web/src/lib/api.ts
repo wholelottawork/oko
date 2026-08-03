@@ -38,6 +38,11 @@ import { apiUrl } from './config'
 
 export const API_BASE = '/api'
 
+// Reads the dashboard polls on a timer. They 404 whenever the trader is not
+// loaded in memory (stopped, or failed to load), which is a normal state - the
+// page renders its own notice instead of a toast per endpoint per interval.
+const SILENT_POLL = { silent: true } as const
+
 export interface WalletChatSwapIntent {
   action: string
   fromToken: string
@@ -199,25 +204,25 @@ export const api = {
       `${API_BASE}/traders`,
       request
     )
-    if (!result.success) throw new Error('')
+    if (!result.success) throw new Error(result.message || '')
     return result.data!
   },
 
   async deleteTrader(traderId: string): Promise<void> {
     const result = await httpClient.delete(`${API_BASE}/traders/${traderId}`)
-    if (!result.success) throw new Error('')
+    if (!result.success) throw new Error(result.message || '')
   },
 
   async startTrader(traderId: string): Promise<void> {
     const result = await httpClient.post(
       `${API_BASE}/traders/${traderId}/start`
     )
-    if (!result.success) throw new Error('')
+    if (!result.success) throw new Error(result.message || '')
   },
 
   async stopTrader(traderId: string): Promise<void> {
     const result = await httpClient.post(`${API_BASE}/traders/${traderId}/stop`)
-    if (!result.success) throw new Error('')
+    if (!result.success) throw new Error(result.message || '')
   },
 
   async toggleCompetition(
@@ -228,7 +233,7 @@ export const api = {
       `${API_BASE}/traders/${traderId}/competition`,
       { show_in_competition: showInCompetition }
     )
-    if (!result.success) throw new Error('')
+    if (!result.success) throw new Error(result.message || '')
   },
 
   async closePosition(
@@ -271,7 +276,7 @@ export const api = {
       `${API_BASE}/traders/${traderId}`,
       request
     )
-    if (!result.success) throw new Error('')
+    if (!result.success) throw new Error(result.message || '')
     return result.data!
   },
 
@@ -464,7 +469,9 @@ export const api = {
     const url = traderId
       ? `${API_BASE}/status?trader_id=${traderId}`
       : `${API_BASE}/status`
-    const result = await httpClient.get<SystemStatus>(url)
+    // Polled by the dashboard - stay silent so a stopped trader does not
+    // produce a toast per endpoint per refresh (see SILENT_POLL).
+    const result = await httpClient.get<SystemStatus>(url, undefined, undefined, SILENT_POLL)
     if (!result.success) throw new Error('')
     return result.data!
   },
@@ -474,7 +481,7 @@ export const api = {
     const url = traderId
       ? `${API_BASE}/account?trader_id=${traderId}`
       : `${API_BASE}/account`
-    const result = await httpClient.get<AccountInfo>(url)
+    const result = await httpClient.get<AccountInfo>(url, undefined, undefined, SILENT_POLL)
     if (!result.success) throw new Error('')
     console.log('Account data fetched:', result.data)
     return result.data!
@@ -485,7 +492,7 @@ export const api = {
     const url = traderId
       ? `${API_BASE}/positions?trader_id=${traderId}`
       : `${API_BASE}/positions`
-    const result = await httpClient.get<Position[]>(url)
+    const result = await httpClient.get<Position[]>(url, undefined, undefined, SILENT_POLL)
     if (!result.success) throw new Error('')
     return result.data!
   },
@@ -512,7 +519,10 @@ export const api = {
     params.append('limit', limit.toString())
 
     const result = await httpClient.get<DecisionRecord[]>(
-      `${API_BASE}/decisions/latest?${params}`
+      `${API_BASE}/decisions/latest?${params}`,
+      undefined,
+      undefined,
+      SILENT_POLL
     )
     if (!result.success) throw new Error('')
     return result.data!
@@ -523,7 +533,7 @@ export const api = {
     const url = traderId
       ? `${API_BASE}/statistics?trader_id=${traderId}`
       : `${API_BASE}/statistics`
-    const result = await httpClient.get<Statistics>(url)
+    const result = await httpClient.get<Statistics>(url, undefined, undefined, SILENT_POLL)
     if (!result.success) throw new Error('')
     return result.data!
   },

@@ -815,6 +815,26 @@ type UpdateExchangeConfigRequest struct {
 	} `json:"exchanges"`
 }
 
+// resolveAIModelID maps a model identifier the UI may send (either a real
+// ai_models row ID or a bare provider name like "grok") to the row ID actually
+// stored for this user. Returns modelID unchanged when nothing matches.
+func (s *Server) resolveAIModelID(userID, modelID string) string {
+	if model, err := s.store.AIModel().Get(userID, modelID); err == nil {
+		return model.ID
+	}
+	provider := strings.ToLower(strings.TrimSpace(modelID))
+	models, err := s.store.AIModel().List(userID)
+	if err != nil {
+		return modelID
+	}
+	for _, model := range models {
+		if strings.ToLower(strings.TrimSpace(model.Provider)) == provider {
+			return model.ID
+		}
+	}
+	return modelID
+}
+
 // handleCreateTrader Create new AI trader
 func (s *Server) handleCreateTrader(c *gin.Context) {
 	userID := c.GetString("user_id")
@@ -1014,6 +1034,12 @@ func (s *Server) handleCreateTrader(c *gin.Context) {
 		}
 	}
 
+	// Store the canonical model row ID, not the provider name the UI sent.
+	// AIModelStore.Update creates rows keyed "<userID>_<provider>", so persisting
+	// the raw provider ("grok") leaves the trader pointing at a row that does not
+	// exist and breaks config lookups and the edit form.
+	req.AIModelID = s.resolveAIModelID(userID, req.AIModelID)
+
 	// Create trader configuration (database entity)
 	logger.Infof("🔧 DEBUG: Starting to create trader config, ID=%s, Name=%s, AIModel=%s, Exchange=%s, StrategyID=%s", traderID, req.Name, req.AIModelID, req.ExchangeID, req.StrategyID)
 	traderRecord := &store.Trader{
@@ -1165,7 +1191,7 @@ func (s *Server) handleUpdateTrader(c *gin.Context) {
 		ID:                   traderID,
 		UserID:               userID,
 		Name:                 req.Name,
-		AIModelID:            req.AIModelID,
+		AIModelID:            s.resolveAIModelID(userID, req.AIModelID),
 		ExchangeID:           req.ExchangeID,
 		StrategyID:           strategyID, // Associated strategy ID
 		InitialBalance:       req.InitialBalance,
@@ -1267,7 +1293,8 @@ func (s *Server) handleStartTrader(c *gin.Context) {
 	// Verify trader belongs to current user
 	_, err := s.store.Trader().GetFullConfig(userID, traderID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": "Trader does not exist or no access permission"})
+		logger.Infof("❌ Cannot start trader %s: %v", traderID, err)
+		c.JSON(http.StatusNotFound, gin.H{"error": "Trader config incomplete or no access permission: " + err.Error()})
 		return
 	}
 
@@ -1322,8 +1349,10 @@ func (s *Server) handleStartTrader(c *gin.Context) {
 			}
 		}
 		// Check if there's a specific load error
+		// Use 400 (not 500) - these are configuration problems the user can fix,
+		// and the frontend only surfaces the message for business errors.
 		if loadErr := s.traderManager.GetLoadError(traderID); loadErr != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to load trader: " + loadErr.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to load trader: " + loadErr.Error()})
 			return
 		}
 		c.JSON(http.StatusNotFound, gin.H{"error": "Failed to load trader, please check AI model, exchange and strategy configuration"})
@@ -1337,6 +1366,16 @@ func (s *Server) handleStartTrader(c *gin.Context) {
 			logger.Infof("❌ Trader %s runtime error: %v", trader.GetName(), err)
 		}
 	}()
+
+	// Run() sets is_running as its first statement, but it runs on a new
+	// goroutine that may not be scheduled before we reply. Wait briefly so the
+	// trader list the UI refetches right after this call reports the new state.
+	for i := 0; i < 50; i++ {
+		if running, ok := trader.GetStatus()["is_running"].(bool); ok && running {
+			break
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
 
 	// Update running status in database
 	err = s.store.Trader().UpdateStatus(userID, traderID, true)
@@ -1584,14 +1623,22 @@ func (s *Server) handleSyncBalance(c *gin.Context) {
 		}
 	}
 	if actualBalance <= 0 {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get total equity"})
+		// Not a server fault - the exchange account is empty (or reports no
+		// equity field). 400 so the frontend surfaces the message instead of
+		// showing a generic "Server Error".
+		logger.Infof("⚠️ Exchange reported no usable equity for trader %s: %v", traderID, balanceInfo)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Exchange reports zero balance - fund the account or enter the initial balance manually"})
 		return
 	}
 
 	oldBalance := traderConfig.InitialBalance
 
 	// ✅ Option C: Smart balance change detection
-	changePercent := ((actualBalance - oldBalance) / oldBalance) * 100
+	// Guard against oldBalance 0 - the division yields +Inf, which fails JSON encoding.
+	changePercent := 0.0
+	if oldBalance > 0 {
+		changePercent = ((actualBalance - oldBalance) / oldBalance) * 100
+	}
 	changeType := "increase"
 	if changePercent < 0 {
 		changeType = "decrease"
@@ -1998,6 +2045,22 @@ func getSideFromAction(action string) string {
 	}
 }
 
+// defaultModelCatalog is the built-in list of AI providers the system knows about.
+// Order defines the order they appear in the UI.
+var defaultModelCatalog = []struct {
+	ID       string
+	Name     string
+	Provider string
+}{
+	{"deepseek", "DeepSeek AI", "deepseek"},
+	{"qwen", "Qwen AI", "qwen"},
+	{"openai", "OpenAI", "openai"},
+	{"claude", "Claude AI", "claude"},
+	{"gemini", "Gemini AI", "gemini"},
+	{"grok", "Grok AI", "grok"},
+	{"kimi", "Kimi AI", "kimi"},
+}
+
 // handleGetModelConfigs Get AI model configurations
 func (s *Server) handleGetModelConfigs(c *gin.Context) {
 	userID := c.GetString("user_id")
@@ -2009,33 +2072,19 @@ func (s *Server) handleGetModelConfigs(c *gin.Context) {
 		return
 	}
 
-	// If no models in database, return default models
-	if len(models) == 0 {
-		logger.Infof("⚠️ No AI models in database, returning defaults")
-		cfg := config.Get()
-		defaultModels := []SafeModelConfig{
-			{ID: "deepseek", Name: "DeepSeek AI", Provider: "deepseek", Enabled: cfg.GetSystemAPIKey("deepseek") != "", HasSystemKey: cfg.GetSystemAPIKey("deepseek") != ""},
-			{ID: "qwen", Name: "Qwen AI", Provider: "qwen", Enabled: cfg.GetSystemAPIKey("qwen") != "", HasSystemKey: cfg.GetSystemAPIKey("qwen") != ""},
-			{ID: "openai", Name: "OpenAI", Provider: "openai", Enabled: cfg.GetSystemAPIKey("openai") != "", HasSystemKey: cfg.GetSystemAPIKey("openai") != ""},
-			{ID: "claude", Name: "Claude AI", Provider: "claude", Enabled: cfg.GetSystemAPIKey("claude") != "", HasSystemKey: cfg.GetSystemAPIKey("claude") != ""},
-			{ID: "gemini", Name: "Gemini AI", Provider: "gemini", Enabled: cfg.GetSystemAPIKey("gemini") != "", HasSystemKey: cfg.GetSystemAPIKey("gemini") != ""},
-			{ID: "grok", Name: "Grok AI", Provider: "grok", Enabled: cfg.GetSystemAPIKey("grok") != "", HasSystemKey: cfg.GetSystemAPIKey("grok") != ""},
-			{ID: "kimi", Name: "Kimi AI", Provider: "kimi", Enabled: cfg.GetSystemAPIKey("kimi") != "", HasSystemKey: cfg.GetSystemAPIKey("kimi") != ""},
-		}
-		c.JSON(http.StatusOK, defaultModels)
-		return
-	}
-
 	logger.Infof("✅ Found %d AI model configs", len(models))
 
 	// Convert to safe response structure, remove sensitive information
 	cfg := config.Get()
-	safeModels := make([]SafeModelConfig, len(models))
-	for i, model := range models {
-		hasSystemKey := cfg.GetSystemAPIKey(model.Provider) != ""
+	safeModels := make([]SafeModelConfig, 0, len(models)+len(defaultModelCatalog))
+	userProviders := make(map[string]bool, len(models))
+	for _, model := range models {
+		provider := strings.ToLower(strings.TrimSpace(model.Provider))
+		userProviders[provider] = true
+		hasSystemKey := cfg.GetSystemAPIKey(provider) != ""
 		// Model is usable if user has key OR system has key
 		enabled := model.Enabled || (hasSystemKey && strings.TrimSpace(string(model.APIKey)) == "")
-		safeModels[i] = SafeModelConfig{
+		safeModels = append(safeModels, SafeModelConfig{
 			ID:              model.ID,
 			Name:            model.Name,
 			Provider:        model.Provider,
@@ -2043,7 +2092,29 @@ func (s *Server) handleGetModelConfigs(c *gin.Context) {
 			CustomAPIURL:    model.CustomAPIURL,
 			CustomModelName: model.CustomModelName,
 			HasSystemKey:    hasSystemKey,
+		})
+	}
+
+	// Always expose providers backed by a system API key, even when the user has
+	// their own model configs saved. The DB row is created on first use
+	// (see trader/debate creation), so a synthetic entry keyed by provider is safe.
+	// When the user has no models at all, also list the remaining providers so the
+	// Config page still offers something to set up.
+	for _, def := range defaultModelCatalog {
+		if userProviders[def.Provider] {
+			continue
 		}
+		hasSystemKey := cfg.GetSystemAPIKey(def.Provider) != ""
+		if !hasSystemKey && len(models) > 0 {
+			continue
+		}
+		safeModels = append(safeModels, SafeModelConfig{
+			ID:           def.ID,
+			Name:         def.Name,
+			Provider:     def.Provider,
+			Enabled:      hasSystemKey,
+			HasSystemKey: hasSystemKey,
+		})
 	}
 
 	c.JSON(http.StatusOK, safeModels)

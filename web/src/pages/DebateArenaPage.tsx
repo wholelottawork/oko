@@ -43,7 +43,9 @@ const T: Record<string, string> = {
   offline: 'Offline',
   noTraders: 'No traders',
   start: 'Start',
+  stop: 'Stop',
   delete: 'Delete',
+  confirmDeleteRunning: 'This debate is still running. Delete it anyway?',
   discussionRecords: 'Discussion',
   finalVotes: 'Final Votes',
   consensus: 'Consensus',
@@ -650,7 +652,14 @@ export function DebateArenaPage() {
     mutateList(); mutateDetail()
   }
 
-  const onDelete = async (id: string) => {
+  const onCancel = async (id: string) => {
+    await api.cancelDebate(id)
+    notify.success('Debate stopped')
+    mutateList(); mutateDetail()
+  }
+
+  const onDelete = async (id: string, status?: string) => {
+    if ((status === 'running' || status === 'voting') && !window.confirm(t('confirmDeleteRunning'))) return
     await api.deleteDebate(id)
     notify.success('Debate deleted')
     if (selectedId === id) setSelectedId(null)
@@ -708,11 +717,17 @@ export function DebateArenaPage() {
                 <span className="text-sm text-[var(--text-primary)] truncate flex-1">{d.name}</span>
               </div>
               <div className="text-xs text-[var(--text-secondary)] mt-1">{d.symbol} · R{d.current_round}/{d.max_rounds}</div>
-              {d.status === 'pending' && selectedId === d.id && (
+              {selectedId === d.id && (
                 <div className="flex gap-1 mt-1">
-                  <button onClick={e => { e.stopPropagation(); onStart(d.id) }}
-                    className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">{t('start')}</button>
-                  <button onClick={e => { e.stopPropagation(); onDelete(d.id) }}
+                  {d.status === 'pending' && (
+                    <button onClick={e => { e.stopPropagation(); onStart(d.id) }}
+                      className="text-xs px-2 py-0.5 bg-green-500/20 text-green-400 rounded">{t('start')}</button>
+                  )}
+                  {(d.status === 'running' || d.status === 'voting') && (
+                    <button onClick={e => { e.stopPropagation(); onCancel(d.id) }}
+                      className="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-400 rounded">{t('stop')}</button>
+                  )}
+                  <button onClick={e => { e.stopPropagation(); onDelete(d.id, d.status) }}
                     className="text-xs px-2 py-0.5 bg-red-500/20 text-red-400 rounded">{t('delete')}</button>
                 </div>
               )}

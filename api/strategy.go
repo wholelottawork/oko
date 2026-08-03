@@ -589,10 +589,15 @@ func (s *Server) runRealAITest(userID, modelID, systemPrompt, userPrompt string)
 	// Get AI model configuration
 	model, err := s.store.AIModel().Get(userID, modelID)
 	if err != nil {
-		return "", fmt.Errorf("failed to get AI model: %w", err)
+		// Fallback: model selected from the system list without a DB record yet
+		model = s.fallbackModelFromID(modelID)
+		if model == nil {
+			return "", fmt.Errorf("failed to get AI model: %w", err)
+		}
 	}
 
-	if !model.Enabled {
+	hasSystemKey := config.Get().GetSystemAPIKey(strings.ToLower(strings.TrimSpace(model.Provider))) != ""
+	if !model.Enabled && !(hasSystemKey && strings.TrimSpace(string(model.APIKey)) == "") {
 		return "", fmt.Errorf("AI model %s is not enabled", model.Name)
 	}
 

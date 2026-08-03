@@ -9,7 +9,12 @@
  * - Automatic 401 token expiration handling
  */
 
-import axios, { AxiosInstance, AxiosError, AxiosResponse } from 'axios'
+import axios, {
+  AxiosInstance,
+  AxiosError,
+  AxiosResponse,
+  InternalAxiosRequestConfig,
+} from 'axios'
 import { toast } from 'sonner'
 
 /**
@@ -20,6 +25,13 @@ export interface ApiResponse<T = any> {
   data?: T
   message?: string
 }
+
+/**
+ * Axios config carrying our own `silent` flag - errors reject as usual but are
+ * not toasted. For polled/background reads where the caller renders its own
+ * empty or error state.
+ */
+type SilentRequestConfig = InternalAxiosRequestConfig & { silent?: boolean }
 
 /**
  * HTTP Client Class
@@ -88,18 +100,26 @@ export class HttpClient {
    * Only business errors are returned to caller
    */
   private async handleError(error: AxiosError): Promise<any> {
+    // Requests marked silent still reject - they just don't toast. Used by the
+    // dashboard's polling reads, which would otherwise fire a toast per endpoint
+    // per refresh interval when a trader is stopped.
+    const isSilent = (error.config as SilentRequestConfig | undefined)?.silent === true
+
     // Network error (no response from server)
     if (!error.response) {
-      toast.error('Network error - Please check your connection', {
-        description: 'Unable to reach the server',
-      })
+      if (!isSilent) {
+        toast.error('Network error - Please check your connection', {
+          description: 'Unable to reach the server',
+        })
+      }
       throw new Error('Network error')
     }
 
-    const { status } = error.response as AxiosResponse<{
+    const { status, data } = error.response as AxiosResponse<{
       error?: string
       message?: string
     }>
+    const serverMessage = data?.error || data?.message
 
     // Handle 401 Unauthorized
     if (status === 401) {
@@ -135,26 +155,48 @@ export class HttpClient {
 
     // Handle 403 Forbidden - system error
     if (status === 403) {
-      toast.error('Permission Denied', {
-        description: 'You do not have permission to access this resource',
-      })
+      if (!isSilent) {
+        toast.error('Permission Denied', {
+          description: 'You do not have permission to access this resource',
+        })
+      }
       throw new Error('Permission denied')
     }
 
-    // Handle 404 Not Found - system error
+    // Handle 404 Not Found
+    // Handlers also use 404 for "resource missing" with a real message - show that
+    // instead of the misleading "endpoint does not exist" text.
+    // Dashboard endpoints are polled on an interval, so key the toast by
+    // method+url: repeated failures replace one toast instead of stacking.
     if (status === 404) {
-      toast.error('API Not Found', {
-        description: 'The requested endpoint does not exist (404)',
-      })
+      const toastId = `404:${error.config?.method}:${error.config?.url}`
+      if (serverMessage) {
+        if (!isSilent) {
+          toast.error('Not Found', { id: toastId, description: serverMessage })
+        }
+        throw new Error(serverMessage)
+      }
+      if (!isSilent) {
+        toast.error('API Not Found', {
+          id: toastId,
+          description: 'The requested endpoint does not exist (404)',
+        })
+      }
       throw new Error('API not found')
     }
 
     // Handle 500+ Server Error - system error
+    // The backend sanitizes 500 bodies (see api/errors.go SafeInternalError), so
+    // showing the message is safe and far more useful than a generic string.
     if (status >= 500) {
-      toast.error('Server Error', {
-        description: 'Please try again later or contact support',
-      })
-      throw new Error('Server error')
+      const toastId = `5xx:${error.config?.method}:${error.config?.url}`
+      if (!isSilent) {
+        toast.error('Server Error', {
+          id: toastId,
+          description: serverMessage || 'Please try again later or contact support',
+        })
+      }
+      throw new Error(serverMessage || 'Server error')
     }
 
     // 4xx errors (except 401/403/404) are business logic errors
@@ -174,6 +216,7 @@ export class HttpClient {
       data?: any
       params?: any
       headers?: Record<string, string>
+      silent?: boolean
     } = {}
   ): Promise<ApiResponse<T>> {
     try {
@@ -183,7 +226,8 @@ export class HttpClient {
         data: options.data,
         params: options.params,
         headers: options.headers,
-      })
+        silent: options.silent,
+      } as SilentRequestConfig)
 
       // Success
       return {
@@ -213,9 +257,15 @@ export class HttpClient {
   async get<T = any>(
     url: string,
     params?: any,
-    headers?: Record<string, string>
+    headers?: Record<string, string>,
+    options?: { silent?: boolean }
   ): Promise<ApiResponse<T>> {
-    return this.request<T>(url, { method: 'GET', params, headers })
+    return this.request<T>(url, {
+      method: 'GET',
+      params,
+      headers,
+      silent: options?.silent,
+    })
   }
 
   /**

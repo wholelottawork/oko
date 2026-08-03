@@ -348,17 +348,25 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
         return
       }
 
-      await toast.promise(api.createTrader(data), {
+      // Keep the toast in its loading state until the refreshed list contains
+      // the new trader, so the modal never closes onto a stale list.
+      const task = (async () => {
+        await api.createTrader(data)
+        await mutateTraders()
+      })()
+
+      toast.promise(task, {
         loading: 'Creating trader...',
         success: 'Trader created',
-        error: 'Failed to create trader',
+        error: (err: Error) => err?.message || t('createTraderFailed', language),
       })
+
+      await task
       setShowCreateModal(false)
-      // Immediately refresh traders list for better UX
-      await mutateTraders()
     } catch (error) {
+      // Already surfaced by the toast above - keep the modal open so the user
+      // can correct the input.
       console.error('Failed to create trader:', error)
-      toast.error(t('createTraderFailed', language))
     }
   }
 
@@ -378,7 +386,11 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
     if (!editingTrader) return
 
     try {
-      const model = enabledModels?.find((m) => m.id === data.ai_model_id)
+      // Older traders store the bare provider ("grok") as ai_model_id while the
+      // model row is keyed "<userId>_grok", so match on provider as a fallback.
+      const model =
+        enabledModels?.find((m) => m.id === data.ai_model_id) ||
+        enabledModels?.find((m) => m.provider === data.ai_model_id)
       const exchange = enabledExchanges?.find((e) => e.id === data.exchange_id)
 
       if (!model) {
@@ -393,7 +405,7 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
 
       const request = {
         name: data.name,
-        ai_model_id: data.ai_model_id,
+        ai_model_id: model.id, // normalize legacy provider IDs to the real row ID
         exchange_id: data.exchange_id,
         strategy_id: data.strategy_id,
         initial_balance: data.initial_balance,
@@ -406,18 +418,23 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       console.log('🔥 handleSaveEditTrader - data.strategy_id:', data.strategy_id)
       console.log('🔥 handleSaveEditTrader - request:', request)
 
-      await toast.promise(api.updateTrader(editingTrader.trader_id, request), {
+      const task = (async () => {
+        await api.updateTrader(editingTrader.trader_id, request)
+        await mutateTraders()
+      })()
+
+      toast.promise(task, {
         loading: 'Updating trader...',
         success: 'Trader updated',
-        error: 'Failed to update trader',
+        error: (err: Error) => err?.message || t('updateTraderFailed', language),
       })
+
+      await task
       setShowEditModal(false)
       setEditingTrader(null)
-      // Immediately refresh traders list for better UX
-      await mutateTraders()
     } catch (error) {
+      // Already surfaced by the toast - leave the modal open to retry.
       console.error('Failed to update trader:', error)
-      toast.error(t('updateTraderFailed', language))
     }
   }
 
@@ -427,59 +444,102 @@ export function AITradersPage({ onTraderSelect }: AITradersPageProps) {
       if (!ok) return
     }
 
-    try {
-      await toast.promise(api.deleteTrader(traderId), {
-        loading: 'Deleting trader...',
-        success: 'Trader deleted',
-        error: 'Failed to delete trader',
-      })
+    // Drop the row immediately, restore it if the delete fails.
+    const task = mutateTraders(
+      async () => {
+        await api.deleteTrader(traderId)
+        return api.getTraders()
+      },
+      {
+        optimisticData: (list: TraderInfo[] = []) =>
+          list.filter((tr) => tr.trader_id !== traderId),
+        rollbackOnError: true,
+        revalidate: false,
+        populateCache: true,
+      }
+    )
 
-      // Immediately refresh traders list for better UX
-      await mutateTraders()
+    toast.promise(task, {
+      loading: 'Deleting trader...',
+      success: 'Trader deleted',
+      error: (err: Error) => err?.message || t('deleteTraderFailed', language),
+    })
+
+    try {
+      await task
     } catch (error) {
       console.error('Failed to delete trader:', error)
-      toast.error(t('deleteTraderFailed', language))
     }
   }
 
   const handleToggleTrader = async (traderId: string, running: boolean) => {
-    try {
-      if (running) {
-        await toast.promise(api.stopTrader(traderId), {
-          loading: 'Stopping trader...',
-          success: 'Trader stopped',
-          error: 'Failed to stop trader',
-        })
-      } else {
-        await toast.promise(api.startTrader(traderId), {
-          loading: 'Starting trader...',
-          success: 'Trader started',
-          error: 'Failed to start trader',
-        })
+    // One promise covers the request AND the refetch, so the toast only reports
+    // success once the list actually shows the new status. The optimistic flip
+    // updates the badge on click and rolls back if the request fails.
+    const task = mutateTraders(
+      async () => {
+        if (running) {
+          await api.stopTrader(traderId)
+        } else {
+          await api.startTrader(traderId)
+        }
+        return api.getTraders()
+      },
+      {
+        optimisticData: (list: TraderInfo[] = []) =>
+          list.map((tr) =>
+            tr.trader_id === traderId ? { ...tr, is_running: !running } : tr
+          ),
+        rollbackOnError: true,
+        revalidate: false,
+        populateCache: true,
       }
+    )
 
-      // Immediately refresh traders list to update running status
-      await mutateTraders()
+    toast.promise(task, {
+      loading: running ? 'Stopping trader...' : 'Starting trader...',
+      success: running ? 'Trader stopped' : 'Trader started',
+      error: (err: Error) => err?.message || t('operationFailed', language),
+    })
+
+    try {
+      await task
     } catch (error) {
       console.error('Failed to toggle trader:', error)
-      toast.error(t('operationFailed', language))
     }
   }
 
   const handleToggleCompetition = async (traderId: string, currentShowInCompetition: boolean) => {
-    try {
-      const newValue = !currentShowInCompetition
-      await toast.promise(api.toggleCompetition(traderId, newValue), {
-        loading: 'Updating competition visibility...',
-        success: newValue ? 'Trader is visible in competition' : 'Trader is hidden from competition',
-        error: 'Failed to update competition visibility',
-      })
+    const newValue = !currentShowInCompetition
 
-      // Immediately refresh traders list to update status
-      await mutateTraders()
+    const task = mutateTraders(
+      async () => {
+        await api.toggleCompetition(traderId, newValue)
+        return api.getTraders()
+      },
+      {
+        optimisticData: (list: TraderInfo[] = []) =>
+          list.map((tr) =>
+            tr.trader_id === traderId
+              ? { ...tr, show_in_competition: newValue }
+              : tr
+          ),
+        rollbackOnError: true,
+        revalidate: false,
+        populateCache: true,
+      }
+    )
+
+    toast.promise(task, {
+      loading: 'Updating competition visibility...',
+      success: newValue ? 'Trader is visible in competition' : 'Trader is hidden from competition',
+      error: (err: Error) => err?.message || t('operationFailed', language),
+    })
+
+    try {
+      await task
     } catch (error) {
       console.error('Failed to toggle competition visibility:', error)
-      toast.error(t('operationFailed', language))
     }
   }
 

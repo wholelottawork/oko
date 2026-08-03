@@ -31,6 +31,11 @@ type DebateEngine struct {
 	clients       map[string]mcp.AIClient
 	clientsMu     sync.RWMutex
 
+	// Sessions that have been cancelled or deleted while running.
+	// The running goroutine checks this to stop early.
+	cancelled   map[string]struct{}
+	cancelledMu sync.RWMutex
+
 	// Event callbacks for SSE streaming
 	OnRoundStart func(sessionID string, round int)
 	OnMessage    func(sessionID string, msg *store.DebateMessage)
@@ -47,6 +52,7 @@ func NewDebateEngine(debateStore *store.DebateStore, strategyStore *store.Strate
 		strategyStore: strategyStore,
 		aiModelStore:  aiModelStore,
 		clients:       make(map[string]mcp.AIClient),
+		cancelled:     make(map[string]struct{}),
 	}
 
 	// Cleanup stale running/voting debates on startup
@@ -153,6 +159,9 @@ func (e *DebateEngine) StartDebate(sessionID string) error {
 		return fmt.Errorf("failed to parse strategy config: %w", err)
 	}
 
+	// Clear any stale cancellation flag from a previous run
+	e.clearCancelled(sessionID)
+
 	// Update status to running
 	if err := e.debateStore.UpdateSessionStatus(sessionID, store.DebateStatusRunning); err != nil {
 		return fmt.Errorf("failed to update status: %w", err)
@@ -166,6 +175,7 @@ func (e *DebateEngine) StartDebate(sessionID string) error {
 
 // runDebate runs the actual debate rounds
 func (e *DebateEngine) runDebate(session *store.DebateSessionWithDetails, strategyConfig *store.StrategyConfig) {
+	defer e.clearCancelled(session.ID)
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Errorf("Debate panic recovered: %v", r)
@@ -178,6 +188,11 @@ func (e *DebateEngine) runDebate(session *store.DebateSessionWithDetails, strate
 
 	// Create strategy engine for building context
 	strategyEngine := kernel.NewStrategyEngine(strategyConfig)
+
+	if e.isCancelled(session.ID) {
+		logger.Infof("[Debate] Session %s cancelled before start, aborting", session.ID)
+		return
+	}
 
 	// Build market context using strategy config
 	ctx, err := e.buildMarketContext(session, strategyEngine)
@@ -199,6 +214,11 @@ func (e *DebateEngine) runDebate(session *store.DebateSessionWithDetails, strate
 	// Run debate rounds
 	var allMessages []*store.DebateMessage
 	for round := 1; round <= session.MaxRounds; round++ {
+		if e.isCancelled(session.ID) {
+			logger.Infof("[Debate] Session %s cancelled, stopping at round %d", session.ID, round)
+			return
+		}
+
 		logger.Infof("Starting debate round %d/%d for session %s", round, session.MaxRounds, session.ID)
 
 		if e.OnRoundStart != nil {
@@ -209,6 +229,11 @@ func (e *DebateEngine) runDebate(session *store.DebateSessionWithDetails, strate
 
 		// Get response from each participant
 		for i, participant := range session.Participants {
+			if e.isCancelled(session.ID) {
+				logger.Infof("[Debate] Session %s cancelled, stopping mid-round %d", session.ID, round)
+				return
+			}
+
 			logger.Infof("[Debate] Round %d - Getting response from participant %d/%d: %s (%s)",
 				round, i+1, len(session.Participants), participant.AIModelName, participant.Provider)
 
@@ -232,6 +257,11 @@ func (e *DebateEngine) runDebate(session *store.DebateSessionWithDetails, strate
 			logger.Infof("[Debate] Got response from %s: %d chars, action=%s, confidence=%d%%",
 				participant.AIModelName, len(msg.Content), msg.Decision.Action, msg.Confidence)
 
+			if e.isCancelled(session.ID) {
+				logger.Infof("[Debate] Session %s cancelled, discarding response from %s", session.ID, participant.AIModelName)
+				return
+			}
+
 			// Save message
 			if err := e.debateStore.AddMessage(msg); err != nil {
 				logger.Errorf("Failed to save message: %v", err)
@@ -250,6 +280,11 @@ func (e *DebateEngine) runDebate(session *store.DebateSessionWithDetails, strate
 	}
 
 	// Voting phase
+	if e.isCancelled(session.ID) {
+		logger.Infof("[Debate] Session %s cancelled, skipping voting phase", session.ID)
+		return
+	}
+
 	logger.Infof("Starting voting phase for session %s", session.ID)
 	e.debateStore.UpdateSessionStatus(session.ID, store.DebateStatusVoting)
 
@@ -286,6 +321,11 @@ func (e *DebateEngine) runDebate(session *store.DebateSessionWithDetails, strate
 	// Store both single and multi-coin decisions
 	session.FinalDecision = primaryConsensus
 	session.FinalDecisions = allDecisions
+
+	if e.isCancelled(session.ID) {
+		logger.Infof("[Debate] Session %s cancelled, discarding consensus", session.ID)
+		return
+	}
 
 	// Update session with final decisions
 	e.debateStore.UpdateSessionFinalDecisions(session.ID, primaryConsensus, allDecisions)
@@ -565,10 +605,20 @@ func (e *DebateEngine) collectVotes(session *store.DebateSessionWithDetails, str
 	baseSystemPrompt := strategyEngine.BuildSystemPrompt(1000.0, session.PromptVariant)
 
 	for _, participant := range session.Participants {
+		if e.isCancelled(session.ID) {
+			logger.Infof("[Debate] Session %s cancelled, stopping vote collection", session.ID)
+			return votes, nil
+		}
+
 		vote, err := e.getParticipantVote(session, participant, baseSystemPrompt, allMessages)
 		if err != nil {
 			logger.Errorf("Failed to get vote from %s: %v", participant.AIModelName, err)
 			continue
+		}
+
+		if e.isCancelled(session.ID) {
+			logger.Infof("[Debate] Session %s cancelled, discarding vote from %s", session.ID, participant.AIModelName)
+			return votes, nil
 		}
 
 		if err := e.debateStore.AddVote(vote); err != nil {
@@ -942,9 +992,38 @@ func (e *DebateEngine) determineMultiCoinConsensus(votes []*store.DebateVote) []
 	return results
 }
 
+// markCancelled flags a session so the running goroutine stops at the next checkpoint
+func (e *DebateEngine) markCancelled(sessionID string) {
+	e.cancelledMu.Lock()
+	e.cancelled[sessionID] = struct{}{}
+	e.cancelledMu.Unlock()
+}
+
+// clearCancelled removes the cancellation flag for a session
+func (e *DebateEngine) clearCancelled(sessionID string) {
+	e.cancelledMu.Lock()
+	delete(e.cancelled, sessionID)
+	e.cancelledMu.Unlock()
+}
+
+// isCancelled reports whether the session was cancelled or deleted while running
+func (e *DebateEngine) isCancelled(sessionID string) bool {
+	e.cancelledMu.RLock()
+	_, ok := e.cancelled[sessionID]
+	e.cancelledMu.RUnlock()
+	return ok
+}
+
 // CancelDebate cancels a running debate
 func (e *DebateEngine) CancelDebate(sessionID string) error {
+	e.markCancelled(sessionID)
 	return e.debateStore.UpdateSessionStatus(sessionID, store.DebateStatusCancelled)
+}
+
+// AbortDebate stops a running debate without touching its stored status.
+// Used before deleting a session so the goroutine does not resurrect rows.
+func (e *DebateEngine) AbortDebate(sessionID string) {
+	e.markCancelled(sessionID)
 }
 
 // ExecuteConsensus executes the consensus decision from a completed debate

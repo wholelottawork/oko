@@ -332,9 +332,49 @@ export function TraderDashboardPage({
     )
   }
 
+  // A trader that is not loaded in memory (stopped, or failed to load) 404s on
+  // every polled endpoint. Those requests are silent by design, so state it once
+  // here instead of leaving the page looking merely empty.
+  // Gate on is_running (known immediately from the trader list) so a running
+  // trader never flashes the banner while its first poll is in flight.
+  const liveDataUnavailable =
+    !selectedTrader.is_running && !status && !account
+
   return (
     <DeepVoidBackground className="min-h-screen pb-12" disableAnimation>
       <div className="w-full px-4 md:px-8 relative z-10 pt-6">
+        {liveDataUnavailable && (
+          <div
+            className="mb-6 rounded-lg p-4 flex flex-col sm:flex-row sm:items-center gap-3 justify-between oko-glass"
+            style={{
+              background: 'var(--binance-red-bg)',
+              border: '1px solid var(--binance-red)',
+            }}
+          >
+            <div>
+              <p
+                className="text-sm font-semibold"
+                style={{ color: 'var(--binance-red)' }}
+              >
+                {t('traderIdleTitle', language)}
+              </p>
+              <p className="text-xs mt-1" style={{ color: 'var(--text-secondary)' }}>
+                {t('traderIdleDescription', language)}
+              </p>
+            </div>
+            <button
+              onClick={onNavigateToTraders}
+              className="text-xs font-semibold px-3 py-2 rounded-md whitespace-nowrap"
+              style={{
+                background: 'var(--accent-primary)',
+                color: 'black',
+              }}
+            >
+              {t('manageTraders', language)}
+            </button>
+          </div>
+        )}
+
         {/* Trader Header */}
         <div
           className="mb-6 rounded-lg p-6 animate-scale-in oko-glass group"

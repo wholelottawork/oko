@@ -172,7 +172,12 @@ func (s *TraderStore) GetFullConfig(userID, traderID string) (*TraderFullConfig,
 	var aiModel AIModel
 	err = s.db.Where("id = ? AND user_id = ?", trader.AIModelID, userID).First(&aiModel).Error
 	if err != nil {
-		return nil, fmt.Errorf("failed to get AI model: %w", err)
+		// Fallback: traders created from the default provider list store the provider
+		// (e.g. "grok") as ai_model_id, while the DB row is keyed "<userID>_grok".
+		// Same fallback as TraderManager.LoadUserTradersFromStore.
+		if provErr := s.db.Where("provider = ? AND user_id = ?", trader.AIModelID, userID).First(&aiModel).Error; provErr != nil {
+			return nil, fmt.Errorf("failed to get AI model: %w", err)
+		}
 	}
 
 	// Get exchange

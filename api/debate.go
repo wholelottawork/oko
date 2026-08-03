@@ -361,11 +361,11 @@ func (h *DebateHandler) HandleDeleteDebate(c *gin.Context) {
 		return
 	}
 
-	// Don't allow deleting running debates
-	if session.Status == store.DebateStatusRunning || session.Status == store.DebateStatusVoting {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "cannot delete running debate"})
-		return
-	}
+	// Stop the running goroutine first so it can't write rows back after deletion
+	h.engine.AbortDebate(debateID)
+
+	// Drop any SSE subscribers for this debate
+	h.closeSubscribers(debateID)
 
 	if err := h.debateStore.DeleteSession(debateID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete debate"})
@@ -467,7 +467,11 @@ func (h *DebateHandler) HandleDebateStream(c *gin.Context) {
 		select {
 		case <-clientGone:
 			return
-		case msg := <-ch:
+		case msg, ok := <-ch:
+			if !ok {
+				// Debate was deleted, stream is closed
+				return
+			}
 			c.Writer.Write(msg)
 			c.Writer.Flush()
 		}
@@ -602,6 +606,21 @@ func (h *DebateHandler) removeSubscriber(sessionID string, ch chan []byte) {
 
 	if h.subscribers[sessionID] != nil {
 		delete(h.subscribers[sessionID], ch)
+		close(ch)
+	}
+}
+
+// closeSubscribers drops all SSE subscribers for a session (used when the debate is deleted)
+func (h *DebateHandler) closeSubscribers(sessionID string) {
+	h.subscribersMu.Lock()
+	defer h.subscribersMu.Unlock()
+
+	subs := h.subscribers[sessionID]
+	if subs == nil {
+		return
+	}
+	delete(h.subscribers, sessionID)
+	for ch := range subs {
 		close(ch)
 	}
 }
