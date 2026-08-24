@@ -4,6 +4,15 @@ import { useAppKitAccount } from '@reown/appkit/react'
 import { SwapCard, type SwapIntent } from './SwapCard'
 import { UPGRADE_SUPPORTED_CHAINS } from '../lib/upgradeConfig'
 
+// UPGRADE_SUPPORTED_CHAINS (upgradeConfig.ts) is EVM-only. Since the whole
+// point of this card post-migration is bridging *into* Solana to reach
+// $OKO, add Solana as a selectable chain here rather than in the shared
+// EVM chain list.
+const BRIDGE_CHAINS = [
+  ...UPGRADE_SUPPORTED_CHAINS,
+  { id: 'solana-mainnet-beta', label: 'Solana' },
+] as const
+
 interface UpgradeBridgeCardProps {
   eligible: boolean
   language?: 'en' | 'zh'
@@ -11,8 +20,8 @@ interface UpgradeBridgeCardProps {
 
 export function UpgradeBridgeCard({ eligible, language = 'en' }: UpgradeBridgeCardProps) {
   const { address } = useAppKitAccount()
-  const [fromChain, setFromChain] = useState('8453')
-  const [toChain, setToChain] = useState('42161')
+  const [fromChain, setFromChain] = useState('solana-mainnet-beta')
+  const [toChain, setToChain] = useState('1')
   const [fromToken, setFromToken] = useState('USDC')
   const [toToken, setToToken] = useState('USDC')
   const [amount, setAmount] = useState('100')
@@ -43,7 +52,7 @@ export function UpgradeBridgeCard({ eligible, language = 'en' }: UpgradeBridgeCa
         route: 'Load route',
         locked: 'Unlocks at 150,000 OKO',
         connectHint: 'Use the page-level Connect wallet button above to activate bridge execution.',
-        note: 'This panel reuses the live Squid execution path already used by the app.',
+        note: 'This panel reuses the live Mayan Finance execution path already used by the app, across EVM and Solana alike.',
       }
 
   return (
@@ -82,14 +91,14 @@ export function UpgradeBridgeCard({ eligible, language = 'en' }: UpgradeBridgeCa
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label={t.from}>
           <select value={fromChain} onChange={(e) => setFromChain(e.target.value)} className="upgrade-select">
-            {UPGRADE_SUPPORTED_CHAINS.map((chain) => (
+            {BRIDGE_CHAINS.map((chain) => (
               <option key={chain.id} value={chain.id}>{chain.label}</option>
             ))}
           </select>
         </Field>
         <Field label={t.to}>
           <select value={toChain} onChange={(e) => setToChain(e.target.value)} className="upgrade-select">
-            {UPGRADE_SUPPORTED_CHAINS.map((chain) => (
+            {BRIDGE_CHAINS.map((chain) => (
               <option key={chain.id} value={chain.id}>{chain.label}</option>
             ))}
           </select>

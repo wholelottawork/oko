@@ -134,7 +134,7 @@ export function UpgradeWhitelistPanel({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-              placeholder="Optional label (e.g. Mother's Ethereum wallet)"
+              placeholder="Optional label (e.g. Mother's wallet)"
               className="text-sm px-3 py-2 rounded-lg outline-none min-w-0"
               style={{
                 background: 'var(--surface-secondary)',
@@ -150,7 +150,7 @@ export function UpgradeWhitelistPanel({
                   setError('')
                 }}
                 onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                placeholder="Wallet address (0x...)"
+                placeholder="Wallet address (0x... or Solana)"
                 className="flex-1 text-sm px-3 py-2 rounded-lg outline-none font-mono min-w-0"
                 style={{
                   background: 'var(--surface-secondary)',

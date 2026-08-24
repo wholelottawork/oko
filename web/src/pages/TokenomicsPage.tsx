@@ -12,7 +12,7 @@ import { useSystemConfig } from '../hooks/useSystemConfig'
 const TOTAL_SUPPLY = 1_000_000_000
 
 const ALLOCATIONS = [
-  { label: 'Public Sale',           pct: 55, color: '#0EA5E9', desc: 'Robinhood Chain launch — fair and transparent distribution' },
+  { label: 'Public Sale',           pct: 55, color: '#0EA5E9', desc: 'Solana launch — fair and transparent distribution' },
   { label: 'Treasury',              pct: 20, color: '#33998C', desc: 'Protocol operations and long-term development' },
   { label: 'Liquidity',             pct: 15, color: '#6366F1', desc: 'DEX and CEX liquidity provisioning' },
   { label: 'Ecosystem',             pct: 10, color: '#2DD4BF', desc: 'Integrations, partnerships, and incentive programs' },
@@ -242,8 +242,8 @@ export function TokenomicsPage() {
           >
             {[
               { label: 'Total Supply',     value: `${fmt(TOTAL_SUPPLY)}`,  sub: 'tokens' },
-              { label: 'Token Standard',   value: 'ERC-20',                sub: 'EVM ecosystem' },
-              { label: 'Launch Network',   value: 'Robinhood',             sub: 'Ethereum Layer 2' },
+              { label: 'Token Standard',   value: 'SPL',                   sub: 'Solana ecosystem' },
+              { label: 'Launch Network',   value: 'Solana',                sub: 'Layer 1' },
               { label: 'TGE',              value: 'Q2 2026',               sub: 'Estimated' },
             ].map((s) => (
               <div key={s.label} className="rounded-2xl p-5 flex flex-col gap-1" style={cardStyle}>

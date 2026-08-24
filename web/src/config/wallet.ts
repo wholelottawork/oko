@@ -13,7 +13,6 @@ import {
 } from '@reown/appkit/networks'
 import { QueryClient } from '@tanstack/react-query'
 import type { AppKitNetwork } from '@reown/appkit-common'
-import { robinhood } from 'viem/chains'
 
 // Get projectId from https://dashboard.reown.com (formerly WalletConnect Cloud)
 const projectId =
@@ -39,7 +38,6 @@ const networks = [
   optimism,
   base,
   avalanche,
-  robinhood,
   solana,
 ] as [AppKitNetwork, ...AppKitNetwork[]]
 

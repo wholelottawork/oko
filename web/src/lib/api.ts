@@ -77,7 +77,6 @@ export interface UpgradeEligibilityResponse {
   configured: boolean
   address: string
   tokenAddress: string
-  chainId: number
   chainName: string
   decimals?: number
   threshold: number
@@ -157,8 +156,7 @@ export const api = {
       configured: false,
       address,
       tokenAddress: '',
-      chainId: 4663,
-      chainName: 'Robinhood Chain',
+      chainName: 'Solana',
       threshold: 150_000,
       totalBalance: 0,
       eligible: false,

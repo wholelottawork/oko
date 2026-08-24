@@ -1,6 +1,5 @@
 export const UPGRADE_MIN_TOKEN_BALANCE_FALLBACK = 150_000
-export const UPGRADE_CHAIN_ID = 4663
-export const UPGRADE_CHAIN_NAME = 'Robinhood Chain'
+export const UPGRADE_CHAIN_NAME = 'Solana'
 
 export const UPGRADE_SUPPORTED_CHAINS = [
   { id: '1', label: 'Ethereum' },

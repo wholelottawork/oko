@@ -41,9 +41,9 @@ export function UpgradePage() {
           : 'Need more OKO to unlock'
 
   const gateSubcopy = gate.status === 'unconfigured'
-    ? 'The holder gate is ready, but the OKO token contract has not been configured yet. Set UPGRADE_TOKEN_ADDRESS in the backend environment to enable Robinhood Chain balance checks.'
+    ? 'The holder gate is ready, but the OKO token mint has not been configured yet. Set UPGRADE_TOKEN_ADDRESS in the backend environment to enable Solana balance checks.'
     : gate.status === 'error'
-      ? gate.error || 'The app could not read your Robinhood Chain OKO balance. Make sure the connected wallet holds OKO on Robinhood Chain, then try again.'
+      ? gate.error || 'The app could not read your Solana OKO balance. Make sure the connected wallet holds OKO on Solana, then try again.'
     : gate.status === 'eligible'
       ? 'Your connected wallet qualifies for the Upgrade feature set.'
       : 'Holders of 150,000 OKO gain advanced bridge, assistant, and whitelist capabilities.'
@@ -168,8 +168,8 @@ export function UpgradePage() {
                   ) : null}
                   <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
                     {gate.tokenAddress
-                      ? `Robinhood Chain contract: ${gate.tokenAddress.slice(0, 6)}…${gate.tokenAddress.slice(-4)}`
-                      : 'Robinhood Chain token contract not configured yet.'}
+                      ? `Solana mint: ${gate.tokenAddress.slice(0, 6)}…${gate.tokenAddress.slice(-4)}`
+                      : 'Solana token mint not configured yet.'}
                   </span>
                 </div>
               </div>

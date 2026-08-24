@@ -1,5 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { useAppKit } from '@reown/appkit/react'
+import { useAppKit, useAppKitProvider } from '@reown/appkit/react'
+import { useAppKitConnection } from '@reown/appkit-adapter-solana/react'
+import type { Provider as SolanaProvider } from '@reown/appkit-utils/solana'
+import { PublicKey, SystemProgram, Transaction } from '@solana/web3.js'
+import {
+  getAssociatedTokenAddress,
+  createAssociatedTokenAccountInstruction,
+  createTransferInstruction,
+  getAccount,
+  TokenAccountNotFoundError,
+} from '@solana/spl-token'
 import { useSendTransaction, useWalletClient, useSwitchChain, useWriteContract, useBalance } from 'wagmi'
 import { parseUnits, erc20Abi as _erc20Abi, createPublicClient, http } from 'viem'
 import {
@@ -14,13 +24,46 @@ import {
   Info,
 } from 'lucide-react'
 import {
-  fetchTokenList,
-  resolveToken,
-  getRoute,
-  getStatus,
-  type SquidToken,
-  type SquidRoute,
-} from '../lib/squidRouter'
+  getMayanRoute,
+  executeMayanRoute,
+  isMayanSupportedChain,
+  resolveMayanToken,
+  toMayanChainName,
+  MAYAN_FORWARDER_CONTRACT,
+  type MayanRoute,
+  type ResolvedToken,
+} from '../lib/mayanRouter'
+
+/**
+ * Resolves both sides of a swap via Mayan's own per-chain token lists.
+ * Mayan covers every chain this app exposes to users (ethereum, bsc,
+ * polygon, arbitrum, optimism, base, avalanche, solana — see
+ * toMayanChainName in mayanRouter.ts), including pure EVM<->EVM pairs
+ * (verified directly against Mayan's live API: a Base->Arbitrum quote
+ * request returns real SWIFT quotes, no Solana leg required). So every
+ * route, not just Solana-touching ones, now goes through Mayan — Squid is
+ * no longer used anywhere in this component.
+ *
+ * Falls back to 'ethereum' for a missing/unrecognized chain hint (matches
+ * the old Squid-era default preference order, which also started at
+ * Ethereum). Chains Mayan doesn't cover (Fantom, Celo) can't resolve a
+ * non-native token through this path — an accepted tradeoff, see
+ * .sol_migrate/01-CONTEXT.md.
+ */
+async function resolveSwapPair(
+  fromSymbol: string,
+  fromChainHint: string | undefined,
+  toSymbol: string,
+  toChainHint: string | undefined
+): Promise<{ from: ResolvedToken | null; to: ResolvedToken | null }> {
+  const fromMayanChain = (fromChainHint ? toMayanChainName(fromChainHint) : null) ?? 'ethereum'
+  const toMayanChain = (toChainHint ? toMayanChainName(toChainHint) : null) ?? 'ethereum'
+  const [from, to] = await Promise.all([
+    resolveMayanToken(fromSymbol, fromMayanChain),
+    resolveMayanToken(toSymbol, toMayanChain),
+  ])
+  return { from, to }
+}
 
 export interface SwapIntent {
   action: string
@@ -75,7 +118,7 @@ const CHAIN_COLORS: Record<string, string> = {
   'solana-mainnet-beta': '#9945FF',
 }
 
-function TokenLogo({ token, size = 36 }: { token: SquidToken | null; size?: number }) {
+function TokenLogo({ token, size = 36 }: { token: ResolvedToken | null; size?: number }) {
   const [err, setErr] = useState(false)
   if (token?.logoURI && !err) {
     return (
@@ -133,7 +176,7 @@ function TokenPanel({
   usdValue,
 }: {
   label: string
-  token: SquidToken | null
+  token: ResolvedToken | null
   symbol: string
   amount?: string
   chainId?: string
@@ -194,20 +237,22 @@ function QuoteRow({ label, value, highlight }: { label: string; value: string; h
 export function SwapCard({ intent, address, language = 'en', destAddressOverride }: SwapCardProps) {
   const [state, setState] = useState<CardState>('preview')
   const [error, setError] = useState<string | null>(null)
-  const [route, setRoute] = useState<SquidRoute | null>(null)
-  const [requestId, setRequestId] = useState<string | null>(null)
+  const [mayanRoute, setMayanRoute] = useState<MayanRoute | null>(null)
   const [txHash, setTxHash] = useState<string | null>(null)
-  const [fromResolved, setFromResolved] = useState<SquidToken | null>(null)
-  const [toResolved, setToResolved] = useState<SquidToken | null>(null)
+  const [fromResolved, setFromResolved] = useState<ResolvedToken | null>(null)
+  const [toResolved, setToResolved] = useState<ResolvedToken | null>(null)
   const [resolveError, setResolveError] = useState<string | null>(null)
   const [destAddress, setDestAddress] = useState(destAddressOverride ?? '')
   const [needsDestAddress, setNeedsDestAddress] = useState(false)
+  const [solNativeLamports, setSolNativeLamports] = useState<number | null>(null)
 
   const { data: walletClient } = useWalletClient()
   const { switchChainAsync } = useSwitchChain()
   const { mutateAsync: sendTransactionAsync } = useSendTransaction()
   const { writeContractAsync } = useWriteContract()
   const { open: openWalletModal } = useAppKit()
+  const { walletProvider: solanaWalletProvider } = useAppKitProvider<SolanaProvider>('solana')
+  const { connection: solanaConnection } = useAppKitConnection()
 
   const isAllAmount = ['all', 'max', 'everything'].includes(intent.amount?.toLowerCase?.() ?? '')
 
@@ -217,19 +262,41 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
     query: { enabled: isAllAmount && !!address },
   })
 
+  // Fetch native SOL balance (lamports) when amount is "all"/"max" and the
+  // connected address is Solana-shaped. Mirrors the wagmi useBalance branch
+  // above but for the Solana namespace, which wagmi doesn't cover.
+  useEffect(() => {
+    if (!isAllAmount || !address || !solanaConnection) { setSolNativeLamports(null); return }
+    if (address.startsWith('0x')) return // EVM address, handled by nativeBalance above
+    let cancelled = false
+    solanaConnection.getBalance(new PublicKey(address)).then((lamports) => {
+      if (!cancelled) setSolNativeLamports(lamports)
+    }).catch(() => { if (!cancelled) setSolNativeLamports(null) })
+    return () => { cancelled = true }
+  }, [isAllAmount, address, solanaConnection])
+
   // Resolve "all"/"max" to the actual on-chain balance string.
-  // For native tokens uses wagmi's useBalance; for ERC-20 tokens
-  // the balance is resolved imperatively inside fetchQuote.
-  const resolveAmount = useCallback((token: SquidToken | null): string => {
+  // For EVM native tokens uses wagmi's useBalance; for native SOL uses the
+  // Solana balance fetched above; for ERC-20/SPL tokens the balance is
+  // resolved imperatively inside fetchQuote.
+  const resolveAmount = useCallback((token: ResolvedToken | null): string => {
     if (!isAllAmount) return intent.amount
+    const isSolanaToken = token?.chainId?.toLowerCase().includes('solana') ?? false
+    const isNativeSol = isSolanaToken && (!token?.address || token.address === 'So11111111111111111111111111111111111111112')
+    if (isNativeSol && solNativeLamports !== null) {
+      // Leave a small buffer for the network fee
+      const buffered = Math.floor(solNativeLamports * 0.995)
+      const decimals = token?.decimals ?? 9
+      return (buffered / 10 ** decimals).toFixed(decimals)
+    }
     const isNative = !token?.address || token.address.toLowerCase() === NATIVE_EVM.toLowerCase()
     if (isNative && nativeBalance) {
       // Leave 0.5% buffer for gas on native tokens
       const raw = nativeBalance.value * 995n / 1000n
       return (Number(raw) / 10 ** nativeBalance.decimals).toFixed(nativeBalance.decimals)
     }
-    return intent.amount // fallback — fetchQuote resolves ERC-20 imperatively
-  }, [isAllAmount, intent.amount, nativeBalance])
+    return intent.amount // fallback — fetchQuote resolves ERC-20/SPL imperatively
+  }, [isAllAmount, intent.amount, nativeBalance, solNativeLamports])
 
   const isTransfer = !!(intent.toAddress && intent.fromToken === intent.toToken)
 
@@ -266,9 +333,74 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
     (isEvmChain(a) && isEvmChain(b)) || (isSolanaChain(a) && isSolanaChain(b))
 
   const executeDirect = useCallback(async () => {
-    if (!address || !walletClient) { setError(t.connectWallet); setState('error'); return }
-    const to = (intent.toAddress || destAddress).trim() as `0x${string}`
+    const to = (intent.toAddress || destAddress).trim()
     if (!to) { setError('Missing destination address'); setState('error'); return }
+
+    const sym = intent.fromToken.toUpperCase()
+    // SOL is unambiguous — never an EVM token — so it's treated as a Solana
+    // send regardless of whether the parsed intent carried a fromChain hint,
+    // the same way ETH/BNB/etc below are treated as EVM natives without one.
+    const isSolanaSend = sym === 'SOL' || isSolanaChain(intent.fromChain ?? '')
+
+    if (isSolanaSend) {
+      if (!address || !solanaWalletProvider || !solanaConnection) {
+        setError('Connect a Solana wallet (e.g. Phantom) to continue')
+        setState('error')
+        return
+      }
+      let destPubkey: PublicKey
+      let owner: PublicKey
+      try {
+        destPubkey = new PublicKey(to)
+        owner = new PublicKey(address)
+      } catch {
+        setError('Destination is not a valid Solana address')
+        setState('error')
+        return
+      }
+      try {
+        const tx = new Transaction()
+
+        if (sym === 'SOL') {
+          setState('confirming')
+          const resolvedAmt = resolveAmount({ chainId: 'solana-mainnet-beta', address: '', symbol: 'SOL', name: 'Solana', decimals: 9 })
+          tx.add(SystemProgram.transfer({ fromPubkey: owner, toPubkey: destPubkey, lamports: parseUnits(resolvedAmt, 9) }))
+        } else {
+          setState('resolving')
+          const resolved = await resolveMayanToken(intent.fromToken, 'solana')
+          if (!resolved?.address) { setError('Could not resolve token mint address'); setState('error'); return }
+          setFromResolved(resolved)
+          setState('confirming')
+          const mint = new PublicKey(resolved.address)
+          const sourceAta = await getAssociatedTokenAddress(mint, owner)
+          const destAta = await getAssociatedTokenAddress(mint, destPubkey)
+          try {
+            await getAccount(solanaConnection, destAta)
+          } catch (e) {
+            if (e instanceof TokenAccountNotFoundError) {
+              tx.add(createAssociatedTokenAccountInstruction(owner, destAta, destPubkey, mint))
+            } else {
+              throw e
+            }
+          }
+          tx.add(createTransferInstruction(sourceAta, destAta, owner, parseUnits(resolveAmount(resolved), resolved.decimals)))
+        }
+
+        const { blockhash } = await solanaConnection.getLatestBlockhash()
+        tx.recentBlockhash = blockhash
+        tx.feePayer = owner
+        const signature = await solanaWalletProvider.signAndSendTransaction(tx)
+        setTxHash(signature)
+        setState('success')
+      } catch (e) {
+        setError(friendlyError(e))
+        setState('error')
+      }
+      return
+    }
+
+    if (!address || !walletClient) { setError(t.connectWallet); setState('error'); return }
+    const toHex = to as `0x${string}`
 
     const NATIVE_TOKENS: Record<string, { chainId: number; decimals: number }> = {
       ETH: { chainId: 1, decimals: 18 }, BNB: { chainId: 56, decimals: 18 },
@@ -277,7 +409,6 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
       ARB: { chainId: 42161, decimals: 18 }, OP: { chainId: 10, decimals: 18 },
       BASE: { chainId: 8453, decimals: 18 }, CELO: { chainId: 42220, decimals: 18 },
     }
-    const sym = intent.fromToken.toUpperCase()
     const native = NATIVE_TOKENS[sym]
 
     try {
@@ -290,11 +421,10 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
       const amountRaw = parseUnits(resolvedAmt, decimals)
       let hash: `0x${string}`
       if (native) {
-        hash = await sendTransactionAsync({ to, value: amountRaw, chainId: native.chainId })
+        hash = await sendTransactionAsync({ to: toHex, value: amountRaw, chainId: native.chainId })
       } else {
         setState('resolving')
-        await fetchTokenList()
-        const resolved = await resolveToken(intent.fromToken, intent.fromChain)
+        const resolved = await resolveMayanToken(intent.fromToken, (intent.fromChain ? toMayanChainName(intent.fromChain) : null) ?? 'ethereum')
         if (!resolved?.address) { setError('Could not resolve token contract address'); setState('error'); return }
         setFromResolved(resolved)
         setState('confirming')
@@ -302,7 +432,7 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
           address: resolved.address as `0x${string}`,
           abi: _erc20Abi,
           functionName: 'transfer',
-          args: [to, parseUnits(resolveAmount(resolved), resolved.decimals)],
+          args: [toHex, parseUnits(resolveAmount(resolved), resolved.decimals)],
         })
       }
       setTxHash(hash)
@@ -311,7 +441,7 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
       setError(friendlyError(e))
       setState('error')
     }
-  }, [address, walletClient, intent, destAddress, switchChainAsync, sendTransactionAsync, writeContractAsync, t.connectWallet])
+  }, [address, walletClient, intent, destAddress, switchChainAsync, sendTransactionAsync, writeContractAsync, t.connectWallet, solanaWalletProvider, solanaConnection, resolveAmount])
 
   const fetchQuote = useCallback(async () => {
     if (!address) { setError(t.connectWallet); setState('error'); return }
@@ -319,9 +449,7 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
     setError(null)
     setResolveError(null)
     try {
-      await fetchTokenList()
-      const from = await resolveToken(intent.fromToken, intent.fromChain)
-      const to = await resolveToken(intent.toToken, intent.toChain)
+      const { from, to } = await resolveSwapPair(intent.fromToken, intent.fromChain, intent.toToken, intent.toChain)
       if (!from || !to) { setResolveError('Could not resolve tokens'); setState('error'); return }
       setFromResolved(from)
       setToResolved(to)
@@ -335,9 +463,21 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
       if (crossChain && !destAddress) { setNeedsDestAddress(true); setState('preview'); return }
       const toAddr = crossChain ? destAddress : address
 
-      // Resolve "all"/"max" — for ERC-20 read balance imperatively via public client
+      // Resolve "all"/"max" — for ERC-20 read balance imperatively via public client;
+      // for SPL tokens read balance imperatively via the Solana connection.
       let resolvedAmt = resolveAmount(from)
-      if (isAllAmount && resolvedAmt === intent.amount && from.address && from.address.toLowerCase() !== NATIVE_EVM.toLowerCase()) {
+      if (isAllAmount && resolvedAmt === intent.amount && isSolanaChain(from.chainId) && from.address
+        && from.address !== 'So11111111111111111111111111111111111111112' && solanaConnection) {
+        try {
+          const owner = new PublicKey(address)
+          const resp = await solanaConnection.getParsedTokenAccountsByOwner(owner, { mint: new PublicKey(from.address) })
+          const total = resp.value.reduce((sum, acc) => {
+            const amt = acc.account.data.parsed?.info?.tokenAmount?.amount as string | undefined
+            return sum + (amt ? BigInt(amt) : 0n)
+          }, 0n)
+          resolvedAmt = (Number(total) / 10 ** from.decimals).toFixed(from.decimals)
+        } catch { /* fall through — will fail parseUnits below with a clear error rather than bridging "all" literally */ }
+      } else if (isAllAmount && resolvedAmt === intent.amount && from.address && from.address.toLowerCase() !== NATIVE_EVM.toLowerCase()) {
         try {
           const chainId = parseInt(from.chainId, 10)
           const RPC: Record<number, string> = {
@@ -362,18 +502,23 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
       const amountRaw = parseUnits(resolvedAmt, from.decimals).toString()
       setState('quote')
       setError(null)
-      const { route: r, requestId: rid } = await getRoute({
-        fromAddress: address, fromChain: from.chainId, fromToken: from.address,
-        fromAmount: amountRaw, toChain: to.chainId, toToken: to.address,
-        toAddress: toAddr, slippage: 1, slippageConfig: { autoMode: 1 },
+
+      if (!isMayanSupportedChain(from.chainId) || !isMayanSupportedChain(to.chainId)) {
+        setError('This chain pair is not supported by the Mayan bridge yet')
+        setState('error')
+        return
+      }
+      const mRoute = await getMayanRoute({
+        fromChainId: from.chainId, fromToken: from.address, fromAmount: amountRaw, fromDecimals: from.decimals,
+        toChainId: to.chainId, toToken: to.address, toDecimals: to.decimals, toAddress: toAddr,
+        slippageBps: 100,
       })
-      setRoute(r)
-      setRequestId(rid)
+      setMayanRoute(mRoute)
     } catch (e) {
       setError(friendlyError(e))
       setState('error')
     }
-  }, [address, intent, language, destAddress, isAllAmount, resolveAmount])
+  }, [address, intent, language, destAddress, isAllAmount, resolveAmount, solanaConnection])
 
   // Auto-fetch quote for swaps (not transfers) as soon as wallet is connected
   const autoFetched = useRef(false)
@@ -385,7 +530,7 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
   }, [address, isTransfer, state, fetchQuote])
 
   const needsApproval = (): boolean => {
-    if (!fromResolved || !route) return false
+    if (!fromResolved || !mayanRoute) return false
     const addr = fromResolved.address?.toLowerCase()
     if (!addr || addr === NATIVE_EVM) return false
     if (fromResolved.chainId?.includes('solana')) return false
@@ -393,57 +538,40 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
   }
 
   const executeSwap = useCallback(async () => {
-    if (!walletClient || !route || !address || !fromResolved) {
-      const missing = [!walletClient && 'walletClient', !route && 'route', !address && 'address', !fromResolved && 'fromResolved'].filter(Boolean)
+    if (!address || !mayanRoute || !fromResolved) {
+      const missing = [!address && 'address', !mayanRoute && 'route', !fromResolved && 'fromResolved'].filter(Boolean)
       setError(`Missing: ${missing.join(', ')}`)
       setState('error')
       return
     }
-    const txReq = route.transactionRequest
-    const txTarget = txReq?.target || txReq?.targetAddress
-    if (!txTarget || !txReq?.data) {
-      setError(`Invalid transaction request — target: ${txTarget}, data: ${txReq?.data ? 'ok' : 'missing'}`)
-      setState('error')
-      return
-    }
-    const chainId = parseInt(fromResolved.chainId, 10)
-    if (isNaN(chainId)) { setError('Chain not supported'); setState('error'); return }
+    const toAddr = (intent.toAddress || destAddress || address).trim()
     try {
-      if (walletClient.chain?.id !== chainId && switchChainAsync) await switchChainAsync({ chainId })
       if (needsApproval() && writeContractAsync) {
         setState('approving')
         await writeContractAsync({
           address: fromResolved.address as `0x${string}`,
           abi: [{ name: 'approve', type: 'function', inputs: [{ name: 'spender', type: 'address' }, { name: 'amount', type: 'uint256' }], outputs: [{ type: 'bool' }] }] as const,
           functionName: 'approve',
-          args: [txTarget as `0x${string}`, parseUnits(resolveAmount(fromResolved), fromResolved.decimals)],
+          args: [MAYAN_FORWARDER_CONTRACT as `0x${string}`, parseUnits(resolveAmount(fromResolved), fromResolved.decimals)],
         })
       }
       setState('confirming')
-      const hash = await sendTransactionAsync({
-        to: txTarget as `0x${string}`,
-        data: txReq.data as `0x${string}`,
-        value: txReq.value ? BigInt(txReq.value) : 0n,
-        gas: txReq.gasLimit ? BigInt(txReq.gasLimit) : undefined,
+      const { hash } = await executeMayanRoute(mayanRoute, address, toAddr, {
+        solanaProvider: solanaWalletProvider,
+        solanaConnection,
+        evmWalletClient: walletClient,
       })
       setTxHash(hash)
-      setState('pending')
-      if (requestId && fromResolved && toResolved) {
-        const done = ['success', 'partial_success', 'needs_gas', 'not_found']
-        for (let i = 0; i < 30; i++) {
-          await new Promise((r) => setTimeout(r, 3000))
-          try {
-            const status = await getStatus(hash, requestId, fromResolved.chainId, toResolved.chainId, route.quoteId)
-            if (done.includes(status.squidTransactionStatus)) { setState('success'); return }
-          } catch { /* keep polling */ }
-        }
-      }
+      // Mayan status polling (via the Mayan Explorer API) is not wired up yet.
+      // The tx/order hash is captured and shown, but we move straight to
+      // "success" once the transaction is submitted rather than tracking
+      // bridge completion.
       setState('success')
     } catch (e) {
       setError(friendlyError(e))
       setState('error')
     }
-  }, [walletClient, route, address, fromResolved, toResolved, intent, requestId, switchChainAsync, sendTransactionAsync, writeContractAsync, language])
+  }, [address, fromResolved, intent, mayanRoute, destAddress, solanaWalletProvider, solanaConnection, walletClient, writeContractAsync, resolveAmount])
 
   const friendlyError = (e: unknown): string => {
     const msg = e instanceof Error ? e.message : String(e)
@@ -456,35 +584,43 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
     const map: Record<string, string> = {
       '1': 'https://etherscan.io', '42161': 'https://arbiscan.io', '56': 'https://bscscan.com',
       '137': 'https://polygonscan.com', '8453': 'https://basescan.org', '10': 'https://optimistic.etherscan.io',
+      'solana-mainnet-beta': 'https://solscan.io',
     }
-    const base = (fromResolved?.chainId && map[fromResolved.chainId]) || 'https://etherscan.io'
+    const chainId = fromResolved?.chainId
+    if (chainId && isSolanaChain(chainId)) return `https://solscan.io/tx/${hash}`
+    const base = (chainId && map[chainId]) || 'https://etherscan.io'
     return `${base}/tx/${hash}`
   }
 
-  const isEVM = fromResolved?.chainId && !fromResolved.chainId.includes('solana') && !isNaN(parseInt(fromResolved.chainId, 10))
-  const canExecute = !!walletClient && isEVM
+  const isSourceSolana = fromResolved?.chainId ? isSolanaChain(fromResolved.chainId) : false
+  const canExecute = isSourceSolana ? !!solanaWalletProvider && !!solanaConnection : !!walletClient
 
   // ── Quote details ──────────────────────────────────────────────
   // Resolved "from" amount — substitutes actual balance when intent.amount is "all"/"max"
   const displayFromAmount = isAllAmount ? resolveAmount(fromResolved) : intent.amount
 
-  const toAmountFormatted = route && toResolved
-    ? (Number(route.estimate.toAmount) / 10 ** toResolved.decimals).toLocaleString(undefined, { maximumFractionDigits: 6 })
+  // Mayan's Quote reports expectedAmountOut/minAmountOut as
+  // decimal-normalized numbers (not raw base units).
+  const toAmountNum = mayanRoute ? mayanRoute.quote.expectedAmountOut : null
+  const toAmountMinNum = mayanRoute ? mayanRoute.quote.minAmountOut : null
+
+  const toAmountFormatted = toAmountNum !== null
+    ? toAmountNum.toLocaleString(undefined, { maximumFractionDigits: 6 })
     : null
-  const toAmountMinFormatted = route && toResolved
-    ? (Number(route.estimate.toAmountMin) / 10 ** toResolved.decimals).toLocaleString(undefined, { maximumFractionDigits: 6 })
+  const toAmountMinFormatted = toAmountMinNum !== null
+    ? toAmountMinNum.toLocaleString(undefined, { maximumFractionDigits: 6 })
     : null
   const rateStr = (() => {
-    if (!route || !toResolved || !fromResolved) return null
-    const toAmt = Number(route.estimate.toAmount) / 10 ** toResolved.decimals
+    if (toAmountNum === null || !fromResolved) return null
     const fromAmt = Number(displayFromAmount)
-    if (!fromAmt || isNaN(toAmt) || isNaN(fromAmt)) return null
-    const rate = toAmt / fromAmt
+    if (!fromAmt || isNaN(toAmountNum) || isNaN(fromAmt)) return null
+    const rate = toAmountNum / fromAmt
     return `1 ${intent.fromToken} ≈ ${rate.toLocaleString(undefined, { maximumFractionDigits: 6 })} ${intent.toToken}`
   })()
-  const gasStr = route?.estimate?.gasCosts?.[0]
-    ? `${(Number(route.estimate.gasCosts[0].amount) / 1e18).toLocaleString(undefined, { maximumFractionDigits: 6 })} ${route.estimate.gasCosts[0].token.symbol}`
-    : null
+  // Mayan's Quote doesn't expose a single "gas" line item — its fees are
+  // split across swapRelayerFee/redeemRelayerFee/bridgeFee/etc — so the gas
+  // row is omitted rather than showing a misleading number.
+  const gasStr = null
 
   // ── Inline styles ─────────────────────────────────────────────
   const cardStyle = {
@@ -568,7 +704,7 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
             )}
           </div>
           <button
-            onClick={() => { autoFetched.current = false; setState('preview'); setError(null); setResolveError(null); setRoute(null); setNeedsDestAddress(false); setDestAddress('') }}
+            onClick={() => { autoFetched.current = false; setState('preview'); setError(null); setResolveError(null); setMayanRoute(null); setNeedsDestAddress(false); setDestAddress('') }}
             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium transition-colors hover:bg-white/10"
             style={{ color: 'var(--accent-primary)', border: '1px solid rgba(51,153,140,0.3)' }}
           >
@@ -627,7 +763,7 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
   }
 
   // ── Resolving / fetching route ────────────────────────────────
-  if (state === 'resolving' || (state === 'quote' && !route)) {
+  if (state === 'resolving' || (state === 'quote' && !mayanRoute)) {
     return (
       <div style={cardStyle} className="p-5">
         <div className="flex flex-col items-center gap-4 py-3">
@@ -745,7 +881,7 @@ export function SwapCard({ intent, address, language = 'en', destAddressOverride
               type="text"
               value={destAddress}
               onChange={(e) => setDestAddress(e.target.value)}
-              placeholder={'Destination address (0x...)'}
+              placeholder={'Destination address (0x... or Solana)'}
               className="w-full px-3 py-2.5 rounded-xl text-xs outline-none"
               style={{
                 background: 'rgba(15,26,31,0.8)', border: '1px solid rgba(51,153,140,0.3)',

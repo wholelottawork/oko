@@ -36,7 +36,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
@@ -302,7 +301,7 @@ func (s *Server) handleHealth(c *gin.Context) {
 // handleGetSystemConfig Get system configuration (configuration that client needs to know)
 func (s *Server) handleGetSystemConfig(c *gin.Context) {
 	cfg := config.Get()
-	upgradeTokenConfigured := common.IsHexAddress(cfg.UpgradeTokenAddress)
+	upgradeTokenConfigured := wallet.IsSolanaAddress(cfg.UpgradeTokenAddress)
 
 	c.JSON(http.StatusOK, gin.H{
 		"registration_enabled": cfg.RegistrationEnabled,
@@ -311,8 +310,7 @@ func (s *Server) handleGetSystemConfig(c *gin.Context) {
 		"upgrade_gate": gin.H{
 			"configured":    upgradeTokenConfigured,
 			"token_address": cfg.UpgradeTokenAddress,
-			"chain_id":      cfg.UpgradeChainID,
-			"chain_name":    "Robinhood Chain",
+			"chain_name":    "Solana",
 			"threshold":     cfg.UpgradeMinTokenBalance,
 		},
 	})

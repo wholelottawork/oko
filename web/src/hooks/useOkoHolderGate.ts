@@ -3,7 +3,6 @@ import { useAppKitAccount } from '@reown/appkit/react'
 import { api } from '../lib/api'
 import { useSystemConfig } from './useSystemConfig'
 import {
-  UPGRADE_CHAIN_ID,
   UPGRADE_CHAIN_NAME,
   UPGRADE_MIN_TOKEN_BALANCE_FALLBACK,
 } from '../lib/upgradeConfig'
@@ -20,7 +19,6 @@ export interface OkoHolderGateState {
   status: GateStatus
   address?: string
   tokenAddress: string
-  chainId: number
   chainName: string
   threshold: number
   totalBalance: number
@@ -32,7 +30,7 @@ export interface OkoHolderGateState {
 }
 
 export function useOkoHolderGate(): OkoHolderGateState {
-  const { address, isConnected } = useAppKitAccount()
+  const { address, isConnected } = useAppKitAccount({ namespace: 'solana' })
   const { config, loading: configLoading } = useSystemConfig()
   const upgradeConfig = config?.upgrade_gate
   const previewMode =
@@ -44,7 +42,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
   >({
     status: isConnected ? 'checking' : 'disconnected',
     tokenAddress: '',
-    chainId: UPGRADE_CHAIN_ID,
     chainName: UPGRADE_CHAIN_NAME,
     threshold: UPGRADE_MIN_TOKEN_BALANCE_FALLBACK,
     totalBalance: 0,
@@ -55,7 +52,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
   useEffect(() => {
     const threshold =
       upgradeConfig?.threshold ?? UPGRADE_MIN_TOKEN_BALANCE_FALLBACK
-    const chainId = upgradeConfig?.chain_id ?? UPGRADE_CHAIN_ID
     const chainName = upgradeConfig?.chain_name ?? UPGRADE_CHAIN_NAME
     const tokenAddress = upgradeConfig?.token_address ?? ''
 
@@ -63,7 +59,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
       setState({
         status: 'disconnected',
         tokenAddress,
-        chainId,
         chainName,
         threshold,
         totalBalance: 0,
@@ -85,7 +80,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
         setState({
           status: previewMode === 'eligible' ? 'eligible' : 'ineligible',
           tokenAddress,
-          chainId,
           chainName,
           threshold,
           totalBalance,
@@ -97,7 +91,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
       setState({
         status: 'unconfigured',
         tokenAddress,
-        chainId,
         chainName,
         threshold,
         totalBalance: 0,
@@ -112,7 +105,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
       ...prev,
       status: 'checking',
       tokenAddress,
-      chainId,
       chainName,
       threshold,
       deploymentsChecked: 1,
@@ -127,7 +119,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
           setState({
             status: 'unconfigured',
             tokenAddress: '',
-            chainId: response.chainId,
             chainName: response.chainName,
             threshold: response.threshold,
             totalBalance: 0,
@@ -140,7 +131,6 @@ export function useOkoHolderGate(): OkoHolderGateState {
         setState({
           status: response.eligible ? 'eligible' : 'ineligible',
           tokenAddress: response.tokenAddress,
-          chainId: response.chainId,
           chainName: response.chainName,
           threshold: response.threshold,
           totalBalance: response.totalBalance,
@@ -154,16 +144,15 @@ export function useOkoHolderGate(): OkoHolderGateState {
         const message =
           error instanceof Error
             ? error.message
-            : 'Failed to read the Robinhood Chain token balance'
+            : 'Failed to read the Solana token balance'
         const friendlyMessage = message
           .toLowerCase()
-          .includes('valid evm address')
-          ? 'Connected wallet is not a valid EVM address. Connect the wallet that holds your OKO on Robinhood Chain.'
+          .includes('valid solana address')
+          ? 'Connected wallet is not a valid Solana address. Connect the wallet that holds your OKO on Solana.'
           : message
         setState({
           status: 'error',
           tokenAddress,
-          chainId,
           chainName,
           threshold,
           totalBalance: 0,

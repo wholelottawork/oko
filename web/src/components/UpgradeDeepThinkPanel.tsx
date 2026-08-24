@@ -5,6 +5,8 @@ import { api } from '../lib/api'
 import { apiUrl } from '../lib/config'
 import { resolveWhitelistedNames, type WhitelistEntry } from '../lib/upgradeWhitelist'
 import { UpgradeBridgeCard } from './UpgradeBridgeCard'
+import { InlineSwapWidget } from './InlineSwapWidget'
+import type { WalletChatSwapIntent } from '../lib/api'
 
 interface UpgradeDeepThinkPanelProps {
   eligible: boolean
@@ -17,6 +19,7 @@ type ChatMessage = {
   id: string
   role: 'user' | 'assistant' | 'system'
   content: string
+  swapIntent?: WalletChatSwapIntent
 }
 
 export function UpgradeDeepThinkPanel({
@@ -112,7 +115,7 @@ export function UpgradeDeepThinkPanel({
     scrollToBottom()
 
     try {
-      const { reply } = await api.postWalletChat(
+      const { reply, swapIntent } = await api.postWalletChat(
         address,
         {
           message: resolved,
@@ -122,7 +125,10 @@ export function UpgradeDeepThinkPanel({
         },
         'en'
       )
-      setMessages((prev) => [...prev, { id: `a-${Date.now()}`, role: 'assistant', content: reply }])
+      setMessages((prev) => [
+        ...prev,
+        { id: `a-${Date.now()}`, role: 'assistant', content: reply, swapIntent: swapIntent ?? undefined },
+      ])
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -249,6 +255,9 @@ export function UpgradeDeepThinkPanel({
               }}
             >
               <div className="whitespace-pre-wrap">{message.content}</div>
+              {eligible && message.swapIntent && (
+                <InlineSwapWidget intent={message.swapIntent} language={language} />
+              )}
             </div>
           ))
         )}

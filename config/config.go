@@ -47,10 +47,10 @@ type Config struct {
 	SolanaRPCURL    string // Solana RPC URL for server-side token balance lookups
 	CoinGeckoAPIKey string // CoinGecko API for price stats (24h/7d/30d change, market cap)
 
-	// Upgrade holder gate (Robinhood Chain mainnet by default)
-	UpgradeTokenAddress    string
-	UpgradeRPCURL          string
-	UpgradeChainID         int64
+	// Upgrade holder gate (Solana mainnet-beta). Balance lookups reuse the
+	// existing HeliusAPIKey/SolanaRPCURL fields above — no separate RPC
+	// config for the gate.
+	UpgradeTokenAddress    string // SPL mint address (base58), no default — see Init()
 	UpgradeMinTokenBalance float64
 
 	// Market data provider API keys
@@ -93,9 +93,7 @@ func Init() {
 		DBUser:    "postgres",
 		DBName:    "oko",
 		DBSSLMode: "disable",
-		// Robinhood Chain mainnet defaults
-		UpgradeRPCURL:          "https://rpc.mainnet.chain.robinhood.com",
-		UpgradeChainID:         4663,
+		// Solana mainnet-beta. UpgradeTokenAddress has no default — see below.
 		UpgradeMinTokenBalance: 150000,
 	}
 
@@ -143,15 +141,9 @@ func Init() {
 
 	// Upgrade holder gate. The token address intentionally has no default so a
 	// deployment cannot accidentally grant access for the wrong contract.
+	// This is an SPL mint address (base58) on Solana mainnet-beta. Balance
+	// lookups reuse HELIUS_API_KEY / SOLANA_RPC_URL, loaded above.
 	cfg.UpgradeTokenAddress = strings.TrimSpace(os.Getenv("UPGRADE_TOKEN_ADDRESS"))
-	if v := strings.TrimSpace(os.Getenv("UPGRADE_RPC_URL")); v != "" {
-		cfg.UpgradeRPCURL = v
-	}
-	if v := strings.TrimSpace(os.Getenv("UPGRADE_CHAIN_ID")); v != "" {
-		if chainID, err := strconv.ParseInt(v, 10, 64); err == nil && chainID > 0 {
-			cfg.UpgradeChainID = chainID
-		}
-	}
 	if v := strings.TrimSpace(os.Getenv("UPGRADE_MIN_TOKEN_BALANCE")); v != "" {
 		if minimum, err := strconv.ParseFloat(v, 64); err == nil && minimum > 0 {
 			cfg.UpgradeMinTokenBalance = minimum
