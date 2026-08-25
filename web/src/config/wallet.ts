@@ -16,7 +16,7 @@ import type { AppKitNetwork } from '@reown/appkit-common'
 
 // Get projectId from https://dashboard.reown.com (formerly WalletConnect Cloud)
 const projectId =
-  import.meta.env.VITE_REOWN_PROJECT_ID || 'b56e18d47c72ab683b10814fe9495694'
+  import.meta.env.VITE_REOWN_PROJECT_ID || 'a134ef324774906f376e04c3451f3925'
 
 if (!projectId) {
   throw new Error('VITE_REOWN_PROJECT_ID is required for wallet connection')
